@@ -9,40 +9,66 @@ Este documento detalla el proceso de verificación de versión en la aplicación
 
 ## 1. Requerimiento
 
-Lo primero que la App hará cada vez que sea abierta será verificar si la versión instalada es la más actual. Para ello, cada vez que se abra la aplicación, se solicitará a la API la versión más actual de la misma y se comparará con la versión instalada.
+La aplicación implementa un sistema de verificación de versión que se ejecuta en **dos momentos específicos**:
+
+1. **Al cargar datos del cliente**: Cuando el usuario hace login o se autentica, la verificación se realiza usando la versión que viene en los datos del usuario (`appVersion` del endpoint `/mobile/client/data`).
+
+2. **Al abrir la aplicación**: Para futuras implementaciones, existe un endpoint dedicado `/mobile/check-version` que permite verificar la versión independientemente.
+
+### Comportamiento del Sistema:
 
 -   Si las versiones son **iguales**, se procederá con el flujo normal de la aplicación.
--   Si son **diferentes**, se mostrará una ventana informativa con un botón de redirección al store correspondiente para la descarga de la aplicación actualizada.
--   En caso de **error** en la comunicación con la API, se mostrará el error correspondiente con una opción para reintentar.
+-   Si son **diferentes**, la app redirige automáticamente a la pantalla de actualización (`AppVersionScreen`) y **bloquea el acceso** al resto de la aplicación.
+-   En caso de **error** en la comunicación con la API, se mantiene el estado actual y se permite continuar con el flujo normal.
 
-### 1.1. Variable Global de Versión
+### Variable Global de Versión
 
-La aplicación debe tener una variable global o de entorno que contenga la versión de la misma. Esta versión aparecerá en la parte inferior del panel lateral izquierdo desplegable de la aplicación.
+La aplicación mantiene una variable global que contiene la versión instalada, obtenida automáticamente usando `package_info_plus`. Esta versión se muestra en el panel lateral de la aplicación.
 
 ## 2. Especificación Técnica del API
 
-### 2.1. Endpoint de Verificación
+### 2.1. Verificación Integrada con Datos del Cliente
+
+La verificación principal se realiza a través del endpoint existente cuando el usuario hace login:
+
+**`GET`** `/mobile/client/data`
+
+-   **Request Headers**:
+
+    -   content-type: application/json
+    -   accept: application/json
+    -   Authorization: Bearer `{token}`
+    -   Language: "es"
+
+-   **Success Response** (incluye `appVersion`):
+
+```json
+{
+    "data": {
+        "appVersion": "1.2.2",
+        "id": 14,
+        "name": "Pedro",
+        "surname": "Martínez",
+        "email": "prueba@prueba.com",
+        "profile": { ... },
+        "job": { ... }
+    }
+}
+```
+
+### 2.2. Endpoint Dedicado de Verificación (Futuro)
+
+Para verificaciones independientes, existe el endpoint:
 
 **`GET`** `/mobile/check-version`
 
-#### Request
-
--   **URL Params**: None
 -   **Request Headers**:
+
     -   content-type: application/json
     -   accept: application/json
     -   Language: "es"
--   **Request Payload**: None
 
-#### Response
-
--   **Response Headers**:
-    -   content-type: application/json
-
-#### Success Response
-
--   **Code**: `200`
--   **Content**:
+-   **Success Response**:
 
 ```json
 {
@@ -52,94 +78,191 @@ La aplicación debe tener una variable global o de entorno que contenga la versi
 }
 ```
 
-#### Error Response
+### 2.3. Nota para Backend
 
--   **Code**: `400`
--   **Content**:
-
-```json
-{
-    "errors": [
-        {
-            "code": "Specific API Error",
-            "message": "Se ha producido un error, intente nuevamente"
-        }
-    ]
-}
-```
-
-### 2.2. Nota para Backend
-
-La información de la versión estará almacenada en base de datos en la tabla `app_versions`. Se enviará a la App el contenido del campo `version` del último registro de dicha tabla.
+La información de la versión está almacenada en la tabla `app_versions` en la base de datos. Se envía el contenido del campo `version` del último registro de dicha tabla tanto en el endpoint de datos del cliente como en el endpoint dedicado de verificación.
 
 ## 3. Implementación
 
-El flujo implementado es gestionado por el sistema de enrutamiento (`GoRouter`) y un estado global (`AppState`), asegurando que la verificación de versión sea el primer paso obligatorio antes de acceder a cualquier otra parte de la aplicación.
+El flujo de verificación de versión está integrado con el sistema de autenticación y enrutamiento, ejecutándose automáticamente cuando el usuario se autentica.
 
-### 3.1. Punto de Entrada y Redirección
+### 3.1. Arquitectura de Componentes
 
-1. **Middleware de Rutas**: Al iniciar la aplicación, un `RouteMiddleware` intercepta la navegación.
-2. **Estado Global `AppState`**: El middleware consulta el `AppState`, que a su vez depende del `appVersionStateNotifierProvider`. Una propiedad clave de este estado es `isValidVersion`.
-3. **Redirección Inicial**: Por defecto, `isValidVersion` es `false`. Esto provoca que el router redirija forzosamente al usuario a la pantalla de verificación: `AppVersionScreen` (ruta `/app-version`).
+**Componentes principales:**
 
-### 3.2. Lógica de Verificación
+1. **`AppVersionStateNotifier`**: Provider que maneja el estado de verificación de versión
+2. **`AppVersionScreen`**: Pantalla que se muestra cuando se necesita actualizar
+3. **`RouteMiddleware`**: Middleware que intercepta navegación y redirige según el estado
+4. **`AppState`**: Estado global que incluye `appNeedsUpdate` basado en el provider de versión
 
-La `AppVersionScreen` es el núcleo del proceso:
+### 3.2. Flujo de Verificación Automática
 
-1. **Inicio de la Verificación**: Al construirse la pantalla (`initState`), invoca el método `checkVersion()` del `appVersionStateNotifierProvider`. Mientras tanto, muestra una interfaz de carga.
-2. **Ejecución Asíncrona (`checkVersion`)**:
-    - Obtiene la versión instalada en el dispositivo usando el paquete `package_info_plus`.
-    - Consulta la última versión disponible desde la API a través del `AppVersionRepository` usando el endpoint `GET /mobile/check-version`.
-    - Compara ambas versiones semánticamente (ej: "1.2.3" vs "1.2.2") usando el método `isNewerThan` de la `AppVersionEntity`.
-    - Finalmente, actualiza el `AppVersionState` con el resultado.
+**Momento de ejecución**: La verificación se ejecuta automáticamente durante el proceso de autenticación:
 
-### 3.3. Flujo del Usuario según el Resultado
+1. **Login del Usuario**: Cuando el usuario hace login exitoso, `AuthNotifier._setAuthenticatedState()` se ejecuta
+2. **Verificación Automática**: Se llama `_appVersionNotifier.checkVersionFromUserData(loginResponse.user.appVersion)`
+3. **Comparación de Versiones**:
+    - Obtiene versión instalada con `PackageInfo.fromPlatform()`
+    - Compara con `serverAppVersion` usando comparación semántica
+    - Actualiza `AppVersionState` con resultado (`needsUpdate: true/false`)
 
-La `AppVersionScreen` reacciona al estado del `appVersionStateNotifierProvider`:
+### 3.3. Lógica del Middleware de Rutas
 
--   **Actualización Disponible (`needsUpdate: true`)**:
+El `RouteMiddleware.shouldRedirect()` evalúa el estado y redirige según prioridades:
 
-    -   La pantalla muestra una vista informativa indicando que se necesita actualizar, junto con un botón "Actualizar Ahora".
-    -   Al presionar el botón, se redirige al usuario a la URL de la tienda de aplicaciones (`pisto.co`).
-    -   El usuario permanece en esta pantalla, ya que la condición `isValidVersion` sigue siendo `false`, bloqueando el acceso al resto de la app.
+```dart
+// Primera prioridad: Verificación de versión
+if (appState.appNeedsUpdate) {
+  return currentPath != AppVersionScreen.route
+      ? AppVersionScreen.route
+      : null;
+}
 
--   **Aplicación Actualizada (`isUpToDate: true`)**:
+// Continúa con otras verificaciones (onboarding, GPS, auth)...
+```
 
-    -   El estado `isValidVersion` en `AppState` se vuelve `true`.
-    -   La `AppVersionScreen` muestra un mensaje transitorio como "Todo listo, Redirigiendo...".
-    -   El `redirect` del router se re-evalúa. Al ser `isValidVersion` verdadero, el `RouteMiddleware` continúa con las siguientes verificaciones (Onboarding, GPS, Autenticación) y redirige al usuario a la pantalla que corresponda.
+**Comportamiento**:
 
--   **Error en la Verificación (`hasError: true`)**:
-    -   La pantalla muestra un mensaje de error claro (ej: "Error de conexión") y un botón "Reintentar".
-    -   Al presionar "Reintentar", se vuelve a ejecutar el método `checkVersion()`.
-    -   El usuario no puede continuar hasta que la verificación sea exitosa.
+-   Si `appNeedsUpdate` es `true`, **bloquea toda navegación** y fuerza redirección a `/app-version`
+-   El usuario queda "atrapado" en `AppVersionScreen` hasta actualizar la app
+-   No hay forma de continuar sin actualizar (comportamiento intencional)
+
+### 3.4. Pantalla de Actualización (`AppVersionScreen`)
+
+La pantalla muestra una interfaz simple con:
+
+-   **Logo de la aplicación**
+-   **Mensaje**: "Parece que necesitas actualizar versión"
+-   **Instrucciones**: "Entra a pisto.co para descargar la nueva version"
+-   **Botón "Actualizar Ahora"**: Redirige a `https://pisto.co` usando `url_launcher`
+
+**Características**:
+
+-   No tiene opción "Omitir" o "Cancelar" (bloqueo total)
+-   Abre el navegador externo al presionar "Actualizar Ahora"
+-   Permanece visible incluso después de volver del navegador
 
 ## 4. Diagrama del Flujo
 
 ```mermaid
 graph TD
     A[Inicio de la App] --> B[Router Middleware]
-    B --> C{Evalúa AppState.isValidVersion}
+    B --> C{Evalúa AppState.appNeedsUpdate}
 
-    C -->|False inicial| D[Navega a /app-version]
+    C -->|false| D[Continuar con flujo normal]
+    C -->|true| E[Redirigir a /app-version]
 
-    subgraph AppVersionScreen ["AppVersionScreen"]
-        D --> E[Llama a checkVersion]
-        E --> F[UI: Carga...]
-        E --> G[Obtener versión instalada]
-        E --> H[GET /mobile/check-version]
-        G --> I[Comparar versiones]
-        H --> I
+    E --> F[AppVersionScreen]
 
-        I -->|Nueva versión disponible| J[UI: Necesitas Actualizar con botón a Store]
-        I -->|Versiones iguales| K[UI: Redirigiendo... & Actualiza estado a isUpToDate:true]
-        E -->|Error de red/API| L[UI: Error con botón Reintentar]
-        L -->|Click| E
+    subgraph AppVersionScreen ["Pantalla de Actualización"]
+        F --> G[Mostrar mensaje de actualización]
+        G --> H[Botón: Actualizar Ahora]
+        H --> I[Abrir pisto.co en navegador]
+        I --> J[Usuario descarga nueva versión]
+        J --> K[Usuario instala nueva versión]
+        K --> L[Reiniciar app con nueva versión]
     end
 
-    K --> M[AppState.isValidVersion = True]
-    M --> B
+    subgraph AuthFlow ["Flujo de Autenticación"]
+        M[Usuario hace Login] --> N[AuthNotifier._setAuthenticatedState]
+        N --> O[checkVersionFromUserData llamado]
+        O --> P[Obtener versión instalada]
+        O --> Q[Recibir serverAppVersion]
+        P --> R[Comparar versiones]
+        Q --> R
+        R -->|Nueva versión disponible| S[needsUpdate = true]
+        R -->|Versiones iguales| T[needsUpdate = false]
+        S --> U[AppState.appNeedsUpdate = true]
+        T --> V[AppState.appNeedsUpdate = false]
+    end
 
-    C -->|True| N[Verificar Onboarding, GPS, Auth]
-    N --> O[Navegar a la pantalla correspondiente]
+    U --> B
+    V --> D
+    L --> A
+
+    D --> W[Verificar Onboarding]
+    W --> X[Verificar GPS]
+    X --> Y[Verificar Auth]
+    Y --> Z[Pantalla correspondiente]
+
+    style F fill:#ffcccc
+    style S fill:#ffcccc
+    style U fill:#ffcccc
 ```
+
+## 5. Manejo de Errores
+
+### 5.1. Estrategia Actual
+
+La implementación actual maneja errores de forma **conservadora**:
+
+```dart
+try {
+  // Verificación de versión
+  final needsUpdate = _isVersionNewer(serverAppVersion, currentVersion);
+  state = state.copyWith(needsUpdate: needsUpdate, isLoading: false);
+} catch (e) {
+  // En caso de error, NO bloquear la app
+  state = state.copyWith(
+    errorMessage: e.toString(),
+    isLoading: false,
+    hasBeenChecked: true,
+  );
+}
+```
+
+**Comportamiento con errores**:
+
+-   Si falla la comparación de versiones, se permite continuar con el flujo normal
+-   No se muestra pantalla de error al usuario
+-   Se registra el error en logs para debugging
+
+### 5.2. Diferencias con Requerimientos Originales
+
+**Requerimiento original P1D**: "_En caso de error en la comunicación con la API se mostrará el error correspondiente_"
+
+**Implementación actual**: No hay manejo de errores de UI porque la verificación se ejecuta durante el login, donde ya existe manejo de errores de autenticación.
+
+## 6. Notas de Implementación
+
+### 6.1. Comparación Semántica de Versiones
+
+La aplicación implementa comparación semántica personalizada:
+
+```dart
+bool _isVersionNewer(String serverVersion, String currentVersion) {
+  final serverParts = serverVersion.split('.').map(int.parse).toList();
+  final currentParts = currentVersion.split('.').map(int.parse).toList();
+
+  // Compara parte por parte (major.minor.patch)
+  for (int i = 0; i < maxLength; i++) {
+    if (serverParts[i] > currentParts[i]) return true;
+    if (serverParts[i] < currentParts[i]) return false;
+  }
+  return false; // Son iguales
+}
+```
+
+### 6.2. Estado Global Integrado
+
+La verificación de versión está integrada en el `AppState` global:
+
+```dart
+@freezed
+abstract class AppState with _$AppState {
+  const factory AppState({
+    @Default(false) bool appNeedsUpdate,  // 🎯 Flag de actualización
+    // ... otros estados
+  }) = _AppState;
+}
+```
+
+### 6.3. Prioridad en Middleware
+
+En el `RouteMiddleware`, la verificación de versión tiene **máxima prioridad**:
+
+1. ✅ **Verificación de versión** (bloquea todo)
+2. Onboarding
+3. GPS
+4. Autenticación
+5. Carga de contactos
