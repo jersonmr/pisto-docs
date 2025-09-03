@@ -35,8 +35,16 @@ export default defineConfig({
                 //     autogenerate: { directory: "reference" },
                 // },
                 {
-                    label: "Verificación de versión",
-                    autogenerate: { directory: "verificacion-de-version" },
+                    label: "01. Verificación de versión",
+                    slug: "verificacion-de-version",
+                },
+                {
+                    label: "02. Onboarding",
+                    slug: "onboarding",
+                },
+                {
+                    label: "03. Activación y Verificación de GPS",
+                    slug: "activacion-verificacion-de-gps",
                 },
             ],
         }),
