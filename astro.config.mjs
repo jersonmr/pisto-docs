@@ -46,6 +46,10 @@ export default defineConfig({
                     label: "03. Activación y Verificación de GPS",
                     slug: "activacion-verificacion-de-gps",
                 },
+                {
+                    label: "04. Registro de Usuario",
+                    slug: "registro-de-usuario",
+                },
             ],
         }),
     ],
