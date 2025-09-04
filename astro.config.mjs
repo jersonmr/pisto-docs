@@ -58,6 +58,10 @@ export default defineConfig({
                     label: "06. Autenticación de Usuario",
                     slug: "autenticacion-de-usuario",
                 },
+                {
+                    label: "07. Validación de Email",
+                    slug: "verificacion-de-email",
+                },
             ],
         }),
     ],
