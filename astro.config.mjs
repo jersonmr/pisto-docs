@@ -74,6 +74,10 @@ export default defineConfig({
                     label: "10. Cierre de Sesión",
                     slug: "cerrar-sesion",
                 },
+                {
+                    label: "11. Notificaciones del Cliente",
+                    slug: "notificaciones-del-cliente",
+                },
             ],
         }),
     ],
