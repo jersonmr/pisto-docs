@@ -67,7 +67,11 @@ export default defineConfig({
                     slug: "verificacion-de-email",
                 },
                 {
-                    label: "11. Cierre de Sesión",
+                    label: "09. Carga de Información del Cliente",
+                    slug: "carga-de-informacion-del-cliente",
+                },
+                {
+                    label: "10. Cierre de Sesión",
                     slug: "cerrar-sesion",
                 },
             ],
