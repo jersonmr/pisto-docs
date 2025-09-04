@@ -54,6 +54,10 @@ export default defineConfig({
                     label: "05. Recuperación de Contraseña",
                     slug: "recuperacion-de-contrasena",
                 },
+                {
+                    label: "06. Autenticación de Usuario",
+                    slug: "autenticacion-de-usuario",
+                },
             ],
         }),
     ],
