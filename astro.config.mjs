@@ -62,6 +62,10 @@ export default defineConfig({
                     label: "07. Validación de Email",
                     slug: "verificacion-de-email",
                 },
+                {
+                    label: "11. Cierre de Sesión",
+                    slug: "cerrar-sesion",
+                },
             ],
         }),
     ],
