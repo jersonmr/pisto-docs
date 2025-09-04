@@ -78,6 +78,10 @@ export default defineConfig({
                     label: "11. Notificaciones del Cliente",
                     slug: "notificaciones-del-cliente",
                 },
+                {
+                    label: "12. Actualizar Notificaciones del Cliente",
+                    slug: "actualizar-notificaciones",
+                },
             ],
         }),
     ],
