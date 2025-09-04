@@ -43,7 +43,7 @@ export default defineConfig({
                     slug: "onboarding",
                 },
                 {
-                    label: "03. Activación y Verificación de GPS",
+                    label: "03. Ubicación y GPS",
                     slug: "activacion-verificacion-de-gps",
                 },
                 {
@@ -67,7 +67,7 @@ export default defineConfig({
                     slug: "verificacion-de-email",
                 },
                 {
-                    label: "09. Carga de Información del Cliente",
+                    label: "09. Datos del Cliente",
                     slug: "carga-de-informacion-del-cliente",
                 },
                 {
