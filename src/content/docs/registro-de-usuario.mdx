@@ -174,105 +174,32 @@ lib/features/auth/
 
 ```mermaid
 graph TD
-    A[Inicio de la App] --> B[LoginOrRegisterScreen]
-    B --> C[Usuario presiona Registrate]
-    C --> D[RegisterScreen]
+    A[Pantalla Login] --> B[Clic en Registrate]
+    B --> C[RegisterScreen]
 
-    subgraph "Formulario de Registro"
-        D --> E[Campos del Formulario]
-        E --> F[Email Input]
-        E --> G[Password Input]
-        E --> H[Password Confirmation Input]
+    C --> D[Completar Formulario]
+    D --> E{Formulario Valido}
+    E -->|No| D
+    E -->|Si| F[Clic Registrarse]
 
-        F --> I{Validacion Email}
-        I -->|Valido| J[Email OK]
-        I -->|Invalido| K[Error Email]
+    F --> G[Registrando...]
+    G --> H{Respuesta API}
 
-        G --> L{Validacion Password}
-        L -->|Valido| M[Password OK]
-        L -->|Invalido| N[Error Password]
+    H -->|Exito| I[SnackBar Exito]
+    H -->|Error| J[SnackBar Error]
 
-        H --> O{Validacion Confirmacion}
-        O -->|Coincide| P[Confirmacion OK]
-        O -->|No coincide| Q[Error Confirmacion]
+    I --> K[Navegacion a Login]
+    K --> L[Usuario revisa email]
+    L --> M[Clic enlace verificacion]
+    M --> N[Usuario verificado]
 
-        J --> R{Formulario Completo}
-        M --> R
-        P --> R
+    J --> D
 
-        R -->|Si| S[Habilitar Boton Registrarse]
-        R -->|No| T[Deshabilitar Boton]
-
-        K --> T
-        N --> T
-        Q --> T
-    end
-
-    S --> U[Usuario presiona Registrarse]
-    U --> V[RegisterProvider register]
-    V --> W[Estado Loading]
-    W --> X[Llamada API POST mobile/register]
-
-    X --> Y{Respuesta API}
-
-    Y -->|201 Success| Z[Registro Exitoso]
-    Y -->|422 Validation Error| AA[Error de Validacion]
-    Y -->|409 Email Exists| BB[Email ya existe]
-    Y -->|400 Bad Request| CC[Bad Request]
-    Y -->|Network Error| DD[Error de Red]
-    Y -->|Other Error| EE[Error Inesperado]
-
-    subgraph "Manejo de Respuestas"
-        Z --> FF[SnackBar Verde Exito]
-        AA --> GG[SnackBar Rojo Error especifico]
-        BB --> HH[SnackBar Rojo Email registrado]
-        CC --> II[SnackBar Rojo Mensaje servidor]
-        DD --> JJ[SnackBar Rojo Error de conexion]
-        EE --> KK[SnackBar Rojo Error inesperado]
-
-        FF --> LL[Navegacion a Login]
-        GG --> MM[Permanecer en Registro]
-        HH --> MM
-        II --> MM
-        JJ --> MM
-        KK --> MM
-    end
-
-    LL --> NN[LoginOrRegisterScreen]
-    NN --> OO[Usuario revisa email]
-
-    subgraph "Verificacion de Email"
-        OO --> PP{Email recibido}
-        PP -->|Si| QQ[Clic en enlace de verificacion]
-        PP -->|No| RR[EmailVerificationScreen]
-
-        RR --> SS[Boton Reenviar codigo]
-        SS --> TT[API call para reenvio]
-        TT --> UU{Reenvio exitoso}
-        UU -->|Si| VV[Confirmacion de reenvio]
-        UU -->|No| WW[Error en reenvio]
-
-        VV --> OO
-        WW --> RR
-
-        QQ --> XX[Backend actualiza usuario]
-        XX --> YY[Status 2 validated_at]
-        YY --> ZZ[Generacion de promocode]
-    end
-
-    ZZ --> AAA[Usuario verificado y activo]
-    MM --> BBB[Corregir errores y reintentar]
-    BBB --> D
-
-    style D fill:#e1f5fe
-    style Z fill:#c8e6c9
-    style AA fill:#ffcdd2
-    style BB fill:#ffcdd2
-    style CC fill:#ffcdd2
-    style DD fill:#ffcdd2
-    style EE fill:#ffcdd2
-    style AAA fill:#4caf50
-    style W fill:#fff3e0
+    style C fill:#e1f5fe
+    style I fill:#c8e6c9
+    style J fill:#ffcdd2
+    style G fill:#fff3e0
+    style N fill:#4caf50
 ```
 
 ## Estados de Usuario en Backend
