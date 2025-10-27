@@ -1,0 +1,770 @@
+---
+title: Flujo de rechazo de préstamo en Pisto
+slug: rechazo-de-prestamo
+tags: [auth, my-loan, flutter, riverpod, dio]
+description: Flujo de rechazo de préstamo en la aplicación Pisto.
+---
+
+## Descripción General
+
+El **flujo de rechazo de préstamo** permite a usuarios **rechazar deliberadamente** un préstamo que ha sido ofrecido o aprobado por el sistema. Este es un flujo poco común pero importante para casos donde:
+
+-   El usuario cambió de opinión
+-   Las condiciones no son favorables
+-   El usuario necesita diferir el préstamo
+-   El usuario prefiere no endeudarse en este momento
+
+### 📊 Estructura de Pantallas
+
+```
+┌────────────────────────┐
+│ Pantalla de Préstamo   │
+│ Oferta Disponible      │
+└────────┬───────────────┘
+         │
+    [Rechazar]
+         │
+┌────────▼────────────────────────┐
+│ LoanRejectionScreen             │
+│ ¿Por qué rechazas este préstamo?│
+│                                 │
+│ • Motivo 1: "No lo necesito"    │
+│ • Motivo 2: "Tasas altas"       │
+│ • Motivo 3: "Por ahora no"      │
+│ • Motivo 4: "Otro"              │
+└────────┬────────────────────────┘
+         │
+    [Confirmar rechazo]
+         │
+┌────────▼──────────────────────┐
+│ POST /client/refuse-loan       │
+│ { reason: "..." }              │
+└────────┬──────────────────────┘
+         │
+    ✅ Éxito / ❌ Error
+         │
+┌────────▼──────────────────────┐
+│ LoanRejectionSuccessScreen     │
+│ "Préstamo rechazado"           │
+│                                │
+│ [Volver al Dashboard]          │
+└────────────────────────────────┘
+```
+
+### ✨ Características Principales
+
+-   ✅ **Razones dinámicas**: Cargadas desde servidor
+-   ✅ **Confirmación clara**: Usuario confirma su decisión
+-   ✅ **Feedback positivo**: Pantalla de éxito
+-   ✅ **Auditoría completa**: Se registra razón del rechazo
+-   ✅ **Sin penalizaciones**: El usuario puede solicitar de nuevo
+
+---
+
+## Contexto y Escenarios
+
+### 🎯 ¿Cuándo aparece este flujo?
+
+**Escenarios de uso:**
+
+1. **En pantalla de préstamo aprobado**
+
+    - Usuario ve monto ofrecido
+    - Presiona botón "Rechazar"
+    - Se abre modal de rechazo
+
+2. **Desde notificación de aprobación**
+
+    - Sistema notifica al usuario: "Tu préstamo fue aprobado"
+    - Usuario abre notificación
+    - Opción para rechazar está disponible
+
+3. **En historial de préstamos**
+    - Usuario ve préstamo pendiente de aceptación
+    - Presiona "..."
+    - Opción: "Rechazar este préstamo"
+
+### 💡 Razones de Rechazo (Ejemplos)
+
+Las razones son **dinámicas** (cargadas del servidor):
+
+```
+Ejemplos de razones que el servidor puede proporcionar:
+
+1. "No lo necesito en este momento"
+2. "Las tasas de interés son demasiado altas"
+3. "Prefiero diferir a un mejor momento"
+4. "Cambié de opinión"
+5. "Encontré una mejor opción"
+6. "Razones personales"
+7. "Otro (especificar)"
+```
+
+### 🚫 Situaciones donde NO se puede rechazar
+
+```
+❌ Préstamo ya desembolsado
+❌ Préstamo en período de gracia
+❌ Préstamo con pagos vencidos
+❌ Préstamo siendo refinanciado
+```
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+Si Pisto te ofrece un préstamo pero decidiste que no lo necesitas o las condiciones no te favorecen, puedes rechazarlo fácilmente sin penalización.
+
+### 📍 Ubicación en la App
+
+**Ubicaciones donde puedes rechazar:**
+
+1. **Dashboard**
+
+    - Tarjeta de "Préstamo disponible"
+    - Botón "⋮" (tres puntos) → "Rechazar"
+
+2. **Pantalla de Oferta**
+
+    - Monto aprobado: $500
+    - Plazo: 30 días
+    - Botón "Rechazar este préstamo"
+
+3. **Notificaciones**
+    - "Tu préstamo fue aprobado"
+    - Abre notificación
+    - Botón "Rechazar oferta"
+
+### 🚀 Flujo Paso a Paso
+
+#### **Paso 1: Indicar Rechazo**
+
+Usuario presiona cualquier botón "Rechazar":
+
+```
+Dashboard → Préstamo Disponible
+   ↓
+Presiona: "⋮ Opciones"
+   ↓
+Menú aparece:
+  ├─ Aceptar préstamo
+  └─ Rechazar préstamo
+   ↓
+Presiona: "Rechazar préstamo"
+```
+
+#### **Paso 2: Modal de Rechazo**
+
+Se muestra modal con título y explicación:
+
+**Modal:**
+
+```
+╔════════════════════════════════════╗
+║ ¿Por qué rechazas este préstamo?   ║
+╠════════════════════════════════════╣
+║                                    ║
+║ Si rechazas, no podrás acceder a   ║
+║ este préstamo. Puedes solicitar    ║
+║ uno nuevo en el futuro.            ║
+║                                    ║
+║ Selecciona un motivo:              ║
+║                                    ║
+║ ◯ No lo necesito ahora             ║
+║ ◯ Las tasas son muy altas          ║
+║ ◯ Prefiero esperar                 ║
+║ ◯ Razones personales               ║
+║ ◯ Otro (especificar)               ║
+║                                    ║
+║  [Cancelar]    [Confirmar Rechazo] ║
+╚════════════════════════════════════╝
+```
+
+**Qué ocurre:**
+
+1. Modal carga razones desde servidor
+2. Usuario selecciona una razón
+3. Si es "Otro", aparece campo de texto
+4. Usuario presiona "Confirmar Rechazo"
+
+#### **Paso 3: Confirmación**
+
+Confirmación adicional (si es apropiado):
+
+```
+¿Estás seguro?
+
+Una vez rechaces, este préstamo no
+estará disponible. Puedes solicitar
+uno nuevo en [fecha].
+
+[ No, cancelar ]  [ Sí, rechazar ]
+```
+
+#### **Paso 4: Envío a API**
+
+Sistema envía:
+
+```
+POST /client/refuse-loan
+{
+  "reason": "No lo necesito ahora"
+}
+```
+
+#### **Paso 5: Pantalla de Éxito**
+
+Se muestra confirmación:
+
+```
+╔══════════════════════════════════════╗
+║  ✅ Préstamo Rechazado               ║
+╠══════════════════════════════════════╣
+║                                      ║
+║  Tu préstamo ha sido rechazado       ║
+║  exitosamente.                       ║
+║                                      ║
+║  • Monto: $500                       ║
+║  • Plazo: 30 días                    ║
+║  • Razón: No lo necesito ahora       ║
+║                                      ║
+║  Puedes solicitar un nuevo préstamo  ║
+║  cuando lo necesites.                ║
+║                                      ║
+║         [Volver al Dashboard]        ║
+║                                      ║
+╚══════════════════════════════════════╝
+```
+
+**Información mostrada:**
+
+-   ✅ Confirmación de rechazo
+-   📊 Detalles del préstamo rechazado
+-   📝 Razón del rechazo
+-   ⏭️ Cuándo puede solicitar de nuevo
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Patrón Arquitectónico
+
+Flujo simple y lineal optimizado para operación rápida:
+
+```
+┌─────────────────────────────────────────────┐
+│ Presentation Layer (UI)                    │
+│                                             │
+│ ├─ LoanRejectionScreen      (Modal)         │
+│ └─ LoanRejectionSuccessScreen (Éxito)       │
+└─────────────────────────────────────────────┘
+                    ↑
+                    │ (Riverpod Consumers)
+        ┌───────────┴──────────┐
+        │                      │
+┌───────▼──────┐      ┌────────▼─────┐
+│ State Mgmt   │      │ State Mgmt   │
+│              │      │              │
+│ LoanRejection│      │ SelectedRej  │
+│ Notifier     │      │ ReasonNotif. │
+│              │      │              │
+│ AsyncValue   │      │ String?      │
+│ <Response>   │      │ (reason)     │
+└───────┬──────┘      └────────┬─────┘
+        │                      │
+        └──────────┬───────────┘
+                   │
+        ┌──────────▼──────────┐
+        │ Repository Layer    │
+        │                     │
+        │ LoanRejectionRepo   │
+        │ ├─ getRejectReasons │
+        │ └─ refuseLoan()     │
+        └──────────┬──────────┘
+                   │
+        ┌──────────▼──────────┐
+        │ Data Layer (APIs)   │
+        │                     │
+        │ GET /client/        │
+        │   reject-reasons    │
+        │                     │
+        │ POST /client/       │
+        │   refuse-loan       │
+        └─────────────────────┘
+```
+
+### 📦 Gestión de Estado con Riverpod
+
+```dart
+// Provider para razones de rechazo (cargadas de API)
+@riverpod
+Future<List<String>> rejectReasons(Ref ref) async {
+  final repository = ref.read(loanRejectionRepositoryProvider);
+  final response = await repository.getRejectReasons();
+  return response.data;
+}
+
+// Notifier para manejar rechazo (enviar a API)
+@riverpod
+class LoanRejectionNotifier extends _$LoanRejectionNotifier {
+  @override
+  AsyncValue<RefuseLoanResponse?> build() {
+    return const AsyncValue.data(null);
+  }
+
+  Future<void> refuseLoan(String reason) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(loanRejectionRepositoryProvider);
+      final response = await repository.refuseLoan(reason);
+      state = AsyncValue.data(response);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+}
+
+// Notifier para razón seleccionada
+@riverpod
+class SelectedRejectionReasonNotifier
+    extends _$SelectedRejectionReasonNotifier {
+  @override
+  String? build() => null;
+
+  void selectReason(String reason) => state = reason;
+  void clearSelection() => state = null;
+}
+```
+
+**Por qué AsyncValue:**
+
+-   Maneja 3 estados: loading, data, error
+-   UI reacciona automáticamente
+-   Manejo simple de errores
+-   No requiere keepAlive (operación de una sola vez)
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Secuencia Completa
+
+```
+INICIO: Usuario ve préstamo aprobado
+    ↓
+┌─ CARGA DE RAZONES
+│  ├─ GET /client/reject-reasons
+│  ├─ Response: ["No lo necesito", "Tasas altas", ...]
+│  └─ UI carga razones en dropdown/radio
+│
+├─ SELECCIÓN DE RAZÓN
+│  ├─ Usuario selecciona razón
+│  ├─ SelectedRejectionReasonNotifier.selectReason(reason)
+│  └─ state = reason
+│
+├─ CONFIRMACIÓN
+│  ├─ Usuario presiona "Confirmar Rechazo"
+│  ├─ Sistema valida que hay razón seleccionada
+│  └─ Procede con envío
+│
+├─ ENVÍO A API
+│  ├─ LoanRejectionNotifier.refuseLoan(reason)
+│  ├─ state = AsyncValue.loading()
+│  ├─ Mostrar spinner
+│  │
+│  ├─ POST /client/refuse-loan
+│  │  Body: { "reason": "No lo necesito ahora" }
+│  │  Headers: Authorization: Bearer <token>
+│  │
+│  └─ Response:
+│     {
+│       "status": 200,
+│       "message": "Préstamo rechazado exitosamente"
+│     }
+│
+├─ MANEJO DE RESPUESTA
+│  ├─ Si 200: state = AsyncValue.data(response)
+│  ├─ Si error: state = AsyncValue.error(error, stackTrace)
+│  └─ UI reacciona y navega accordingly
+│
+└─ ÉXITO
+   ├─ Mostrar LoanRejectionSuccessScreen
+   ├─ Resumen del rechazo
+   └─ Botón "Volver al Dashboard"
+```
+
+---
+
+## Componentes
+
+### 📦 Models
+
+#### RefuseLoanRequest
+
+```dart
+@freezed
+abstract class RefuseLoanRequest with _$RefuseLoanRequest {
+  const factory RefuseLoanRequest({
+    required String reason,
+  }) = _RefuseLoanRequest;
+
+  factory RefuseLoanRequest.fromJson(Map<String, dynamic> json) =>
+      _$RefuseLoanRequestFromJson(json);
+}
+```
+
+#### RefuseLoanResponse
+
+```dart
+@freezed
+abstract class RefuseLoanResponse with _$RefuseLoanResponse {
+  const factory RefuseLoanResponse({
+    required String message,
+    // Puede incluir: timestamp, requestId, etc.
+  }) = _RefuseLoanResponse;
+
+  factory RefuseLoanResponse.fromJson(Map<String, dynamic> json) =>
+      _$RefuseLoanResponseFromJson(json);
+}
+```
+
+#### RejectReasonsResponse
+
+```dart
+@freezed
+abstract class RejectReasonsResponse with _$RejectReasonsResponse {
+  const factory RejectReasonsResponse({
+    required List<String> data,  // Lista de razones
+  }) = _RejectReasonsResponse;
+
+  factory RejectReasonsResponse.fromJson(Map<String, dynamic> json) =>
+      _$RejectReasonsResponseFromJson(json);
+}
+```
+
+### 🔧 Repositories
+
+#### LoanRejectionRepository
+
+```dart
+class LoanRejectionRepository {
+  final HttpClient _httpClient;
+
+  LoanRejectionRepository(this._httpClient);
+
+  // Obtener razones de rechazo
+  Future<RejectReasonsResponse> getRejectReasons() async {
+    try {
+      final response = await _httpClient.get('/client/reject-reasons');
+      return RejectReasonsResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception('Error al obtener razones: ${e.message}');
+    }
+  }
+
+  // Rechazar préstamo
+  Future<RefuseLoanResponse> refuseLoan(String reason) async {
+    try {
+      final requestData = {'reason': reason};
+      final response = await _httpClient.post(
+        '/client/refuse-loan',
+        data: requestData,
+      );
+      return RefuseLoanResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception('Error al rechazar: ${e.message}');
+    }
+  }
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### Endpoint 1: Obtener Razones de Rechazo
+
+#### `GET /client/reject-reasons`
+
+**Descripción**: Obtiene la lista de razones disponibles para rechazar un préstamo.
+
+**Headers Requeridos**:
+
+```
+Authorization: Bearer <token_del_usuario>
+Language: es
+```
+
+**Response Exitosa (200 OK)**:
+
+```json
+{
+    "status": 200,
+    "data": [
+        "No lo necesito en este momento",
+        "Las tasas de interés son demasiado altas",
+        "Prefiero diferir a un mejor momento",
+        "Cambié de opinión",
+        "Razones personales",
+        "Otro"
+    ]
+}
+```
+
+**Respuestas de Error**:
+
+| Código | Situación      | Mensaje                  |
+| ------ | -------------- | ------------------------ |
+| 401    | No autenticado | "Usuario no autenticado" |
+| 500    | Error servidor | "Error interno"          |
+
+---
+
+### Endpoint 2: Rechazar Préstamo
+
+#### `POST /client/refuse-loan`
+
+**Descripción**: Rechaza el préstamo actualmente ofrecido.
+
+**Headers Requeridos**:
+
+```
+Content-Type: application/json
+Authorization: Bearer <token_del_usuario>
+Language: es
+```
+
+**Request Body**:
+
+```json
+{
+    "reason": "No lo necesito en este momento"
+}
+```
+
+**Validaciones servidor:**
+
+-   ✅ Token válido
+-   ✅ Usuario tiene préstamo en estado "oferecido" o "pendiente"
+-   ✅ Razón no está vacía
+-   ✅ Razón existe en lista de razones válidas (o es "Otro")
+
+**Response Exitosa (200 OK)**:
+
+```json
+{
+    "status": 200,
+    "message": "Préstamo rechazado exitosamente"
+}
+```
+
+**Respuestas de Error**:
+
+| Código | Situación                     | Mensaje                             |
+| ------ | ----------------------------- | ----------------------------------- |
+| 400    | Razón inválida                | "Razón no válida"                   |
+| 400    | No hay préstamo para rechazar | "No hay préstamo disponible"        |
+| 401    | No autenticado                | "Usuario no autenticado"            |
+| 422    | Préstamo no rechazable        | "Este préstamo no puede rechazarse" |
+| 500    | Error servidor                | "Error interno del servidor"        |
+
+---
+
+## Manejo de Errores
+
+### 🚨 Estrategia de Errores
+
+#### Errores Comunes
+
+```dart
+try {
+  await repository.refuseLoan(reason);
+} on DioException catch (e) {
+  if (e.response?.statusCode == 400) {
+    // Razón inválida o no hay préstamo
+    showSnackBar("No se puede rechazar este préstamo");
+  } else if (e.response?.statusCode == 401) {
+    // No autenticado
+    redirectToLogin();
+  } else if (e.response?.statusCode == 422) {
+    // Préstamo no rechazable
+    showSnackBar("Este préstamo está en estado no permitido");
+  } else {
+    // Error genérico
+    showSnackBar("Error al rechazar el préstamo");
+  }
+}
+```
+
+### 📊 Árbol de Decisión
+
+```
+Error en Rechazo
+    │
+    ├─ 400: Validación
+    │   ├─ "Razón inválida"
+    │   │   └─ Seleccionar razón válida
+    │   └─ "No hay préstamo"
+    │       └─ Volver al inicio
+    │
+    ├─ 401: Autenticación
+    │   └─ Redirigir a login
+    │
+    ├─ 422: Estado inválido
+    │   └─ "Préstamo ya desembolsado"
+    │       → Mostrar mensaje explicativo
+    │
+    └─ 5xx: Servidor
+        └─ "Error del servidor, intenta más tarde"
+```
+
+---
+
+## Casos de Uso
+
+### 📖 Escenarios Reales
+
+#### Caso 1: Usuario cambió de opinión
+
+```
+Situación:
+  Usuario solicita préstamo → Es aprobado → Recibe notificación
+
+Mientras espera desembolso, cambia de opinión.
+
+Acciones:
+  1. Abre app
+  2. Ve "Préstamo disponible: $500"
+  3. Presiona "Rechazar"
+  4. Selecciona "Cambié de opinión"
+  5. Presiona "Confirmar Rechazo"
+
+Resultado:
+  Préstamo rechazado ✅
+  Mensaje de éxito mostrado
+  Dashboard actualizado
+```
+
+#### Caso 2: Condiciones no favorables
+
+```
+Situación:
+  Usuario ve oferta pero tasas son muy altas
+
+Acciones:
+  1. Toca modal de préstamo
+  2. Presiona "⋮ Opciones"
+  3. Selecciona "Rechazar"
+  4. Elige razón: "Las tasas son muy altas"
+  5. Ingresa comentario (si aplica)
+
+Resultado:
+  Servidor recibe feedback sobre razón
+  Sistema puede mejorar ofertas futuras
+  Usuario puede solicitar de nuevo en futuro
+```
+
+#### Caso 3: Diferimiento temporal
+
+```
+Situación:
+  Usuario necesita dinero pero prefiere diferir
+
+Acciones:
+  1. Recibe notificación de aprobación
+  2. Abre notificación
+  3. Presiona "No lo necesito ahora"
+  4. Confirma rechazo
+
+Resultado:
+  Préstamo rechazado pero puede solicitar cuando lo necesite
+  Sin penalización
+  Sin afectar calificación crediticia
+```
+
+---
+
+## Seguridad
+
+### 🔐 Consideraciones Importantes
+
+#### 1. Autenticación
+
+**En cada petición:**
+
+```dart
+final response = await _httpClient.post(
+  '/client/refuse-loan',
+  data: requestData,
+  options: Options(
+    headers: {
+      'Authorization': 'Bearer $token',  // Token requerido
+    },
+  ),
+);
+```
+
+**Validaciones servidor:**
+
+-   ✅ Token válido y no expirado
+-   ✅ Usuario existe y está activo
+-   ✅ Token pertenece al usuario que intenta rechazar
+
+#### 2. Validación de Operación
+
+**Servidor valida:**
+
+-   ✅ Préstamo existe
+-   ✅ Préstamo pertenece al usuario
+-   ✅ Préstamo está en estado rechazable
+-   ✅ Razón está en lista permitida
+
+#### 3. Auditoría
+
+**Se registran:**
+
+-   ✅ Quién rechazó (user_id)
+-   ✅ Cuándo (timestamp)
+-   ✅ Qué préstamo (loan_id)
+-   ✅ Razón especificada
+-   ✅ IP de origen
+
+#### 4. Sin Penalizaciones
+
+-   ✅ No afecta calificación crediticia
+-   ✅ Usuario puede solicitar de nuevo inmediatamente
+-   ✅ No hay registro negativo
+
+---
+
+## 📝 Resumen de Capas
+
+| Capa           | Componente                      | Responsabilidad    |
+| -------------- | ------------------------------- | ------------------ |
+| **UI**         | LoanRejectionScreen             | Modal de razones   |
+| **UI**         | LoanRejectionSuccessScreen      | Confirmación éxito |
+| **State**      | LoanRejectionNotifier           | Enviar rechazo     |
+| **State**      | SelectedRejectionReasonNotifier | Selección de razón |
+| **State**      | rejectReasonsProvider           | Cargar razones     |
+| **Repository** | LoanRejectionRepository         | HTTP calls         |
+| **Data**       | HttpClient                      | HTTP client        |
+| **Domain**     | RefuseLoanRequest/Response      | Modelos            |
+
+---
+
+## 🚀 Próximos Pasos
+
+1. **Razones personalizadas**: Permitir usuario escribir razón propia
+2. **Encuestas de retroalimentación**: Obtener más información
+3. **Re-oferta automática**: Ofrecer préstamo mejorado después
+4. **Análisis de razones**: Dashboard mostrando por qué rechazos
+5. **Seguimiento**: Notificar cuando usuario puede solicitar de nuevo
+
+---
+
+**Versión**: 1.0
+**Última actualización**: Octubre 2024
+**Autor**: Equipo de Desarrollo Pisto
+**Estado**: Producción ✅

@@ -1,0 +1,1059 @@
+---
+title: Flujo de Solicitud de préstamo posterior
+slug: solicitud-de-prestamo-posterior
+tags: [auth, subsequent-loan, image-upload, flutter, riverpod, dio, formz]
+description: Flujo de solicitud de préstamo posterior en la aplicación Pisto, incluyendo carga de imágenes, manejo de errores y estados del proceso.
+---
+
+## Descripción General
+
+El **flujo de solicitud de préstamo posterior** permite a usuarios que ya tienen un préstamo activo solicitar un nuevo préstamo adicional (refinanciamiento o segundo préstamo). Este flujo es más **ágil que el primer préstamo** ya que reutiliza información verificada.
+
+### 📊 Estructura de Pasos (3 pasos vs 7 en primer préstamo)
+
+```
+┌─────────────┐     ┌────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Welcome    │────▶│   Step 1   │────▶│   Step 2     │────▶│ Completion  │
+│  (Intro)    │     │ (Financiero)     │(Referencias) │     │ (Confirm)   │
+└─────────────┘     └────────────┘     │+ Imágenes   │     └─────────────┘
+     ✓ Auto           ✓ Actua.          └──────────────┘     ✓ Auto/Manual
+     (Inicio)         (Datos)           ✓ Manual            (Confirmación)
+                                        (Recopilación)
+```
+
+### ✨ Características Principales
+
+-   ✅ **Proceso rápido**: Solo 3 pasos vs 7 en primer préstamo
+-   ✅ **Datos pre-cargados**: Información laboral reutilizada
+-   ✅ **Expiración de DUI**: Verifica vigencia del documento
+-   ✅ **Imágenes opcionales**: Puede reutilizar de primer préstamo
+-   ✅ **Validación rápida**: Menos campos de entrada
+-   ✅ **Decisión acelerada**: Aprobación más rápida
+
+---
+
+## Diferencias vs Primer Préstamo
+
+### Comparación Directa
+
+| Aspecto                 | Primer Préstamo   | Préstamo Posterior   |
+| ----------------------- | ----------------- | -------------------- |
+| **Total de pasos**      | 7 (incl. intro)   | 4 (incl. intro)      |
+| **Pasos de entrada**    | 5 pasos           | 1 + 1 paso           |
+| **Datos personales**    | ✅ Requerido      | ❌ Ya verificado     |
+| **Dirección**           | ✅ Requerido      | ❌ Ya verificado     |
+| **Información laboral** | ✅ Requerido      | ⚠️ Actualizar opción |
+| **Referencias**         | ✅ Requerido (2)  | ✅ Requerido (2)     |
+| **Imágenes**            | ✅ 3 obligatorias | ✅ 3 obligatorias    |
+| **Verificación DUI**    | ✅ Fecha nac      | ✅ Expiración DUI    |
+| **Tiempo estimado**     | 15-20 minutos     | 5-8 minutos          |
+
+### Datos Reutilizados
+
+```
+Del Primer Préstamo (No se solicitan):
+├─ Nombre y Apellido
+├─ Género
+├─ Fecha de Nacimiento
+├─ DUI
+├─ Teléfono
+├─ Dirección completa
+│  ├─ Departamento
+│  ├─ Distrito
+│  ├─ Municipio
+│  ├─ Calle
+│  ├─ Número
+│  └─ Barrio
+├─ Historial de pagos ✓
+└─ Score crediticio ✓
+
+Del Primer Préstamo (Opcionales actualizar):
+├─ Tipo de Empleo
+├─ Nombre Empresa
+├─ Teléfono Empresa
+├─ Ingreso Neto
+├─ Ingreso Adicional
+├─ Otras Deudas
+└─ Propósito Préstamo
+```
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+El préstamo posterior es para cuando ya tienes un préstamo con Pisto y necesitas dinero adicional. Es más rápido porque ya verificamos tu identidad.
+
+### 📍 Ubicación en la App
+
+**Ruta**: `Mi Préstamo → Solicitar Nuevo Préstamo` o `Dashboard → + Préstamo`
+
+**Requisitos previos:**
+
+-   ✅ Primer préstamo activo o completado
+-   ✅ Historial de pagos bueno (sin morosidad)
+-   ✅ Teléfono confirmado
+-   ✅ DUI vigente (no expirado)
+
+### 🚀 Flujo Paso a Paso
+
+#### **Paso 0: Bienvenida (Welcome Screen)**
+
+**Qué se muestra:**
+
+1. "¡Hola [nombre]! Solicita tu siguiente préstamo"
+2. Monto y plazo preseleccionados en el calculador
+3. Resumen de información que reutilizamos
+4. Nota: "Ya tenemos tus datos personales"
+5. Botón "Comencemos"
+
+**Información mostrada:**
+
+```
+✅ Datos Verificados Anteriormente:
+  • Nombre: Juan Pérez
+  • Dirección: Avenida Central, San Salvador
+  • Ingreso: $800 - $1,000
+  • Score: Bueno (95/100)
+
+💰 Tu Nuevo Préstamo:
+  • Monto: $500
+  • Plazo: 30 días
+  • Interés estimado: 8.5%
+  • Recibirás: $458.50
+```
+
+**Qué ocurre internamente:**
+
+-   Sistema valida que usuario tenga primer préstamo activo
+-   Se cargan datos del calculador
+-   Se cargan datos personales del primer préstamo
+-   Se valida que DUI no esté expirado
+
+---
+
+#### **Paso 1: Actualización de Información Laboral/Financiera (Step 1)**
+
+**Importante**: Este paso reutiliza datos del primer préstamo pero permite actualizar.
+
+**Campos mostrados (con valores pre-llenados):**
+
+| Campo                 | Tipo      | Obligatorio | Pre-llenado |
+| --------------------- | --------- | ----------- | ----------- |
+| Tipo de Empleo        | Selección | ✅ Sí       | ✅ Sí       |
+| Nombre Empresa        | Texto     | ✅ Sí       | ✅ Sí       |
+| Teléfono Empresa      | Teléfono  | ✅ Sí       | ✅ Sí       |
+| Ingreso Neto          | Selección | ✅ Sí       | ✅ Sí       |
+| Ingreso Adicional     | Cantidad  | ❌ Opcional | ✅ Sí       |
+| Otras Deudas          | Cantidad  | ❌ Opcional | ✅ Sí       |
+| **Expiración DUI**    | Fecha     | ✅ Sí       | ❌ No       |
+| Propósito Préstamo    | Selección | ✅ Sí       | ✅ Sí       |
+| Descripción Propósito | Texto     | ✅ Sí       | ✅ Sí       |
+
+**Qué es diferente:**
+
+-   ✅ Todos los campos excepto "Expiración DUI" vienen **pre-llenados**
+-   ✅ Usuario puede **actualizar cualquier campo**
+-   ✅ **Expiración DUI**: Nuevo campo (no estaba en primer préstamo)
+-   ✅ Menos fricción visual
+
+**Campo especial: Expiración DUI**
+
+```
+¿Cuándo expira tu DUI?
+Formato: DD/MM/YYYY o selector de fecha
+
+Validaciones:
+  ✓ No puede estar vencido
+  ✓ Mínimo 90 días para que venza
+  ✓ Si vence antes de desembolso: Aviso
+
+Ejemplo:
+  Hoy: 27/10/2025
+  DUI expira: 15/06/2026 ✅ (8 meses)
+  DUI expira: 05/10/2025 ❌ (ya expiró)
+```
+
+**Qué ocurre:**
+
+1. Pantalla carga con datos pre-llenados del primer préstamo
+2. Usuario revisa/actualiza datos si es necesario
+3. Usuario ingresa fecha de expiración del DUI
+4. Sistema valida todo
+5. Botón "Continuar" se habilita
+
+**Errores comunes:**
+
+| Error                 | Causa                      | Solución                      |
+| --------------------- | -------------------------- | ----------------------------- |
+| DUI expirado          | Vencido o próximo a vencer | Renovar DUI                   |
+| Ingreso muy bajo      | Cambió situación laboral   | Actualizar ingresos           |
+| Empresa no existe     | Datos desactualizados      | Verificar datos empresa       |
+| Deudas muy altas      | Situación ha cambiado      | Revisar deudas                |
+| Descripción muy corta | < 10 caracteres            | Ampliar descripción propósito |
+
+---
+
+#### **Paso 2: Referencias Personales + Imágenes (Step 2 + Step 3 combinados)**
+
+**Este paso tiene 2 partes:**
+
+##### Parte A: Referencias Personales
+
+Igual que en primer préstamo:
+
+| Campo          | Tipo     | Validación          | Obligatorio |
+| -------------- | -------- | ------------------- | ----------- |
+| Nombre Ref 1   | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Apellido Ref 1 | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Teléfono Ref 1 | Teléfono | Formato válido      | ✅ Sí       |
+| Nombre Ref 2   | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Apellido Ref 2 | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Teléfono Ref 2 | Teléfono | Formato válido      | ✅ Sí       |
+
+##### Parte B: Imágenes
+
+**Opciones:**
+
+```
+¿Usas las mismas imágenes del primer préstamo?
+
+[ ] Usar las mismas
+    ├─ Frente DUI: Ya cargada ✅
+    ├─ Revés DUI: Ya cargada ✅
+    └─ Selfie: Ya cargada ✅
+
+[ ] Cargar nuevas imágenes
+    ├─ Capturar frente DUI (nueva)
+    ├─ Capturar revés DUI (nueva)
+    └─ Capturar selfie (nueva)
+
+Recomendación: Si el DUI sigue siendo válido, puedes usar las mismas
+```
+
+**Qué ocurre:**
+
+1. Usuario ingresa referencias 1 y 2 (nuevas)
+2. Usuario elige: Usar mismas imágenes o capturar nuevas
+3. Si nuevas: Ejecutar flujo de carga (igual a #15-carga-de-imagenes.md)
+4. Sistema valida todo
+5. Botón "Continuar" se habilita
+
+---
+
+#### **Paso 3: Confirmación (Completion Screen)**
+
+**Qué se muestra:**
+
+1. Resumen de nueva información ingresada (Step 1)
+2. Confirmación de referencias (Step 2)
+3. Estado de imágenes (reutilizadas o nuevas)
+4. Monto final del nuevo préstamo
+5. Plazo seleccionado
+6. Cálculo de intereses
+7. Fecha estimada de recepción
+8. Botón "Confirmar y Enviar"
+
+**Resumen mostrado:**
+
+```
+📋 RESUMEN DE TU NUEVA SOLICITUD
+
+💼 Información Laboral:
+   • Empresa: TechCorp SRL
+   • Teléfono: +503 2111-1111
+   • Ingreso: $800-$1,000
+   • Propósito: Emergencia
+
+👥 Referencias:
+   • Familiar: Carlos Pérez
+   • Amigo: Roberto López
+
+📸 Documentos:
+   • Frente DUI: Reutilizado ✓
+   • Revés DUI: Reutilizado ✓
+   • Selfie: Reutilizado ✓
+
+💰 TU NUEVO PRÉSTAMO:
+   • Monto: $500
+   • Plazo: 30 días
+   • Interés: $42.50
+   • Recibirás: $457.50
+   • Próximo pago: 26/11/2025
+```
+
+**Antes de enviar, se verifica:**
+
+-   ✅ Información laboral actualizada
+-   ✅ Referencias ingresadas
+-   ✅ Imágenes (reutilizadas o nuevas)
+-   ✅ DUI vigente
+-   ✅ Usuario confirma información
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Patrón Arquitectónico
+
+Similar a first_loan pero **reducido a 3 pasos**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Presentation Layer (UI)                                    │
+│                                                              │
+│ ├─ SubsequentLoanWelcomeScreen        (Paso 0)            │
+│ ├─ SubsequentLoanStepOneScreen        (Paso 1: Laboral)   │
+│ ├─ SubsequentLoanStepTwoScreen        (Paso 2: Ref+Img)   │
+│ └─ SubsequentLoanCompletionScreen     (Paso 3: Confirm)   │
+└─────────────────────────────────────────────────────────────┘
+                          ↑
+                          │ (Riverpod Consumers)
+        ┌─────────────────┼──────────────────┐
+        │                 │                  │
+┌───────▼──────┐ ┌───────▼──────┐ ┌────────▼────────┐
+│ State Mgmt   │ │ State Mgmt   │ │ State Mgmt      │
+│              │ │              │ │                 │
+│ Step1Notif.  │ │ Step2Notif.  │ │ Step3Notif.     │
+│ Calculator   │ │ Geographic   │ │ Request Notif.  │
+│ MyLoan Data  │ │ ImageUpload  │ │ LoanCalc Data   │
+└───────┬──────┘ └───────┬──────┘ └────────┬────────┘
+        │                 │                 │
+        └─────────────────┼─────────────────┘
+                          │
+        ┌─────────────────▼──────────────────┐
+        │ Repository Layer                   │
+        │                                    │
+        │ SubsequentLoanRepository          │
+        │ ├─ requestSubsequentLoan()        │
+        │                                    │
+        │ ImageUploadRepository             │
+        │ ├─ uploadImage() (reutilizado)   │
+        │                                    │
+        │ MyLoanRepository                  │
+        │ ├─ getMyLoan() (datos previos)   │
+        └─────────────────┬──────────────────┘
+                          │
+        ┌─────────────────▼──────────────────┐
+        │ Data Layer (APIs & Services)       │
+        │                                    │
+        │ POST /client/request-loan         │
+        │ POST /client/upload-images        │
+        │ GET  /client/my-loans             │
+        │ Bearer token authentication        │
+        └────────────────────────────────────┘
+```
+
+### 📦 Reutilización de Código
+
+**Componentes compartidos:**
+
+```
+ImageUploadRepository (100% compartido)
+├─ Usado en: first_loan Step 5
+└─ Usado en: subsequent_loan Step 2
+
+ImageType enum (100% compartido)
+├─ Usado en: first_loan
+└─ Usado en: subsequent_loan
+
+Geographic data (100% compartido)
+├─ Departamentos
+├─ Distritos
+└─ Municipios
+
+AdditionalDataRepository (100% compartido)
+├─ Job types
+├─ Purposes
+└─ Net income ranges
+```
+
+### 🔄 Flujo de Datos Completo
+
+```
+Usuario Pre-cargado desde MyLoan
+        ↓
+Step1Notifier.loadMyLoanData()
+        ├─ Cargar datos laborales del primer préstamo
+        ├─ Cargar ingreso neto
+        └─ Cargar propósito anterior
+        ↓
+state = state.copyWith(
+  jobType: TextInput.dirty(myLoan.jobType),
+  companyName: CompanyNameInput.dirty(myLoan.companyName),
+  // ... resto de campos
+)
+        ↓
+Usuario ve formulario pre-llenado
+        ↓
+Usuario actualiza datos (ej: cambiar empresa)
+        ↓
+Step1Notifier.onCompanyNameChanged("NewCorp")
+        ↓
+state = state.copyWith(companyName: CompanyNameInput.dirty("NewCorp"))
+        ↓
+_updateValidation()
+        ↓
+isValid = true/false
+        ↓
+UI Re-renderiza
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Secuencia Completa: De Welcome a Éxito
+
+```
+INICIO: Usuario presiona "Solicitar Nuevo Préstamo"
+    ↓
+┌─ WELCOME SCREEN
+│  ├─ Cargar datos del calculador
+│  ├─ Cargar datos del primer préstamo (MyLoan)
+│  ├─ Validar que DUI no esté expirado
+│  ├─ Mostrar monto y plazo preseleccionados
+│  └─ Presiona "Comencemos"
+│
+├─ STEP 1: ACTUALIZACIÓN DE INFORMACIÓN LABORAL
+│  ├─ Cargar datos del primer préstamo (pre-llenar)
+│  ├─ Usuario ingresa: Expiración DUI
+│  ├─ Usuario puede actualizar: Empresa, Ingreso, Propósito, etc.
+│  ├─ Validaciones en tiempo real
+│  └─ Presiona "Continuar" → Datos guardados
+│
+├─ STEP 2: REFERENCIAS PERSONALES + IMÁGENES
+│  ├─ PARTE A: Referencias
+│  │  ├─ Usuario ingresa Referencia 1
+│  │  ├─ Usuario ingresa Referencia 2
+│  │  └─ Validar referencias diferentes
+│  │
+│  └─ PARTE B: Imágenes
+│     ├─ ¿Reutilizar imágenes del primer préstamo?
+│     ├─ SI: Usar URLs existentes
+│     └─ NO: Capturar nuevas imágenes
+│        ├─ Upload Frente DUI
+│        ├─ Upload Revés DUI
+│        └─ Upload Selfie
+│
+│  └─ Presiona "Continuar" → Datos guardados
+│
+├─ COMPLETION SCREEN (Resumen)
+│  ├─ Mostrar resumen de NUEVA información
+│  ├─ Mostrar referencias
+│  ├─ Mostrar estado de imágenes
+│  ├─ Mostrar monto final
+│  ├─ Mostrar plazo
+│  ├─ Mostrar cálculos de interés
+│  ├─ Usuario revisa todo
+│  └─ Presiona "Confirmar y Enviar"
+│
+├─ VALIDACIÓN FINAL
+│  ├─ Verificar que todos los steps estén completos
+│  ├─ Verificar que todas las validaciones pasen
+│  ├─ Verificar que DUI no esté expirado
+│  ├─ Verificar que primer préstamo esté activo
+│  └─ Si TODO OK: Continuar, SI NO: Mostrar error
+│
+├─ CONSTRUCCIÓN DE PAYLOAD
+│  └─ Recolectar datos → SubsequentLoanRequest
+│
+├─ ENVÍO A API
+│  ├─ POST /client/request-loan (diferente al primero)
+│  ├─ Body: SubsequentLoanRequest.toJson()
+│  ├─ Headers: Authorization: Bearer <token>
+│  └─ Response: SubsequentLoanResponse { message }
+│
+└─ FIN: PANTALLA DE ÉXITO
+   ├─ "Tu solicitud fue enviada exitosamente"
+   ├─ Mostrar monto aprobado
+   ├─ Mostrar fecha de disponibilidad
+   └─ Botón "Volver a Mi Préstamo"
+```
+
+---
+
+## Componentes y Pasos
+
+### 📦 State Models
+
+#### SubsequentLoanStepOneState
+
+```dart
+@freezed
+abstract class SubsequentLoanStepOneState
+    with _$SubsequentLoanStepOneState {
+  const factory SubsequentLoanStepOneState({
+    @Default(DniExpiresAtInput.pure()) DniExpiresAtInput dniExpiresAt,
+    @Default(TextInput.pure()) TextInput jobType,
+    @Default(CompanyNameInput.pure()) CompanyNameInput companyName,
+    @Default(PhoneInput.pure()) PhoneInput companyPhone,
+    NetIncomeEntity? selectedNetIncome,
+    @Default(AmountInput.pure()) AmountInput additionalIncome,
+    @Default(AmountInput.pure()) AmountInput otherLoan,
+    @Default(TextInput.pure()) TextInput purpose,
+    @Default(TextInput.pure()) TextInput purposeDescription,
+    @Default([]) List<String> jobTypes,
+    @Default([]) List<String> purposes,
+    @Default([]) List<NetIncomeEntity> netIncomes,
+    @Default(false) bool isLoadingAdditionalData,
+    @Default(false) bool isValid,
+    String? errorMessage,
+  }) = _SubsequentLoanStepOneState;
+}
+```
+
+**Diferencia con first_loan Step 3:**
+
+-   ✅ Agrega: `DniExpiresAtInput dniExpiresAt`
+-   ✅ Todos los demás campos iguales
+
+#### SubsequentLoanStepTwoState
+
+```dart
+@freezed
+abstract class SubsequentLoanStepTwoState
+    with _$SubsequentLoanStepTwoState {
+  const factory SubsequentLoanStepTwoState({
+    @Default(false) bool isLoading,
+    @Default('') String errorMessage,
+    @Default(TextInput.pure()) TextInput familiarName,
+    @Default(TextInput.pure()) TextInput familiarSurname,
+    @Default(PhoneInput.pure()) PhoneInput familiarPhone,
+    @Default(TextInput.pure()) TextInput friendName,
+    @Default(TextInput.pure()) TextInput friendSurname,
+    @Default(PhoneInput.pure()) PhoneInput friendPhone,
+    @Default(false) bool isValid,
+  }) = _SubsequentLoanStepTwoState;
+}
+```
+
+#### SubsequentLoanStepThreeState
+
+```dart
+@freezed
+abstract class SubsequentLoanStepThreeState
+    with _$SubsequentLoanStepThreeState {
+  const factory SubsequentLoanStepThreeState({
+    @Default(false) bool isLoading,
+    @Default('') String errorMessage,
+    @Default(ImageUploadState()) ImageUploadState frontIdCard,
+    @Default(ImageUploadState()) ImageUploadState backIdCard,
+    @Default(ImageUploadState()) ImageUploadState selfie,
+    @Default(false) bool isValid,
+  }) = _SubsequentLoanStepThreeState;
+}
+```
+
+#### SubsequentLoanRequestState
+
+```dart
+@freezed
+abstract class SubsequentLoanRequestState
+    with _$SubsequentLoanRequestState {
+  const factory SubsequentLoanRequestState({
+    @Default(RequestStatus.idle) RequestStatus status,
+    @Default('') String errorMessage,
+    SubsequentLoanResponse? response,
+  }) = _SubsequentLoanRequestState;
+}
+
+enum RequestStatus { idle, loading, success, error }
+```
+
+### 🔧 Notifiers
+
+#### SubsequentLoanRequestNotifier (Orquestador)
+
+```dart
+@Riverpod(keepAlive: true)
+class SubsequentLoanRequestNotifier
+    extends _$SubsequentLoanRequestNotifier {
+  @override
+  SubsequentLoanRequestState build() {
+    return const SubsequentLoanRequestState();
+  }
+
+  Future<void> sendSubsequentLoanRequest() async {
+    try {
+      LoggingService.info(
+        'Starting subsequent loan request submission',
+        tag: 'SUBSEQUENT_LOAN_REQUEST',
+      );
+
+      // 1. Validar todos los steps
+      if (!_validateAllSteps()) {
+        state = state.copyWith(
+          status: RequestStatus.error,
+          errorMessage: 'Por favor complete todos los pasos',
+        );
+        return;
+      }
+
+      // 2. Actualizar estado a loading
+      state = state.copyWith(status: RequestStatus.loading);
+
+      // 3. Construir payload
+      final request = _buildSubsequentLoanRequest();
+
+      // 4. Enviar a API
+      final repository = ref.read(subsequentLoanRepositoryProvider);
+      final response = await repository.requestSubsequentLoan(request);
+
+      // 5. Guardar respuesta
+      state = state.copyWith(
+        status: RequestStatus.success,
+        response: response,
+      );
+    } catch (e, stackTrace) {
+      LoggingService.error(
+        'Failed to send subsequent loan request',
+        tag: 'SUBSEQUENT_LOAN_REQUEST',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      state = state.copyWith(
+        status: RequestStatus.error,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  bool _validateAllSteps() {
+    final step1 = ref.read(subsequentLoanStepOneProvider);
+    final step2 = ref.read(subsequentLoanStepTwoProvider);
+    final step3 = ref.read(subsequentLoanStepThreeProvider);
+    final calculator = ref.read(loanCalculatorProvider);
+
+    return step1.isValid &&
+        step2.isValid &&
+        step3.isValid &&
+        calculator.selectedAmount > 0 &&
+        calculator.selectedDays > 0;
+  }
+
+  SubsequentLoanRequest _buildSubsequentLoanRequest() {
+    final myLoan = ref.read(myLoanProvider).loanData!;
+    final step1 = ref.read(subsequentLoanStepOneProvider);
+    final step2 = ref.read(subsequentLoanStepTwoProvider);
+    final step3 = ref.read(subsequentLoanStepThreeProvider);
+    final calculator = ref.read(loanCalculatorProvider);
+
+    return SubsequentLoanRequest(
+      // Del calculador
+      amount: calculator.selectedAmount.toDouble(),
+      deadline: calculator.selectedDays,
+      promoCode: calculator.appliedPromoCode?.code,
+
+      // Del paso 1: Información actualizada
+      dniExpiresAt: step1.dniExpiresAt.value,
+      jobType: step1.jobType.value,
+      companyName: step1.companyName.value,
+      companyPhone: step1.companyPhone.value,
+      netIncome: step1.selectedNetIncome?.value.toDouble() ?? 0.0,
+      additionalIncome: step1.additionalIncome.doubleValue,
+      otherLoan: step1.otherLoan.doubleValue,
+      purpose: step1.purpose.value,
+      purposeDescription: step1.purposeDescription.value,
+
+      // Del paso 2: Referencias
+      familiarName: step2.familiarName.value,
+      familiarSurname: step2.familiarSurname.value,
+      familiarPhone: step2.familiarPhone.value,
+      friendName: step2.friendName.value,
+      friendSurname: step2.friendSurname.value,
+      friendPhone: step2.friendPhone.value,
+
+      // Del paso 3: Imágenes
+      imageFrontIdCard: step3.frontIdCard.imageUrl ?? "",
+      imageBackIdCard: step3.backIdCard.imageUrl ?? "",
+      imageSelfie: step3.selfie.imageUrl ?? "",
+    );
+  }
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### Endpoint Principal de Solicitud
+
+#### `POST /client/request-loan`
+
+**Descripción**: Envía solicitud de préstamo posterior. **DIFERENTE a `/client/request-first-loan`**
+
+**Headers Requeridos**:
+
+```
+Content-Type: application/json
+Authorization: Bearer <token_del_usuario>
+Language: es
+```
+
+**Request Body (SubsequentLoanRequest)**:
+
+```json
+{
+    "amount": 500.0,
+    "deadline": 30,
+    "promoCode": "LOYALTY2024",
+    "dniExpiresAt": "2026-06-15",
+    "jobType": "Empleado",
+    "companyName": "TechCorp SRL",
+    "companyPhone": "+503 2111-1111",
+    "netIncome": 800.0,
+    "additionalIncome": 200.0,
+    "otherLoan": 0.0,
+    "purpose": "Emergencia",
+    "purposeDescription": "Reparación de vehículo para trabajo",
+    "familiarName": "Carlos",
+    "familiarSurname": "Pérez",
+    "familiarPhone": "+503 7888-8888",
+    "friendName": "Roberto",
+    "friendSurname": "López",
+    "friendPhone": "+503 7999-9999",
+    "imageFrontIdCard": "https://storage.example.com/images/uuid/frontIdCard.jpg",
+    "imageBackIdCard": "https://storage.example.com/images/uuid/backIdCard.jpg",
+    "imageSelfie": "https://storage.example.com/images/uuid/selfie.jpg"
+}
+```
+
+**Diferencias con `/client/request-first-loan`:**
+
+```
+PRIMER PRÉSTAMO:
+├─ Endpoint: /client/request-first-loan
+├─ Campos: Nombre, Apellido, Género, Fecha Nac., DUI, etc.
+└─ Total campos: 23
+
+PRÉSTAMO POSTERIOR:
+├─ Endpoint: /client/request-loan
+├─ Campos: NO incluye datos personales (ya verificados)
+├─ AGREGA: dniExpiresAt (vigencia DUI)
+└─ Total campos: 19 (menos 4 campos personales)
+```
+
+**Response Exitosa (200 OK)**:
+
+```json
+{
+    "status": 200,
+    "message": "Solicitud enviada exitosamente"
+}
+```
+
+**Respuestas de Error**:
+
+| Código | Situación           | Mensaje                                     |
+| ------ | ------------------- | ------------------------------------------- |
+| 400    | Validación fallida  | "Campo [nombre] es inválido"                |
+| 401    | No autenticado      | "Usuario no autenticado"                    |
+| 408    | Timeout             | "Tiempo de conexión agotado"                |
+| 422    | Solicitud rechazada | "DUI vencido" o "No tienes préstamo activo" |
+| 429    | Rate limiting       | "Demasiadas solicitudes, intenta más tarde" |
+| 500    | Error servidor      | "Error interno del servidor"                |
+
+---
+
+## Manejo de Errores
+
+### 🚨 Estrategia de Errores
+
+#### Errores Específicos para Préstamo Posterior
+
+```
+Error: "DUI Vencido"
+├─ Código: 422
+├─ Causa: dniExpiresAt < Hoy
+└─ Acción: "Necesitas renovar tu DUI"
+
+Error: "No tienes préstamo activo"
+├─ Código: 422
+├─ Causa: Primer préstamo está completo/rechazado
+└─ Acción: "Completa tu préstamo anterior primero"
+
+Error: "Deuda pendiente"
+├─ Código: 422
+├─ Causa: Pagos atrasados en préstamo actual
+└─ Acción: "Ponerse al día con pagos"
+
+Error: "No elegible aún"
+├─ Código: 422
+├─ Causa: Menos de 30 días desde último préstamo
+└─ Acción: "Espera hasta [fecha] para solicitar"
+```
+
+### 📊 Árbol de Decisión de Errores
+
+```
+Error en Envío de Préstamo Posterior
+    │
+    ├─ 400: Validación
+    │   └─ Resaltar campo inválido
+    │
+    ├─ 401: Autenticación
+    │   └─ Redirigir a login
+    │
+    ├─ 408: Timeout
+    │   └─ Botón "Reintentar"
+    │
+    ├─ 422: Rechazado
+    │   ├─ "DUI vencido"
+    │   │   └─ "Necesitas renovar tu DUI"
+    │   ├─ "No tienes préstamo activo"
+    │   │   └─ "Completa tu préstamo anterior"
+    │   ├─ "Deuda pendiente"
+    │   │   └─ "Pon al día tus pagos"
+    │   └─ "No elegible aún"
+    │       └─ "Espera hasta [fecha]"
+    │
+    ├─ 429: Rate Limit
+    │   └─ "Demasiadas solicitudes"
+    │
+    └─ 5xx: Servidor
+        └─ "Error del servidor, intenta más tarde"
+```
+
+---
+
+## Validaciones
+
+### 📋 Validaciones por Paso
+
+#### Paso 1: Información Laboral Actualizada
+
+```dart
+- Expiración DUI:
+  - Formato: DD/MM/YYYY
+  - Debe ser > hoy
+  - Preferible > 90 días
+  - Validación: RegExp y lógica de fechas
+
+- Tipo de Empleo: Obligatorio (pre-llenado)
+- Nombre Empresa: 3-100 caracteres
+- Teléfono Empresa: Formato válido
+- Ingreso Neto: Obligatorio (pre-llenado)
+- Ingreso Adicional: 0 - 99,999
+- Otras Deudas: 0 - 99,999
+- Propósito: Obligatorio (pre-llenado)
+- Descripción: 10-500 caracteres
+
+Reglas:
+  Ingreso Total = Ingreso Neto + Ingreso Adicional
+  Monto Máximo Préstamo = Ingreso Total * 0.3
+```
+
+#### Paso 2: Referencias
+
+```dart
+- Referencia 1 (Familiar):
+  - Nombre: 2-50 caracteres
+  - Apellido: 2-50 caracteres
+  - Teléfono: Formato válido
+
+- Referencia 2 (Amigo):
+  - Nombre: 2-50 caracteres
+  - Apellido: 2-50 caracteres
+  - Teléfono: Formato válido
+
+Regla:
+  Los teléfonos deben ser distintos (no iguales entre sí)
+```
+
+#### Paso 3: Imágenes
+
+```dart
+Opción 1: Reutilizar imágenes
+- Todas las 3 ya cargadas ✅
+- URLs válidas del servidor
+
+Opción 2: Cargar nuevas
+- Frente DUI: < 5MB, JPEG/PNG
+- Revés DUI: < 5MB, JPEG/PNG
+- Selfie: < 5MB, JPEG/PNG
+```
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### 1. Unit Tests - Validación DUI
+
+```dart
+group('DniExpiresAtInput Validation', () {
+  test('valid future date should pass', () {
+    final futureDate = DateTime.now().add(Duration(days: 100));
+    final input = DniExpiresAtInput.dirty(
+      futureDate.toString().split(' ').first,
+    );
+
+    expect(input.isValid, isTrue);
+  });
+
+  test('expired date should fail', () {
+    final pastDate = DateTime.now().subtract(Duration(days: 10));
+    final input = DniExpiresAtInput.dirty(
+      pastDate.toString().split(' ').first,
+    );
+
+    expect(input.isValid, isFalse);
+  });
+
+  test('date expiring within 90 days should warn', () {
+    final soonDate = DateTime.now().add(Duration(days: 30));
+    final input = DniExpiresAtInput.dirty(
+      soonDate.toString().split(' ').first,
+    );
+
+    // DUI is valid but should trigger warning
+    expect(input.isValid, isTrue);
+    expect(input.shouldWarn, isTrue);
+  });
+});
+```
+
+#### 2. State Management Tests
+
+```dart
+group('SubsequentLoanRequestNotifier', () {
+  late ProviderContainer container;
+  late MockSubsequentLoanRepository mockRepository;
+  late MockMyLoanProvider mockMyLoan;
+
+  setUp(() {
+    mockRepository = MockSubsequentLoanRepository();
+    mockMyLoan = MockMyLoanProvider();
+    container = ProviderContainer(
+      overrides: [
+        subsequentLoanRepositoryProvider
+          .overrideWithValue(mockRepository),
+        myLoanProvider.overrideWithValue(mockMyLoan),
+      ],
+    );
+  });
+
+  test('validates all steps before sending', () async {
+    // Setup: Incomplete steps
+
+    final notifier =
+        container.read(subsequentLoanRequestProvider.notifier);
+    await notifier.sendSubsequentLoanRequest();
+
+    final state = container.read(subsequentLoanRequestProvider);
+    expect(state.status, equals(RequestStatus.error));
+  });
+
+  test('builds payload with all data', () async {
+    // Setup: All steps complete
+
+    when(mockRepository.requestSubsequentLoan(any))
+      .thenAnswer((_) async => SubsequentLoanResponse(message: 'OK'));
+
+    final notifier =
+        container.read(subsequentLoanRequestProvider.notifier);
+    await notifier.sendSubsequentLoanRequest();
+
+    verify(
+      mockRepository.requestSubsequentLoan(
+        argThat(
+          isA<SubsequentLoanRequest>()
+            .having((r) => r.amount, 'amount', 500.0)
+            .having((r) => r.deadline, 'deadline', 30),
+        ),
+      ),
+    ).called(1);
+  });
+});
+```
+
+---
+
+## Seguridad
+
+### 🔐 Consideraciones Importantes
+
+#### 1. Validación de Estado del Primer Préstamo
+
+**Servidor debe validar:**
+
+-   ✅ Usuario tiene primer préstamo activo
+-   ✅ Primer préstamo está al día (sin mora)
+-   ✅ Mínimo 30 días desde último desembolso
+-   ✅ Usuario no tiene otra solicitud en progreso
+
+#### 2. Validación de DUI
+
+**Cliente:**
+
+```dart
+// Verificar que no esté vencido
+if (dniExpiresAt.isBefore(DateTime.now())) {
+  return "DUI expirado";
+}
+
+// Advertencia si vence pronto
+if (dniExpiresAt.isBefore(
+  DateTime.now().add(Duration(days: 90)),
+)) {
+  return "DUI vence pronto";
+}
+```
+
+**Servidor:**
+
+-   Validar formato de fecha
+-   Verificar que sea fecha razonable
+-   Comparar con base de datos de DIUs
+
+#### 3. Rate Limiting
+
+**Protección contra abuso:**
+
+```
+- Máximo 3 solicitudes por usuario en 30 días
+- Mínimo 30 días entre solicitudes
+- Máximo 100 solicitudes por IP en 1 hora
+```
+
+#### 4. Cumplimiento Normativo
+
+-   **KYC**: Datos ya verificados pero se validan de nuevo
+-   **AML**: Verificación de cambios en información
+-   **GDPR**: Derecho al olvido para solicitudes rechazadas
+-   **Regulaciones Locales**: Compliance con leyes de El Salvador
+
+---
+
+## 📝 Resumen de Capas
+
+| Capa           | Componente                      | Responsabilidad        |
+| -------------- | ------------------------------- | ---------------------- |
+| **UI**         | SubsequentLoanStepXScreen       | Mostrar UI actualizada |
+| **State**      | SubsequentLoanStepXNotifier     | Validar y pre-llenar   |
+| **State**      | SubsequentLoanRequestNotifier   | Orquestar, enviar      |
+| **Repository** | SubsequentLoanRepository        | HTTP POST              |
+| **Repository** | ImageUploadRepository (reutili) | Upload de imágenes     |
+| **Data**       | HttpClient                      | HTTP client            |
+| **Domain**     | SubsequentLoanRequest           | Modelo de datos        |
+
+---
+
+## 🚀 Próximos Pasos
+
+1. **Préstamos rápidos**: Aprobación en < 1 minuto para usuarios good-paying
+2. **Refinanciamiento**: Consolidar múltiples préstamos
+3. **Línea de crédito**: Pre-aprobación automática
+4. **Desembolso acelerado**: Transferencia en < 30 minutos
+5. **Ofertas personalizadas**: Montos y plazos recomendados
+
+---
+
+**Versión**: 1.0
+**Última actualización**: Octubre 2024
+**Autor**: Equipo de Desarrollo Pisto
+**Estado**: Producción ✅

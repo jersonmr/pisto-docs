@@ -82,6 +82,30 @@ export default defineConfig({
                     label: "12. Actualizar Notificaciones del Cliente",
                     slug: "actualizar-notificaciones",
                 },
+                {
+                    label: "13. Validación de Código Promocional",
+                    slug: "validacion-de-codigo-promocional",
+                },
+                {
+                    label: "14. Validación de Número Telefónico",
+                    slug: "validacion-de-numero-telefonico",
+                },
+                {
+                    label: "15. Carga de Imágenes",
+                    slug: "carga-de-imagenes",
+                },
+                {
+                    label: "16. Solicitud de Primer Préstamo",
+                    slug: "solicitud-de-primer-prestamo",
+                },
+                {
+                    label: "17. Solicitud de Préstamo Posterior",
+                    slug: "solicitud-de-prestamo-posterior",
+                },
+                {
+                    label: "18. Rechazo de Préstamo",
+                    slug: "rechazo-de-prestamo",
+                },
             ],
         }),
     ],

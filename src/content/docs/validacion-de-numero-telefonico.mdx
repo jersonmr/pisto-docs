@@ -1,0 +1,885 @@
+---
+title: Flujo de Validación de Número Telefónico
+slug: validacion-de-numero-telefonico
+tags: [auth, phone-number-verification, otp, flutter, riverpod, dio, formz]
+description: Flujo de validación de número telefónico. Incluye envío de código OTP, verificación del código y manejo de errores y estados del proceso.
+---
+
+## Descripción General
+
+La funcionalidad de **Validación de Número Telefónico** es un componente crítico del proceso de solicitud del primer préstamo en Pisto. Esta funcionalidad implementa un sistema de verificación en dos pasos utilizando **OTP (One-Time Password)** enviado por SMS para validar que el número telefónico ingresado por el usuario es auténtico y está bajo su control.
+
+### Características Principales
+
+-   ✅ **Envío de código OTP**: Sistema de dos pasos para verificación de teléfono
+-   ✅ **Código por SMS**: Envío automático de código de 6 dígitos al teléfono
+-   ✅ **Contador regresivo**: Límite de tiempo de 5 minutos para ingresar el código
+-   ✅ **Auto-detección de SMS**: El campo puede auto-llenar con SMS entrantes
+-   ✅ **Validación de formato**: Valida formatos de teléfono para El Salvador
+-   ✅ **Manejo de errores específicos**: Diferentes mensajes según el tipo de error
+-   ✅ **Reintentos**: Permite solicitar nuevo código si expira el anterior
+-   ✅ **Integración con primer préstamo**: Requisito obligatorio del Paso 1
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+La validación de número telefónico asegura que:
+
+-   **Eres quien dices ser**: Verificamos que es tu teléfono
+-   **Es accesible**: Podemos contactarte cuando sea necesario
+-   **Información correcta**: Aseguramos datos precisos en el sistema
+-   **Seguridad**: Previene el uso de números telefónicos de terceros
+
+### 📱 Pasos para validar tu número telefónico
+
+#### Paso 1: Ingresar el número telefónico
+
+En el Paso 1 del flujo de solicitud:
+
+-   Escribe tu número telefónico personal
+-   El formato puede ser local (8 dígitos) o internacional (+503 XXXX XXXX)
+-   Ejemplos válidos: `7777-1234`, `+503 7777 1234`, `27771234`
+
+#### Paso 2: Iniciar validación
+
+-   Presiona el botón **"Validar teléfono"** o continúa al siguiente paso
+-   El sistema enviará un código OTP de **6 dígitos** a tu teléfono
+-   Recibirás un SMS con el código
+-   Aparecerá un modal/diálogo para ingresar el código
+
+#### Paso 3: Ingresar el código OTP
+
+En el modal de verificación:
+
+-   Ingresa el código de 6 dígitos que recibiste por SMS
+-   El código se puede escribir manualmente
+-   O puede auto-llenarse si permites que el sistema detecte el SMS
+-   Tienes **5 minutos** para ingresar el código
+
+**Indicador de tiempo**: Verás un contador regresivo mostrando el tiempo restante en formato MM:SS (minutos:segundos)
+
+#### Paso 4: Confirmación
+
+-   Si el código es correcto: ✅ Teléfono verificado
+-   Si el código es incorrecto: ❌ Intenta de nuevo
+-   Si se agota el tiempo: Solicita un nuevo código
+
+### ⚠️ Importante
+
+-   **Código único**: Cada sesión de validación genera un código diferente
+-   **No reutilizable**: El código anterior expira tras enviar uno nuevo
+-   **Tiempo limitado**: 5 minutos es el máximo para ingresar el código
+-   **Reintentos**: Puedes solicitar hasta 3 códigos por teléfono en 24 horas (límite del servidor)
+-   **SMS no llega**: Si no recibes el SMS:
+    -   Verifica que el número sea correcto
+    -   Comprueba que tienes servicio SMS
+    -   Solicita un nuevo código
+-   **Número incorrecto**: Si ingresas un número equivocado, deberá ser validado nuevamente
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Patrón de Arquitectura
+
+La funcionalidad sigue una arquitectura **Feature-Based** con separación clara de responsabilidades:
+
+```
+┌────────────────────────────────────────────────┐
+│    Presentation Layer (UI)                     │
+│  FirstLoanStepOneScreen                        │
+│  + PhoneVerificationModal                      │
+│  + OTP Input Field                             │
+└─────────────────┬────────────────────────────┘
+                  │
+┌─────────────────▼────────────────────────────┐
+│    State Management Layer                     │
+│  PhoneValidationNotifier (Riverpod)           │
+│  PhoneValidationState (Freezed)               │
+│  FirstLoanStepOneProvider                     │
+└─────────────────┬────────────────────────────┘
+                  │
+┌─────────────────▼────────────────────────────┐
+│    Repository Layer                           │
+│  PhoneValidationRepository                    │
+│  Manejo de errores                            │
+└─────────────────┬────────────────────────────┘
+                  │
+┌─────────────────▼────────────────────────────┐
+│    Data Layer (API)                           │
+│  HttpClient provider                          │
+│  /client/validate-phone-step-1                │
+│  /client/validate-phone-step-2                │
+└────────────────────────────────────────────┘
+```
+
+### 🧩 Estructura de Directorios
+
+```
+lib/features/first_loan/
+├── entities/
+│   ├── first_loan_request.dart           # Modelo de solicitud
+│   └── first_loan_step.dart              # Enum de pasos
+│
+├── models/
+│   ├── first_loan_request.dart           # DTO de solicitud
+│   └── ...
+│
+├── providers/
+│   ├── phone_validation_provider.dart    # Notifier + State
+│   ├── first_loan_step_one_provider.dart # Step 1 específico
+│   └── ...
+│
+├── repositories/
+│   └── first_loan_repository.dart        # Acceso a datos
+│
+├── screens/
+│   ├── first_loan_step_one_screen.dart   # Pantalla del paso 1
+│   ├── widgets/
+│   │   └── phone_verification_modal.dart # Modal de verificación
+│   └── ...
+│
+lib/shared/phone_validation/
+├── repositories/
+│   └── phone_validation_repository.dart  # Repository compartido
+└── models/
+    ├── phone_validation_request.dart
+    ├── phone_validation_response.dart
+    ├── phone_code_verification_request.dart
+    └── ...
+```
+
+### 🔄 Flujo de Integración
+
+```
+FirstLoanStepOne
+      ↓
+[User enters phone & proceeds]
+      ↓
+[Check if phone verified?]
+      ↓
+[NO] → PhoneVerificationModal
+         ↓
+      validatePhone()
+         ↓
+      [OTP Code sent]
+         ↓
+      [User enters code]
+         ↓
+      verifyCode()
+         ↓
+      [Success/Error]
+         ↓
+      markPhoneAsVerified()
+      ↓
+[YES] → Proceed to Step 2
+```
+
+---
+
+## Flujo de Datos
+
+### 🔄 Flujo Principal: Validación en Dos Pasos
+
+#### Fase 1: Envío del código OTP (validatePhone)
+
+```
+1. Usuario ingresa número en FirstLoanStepOne
+   │
+2. Sistema valida formato del teléfono
+   │
+   └─> ¿Formato válido?
+       ├─> NO: Mostrar error de validación
+       └─> SI: Continuar
+   │
+3. ref.read(phoneValidationProvider.notifier).validatePhone(phone)
+   │
+   ├─> state.status = PhoneValidationStatus.sending
+   │
+4. PhoneValidationRepository.validatePhoneStep1(phone)
+   │
+   ├─> POST /client/validate-phone-step-1
+   │   └─> { "phone": "+503XXXXXXXX" }
+   │
+5. API responde con requestId
+   │
+   ├─> Response: { "data": { "requestId": "abc123..." } }
+   │
+6. state.status = PhoneValidationStatus.pendingVerification
+   state.requestId = "abc123..."
+   state.remainingSeconds = 300 (5 minutos)
+   │
+7. Inicia contador regresivo (_startCountdown)
+   │
+8. Mostrar PhoneVerificationModal al usuario
+```
+
+#### Fase 2: Verificación del código OTP (verifyCode)
+
+```
+1. Usuario ingresa código de 6 dígitos
+   │
+   └─> onPhoneCodeChanged("123456")
+       └─> state.verificationCode = "123456"
+   │
+2. Validación automática o presionar botón
+   │
+3. ref.read(phoneValidationProvider.notifier).verifyCode("123456")
+   │
+4. Validaciones previas:
+   ├─> ¿requestId existe?
+   │   └─> NO: Error "No hay solicitud pendiente"
+   │
+5. PhoneValidationRepository.validatePhoneStep2()
+   │
+   ├─> POST /client/validate-phone-step-2
+   │   └─> {
+   │        "requestId": "abc123...",
+   │        "phoneCode": "123456"
+   │      }
+   │
+6. ¿Respuesta exitosa (200)?
+   │
+   ├─> SI:
+   │   ├─> _timer?.cancel()
+   │   ├─> state.status = PhoneValidationStatus.verified
+   │   ├─> Cerrar modal
+   │   └─> markPhoneAsVerified()
+   │
+   └─> NO:
+       ├─> state.status = PhoneValidationStatus.error
+       └─> Mostrar mensaje de error
+```
+
+#### Fase 3: Expiración del código
+
+```
+_startCountdown() ejecuta cada segundo:
+   │
+   ├─> Si remainingSeconds <= 0:
+   │   ├─> Detener timer
+   │   ├─> state.status = PhoneValidationStatus.expired
+   │   ├─> errorMessage = "El tiempo ha expirado"
+   │   └─> Mostrar botón "Solicitar nuevo código"
+   │
+   └─> Si remainingSeconds > 0:
+       ├─> Decrementar: remainingSeconds - 1
+       └─> Actualizar UI con nuevo tiempo
+```
+
+### 📊 Diagrama de Estados
+
+```
+┌─────────────────────────────────────────────────┐
+│         PhoneValidationStatus States            │
+└─────────────────────────────────────────────────┘
+
+unverified ──────────────────────────────────────┐
+   ↓                                              │
+[Usuario presiona "Validar"]                     │
+   ↓                                              │
+sending ──────┐                                  │
+   ↓          │ (API error)                      │
+   ↓          ├──→ error                         │
+pendingVerification                              │
+   ↓ ↑ ↑                                         │
+   │ │ └── [Código incorrecto]                   │
+   │ │                                           │
+   │ └──── [Reintentar]                         │
+   │                                             │
+   ├──→ expired (5 minutos sin código)           │
+   │       ↓                                      │
+   │       [Solicitar nuevo código]              │
+   │       ↓                                      │
+   │       ┌─────────────────────────────┐       │
+   │       └────────→ sending            │       │
+   │                                     │       │
+   └─→ verified (Código correcto)       │       │
+       ↓                                 │       │
+   [Éxito]                              │       │
+                                         │       │
+   cancelled ←────────────────────────────┘
+   (Usuario cancela o se desmonta)
+```
+
+---
+
+## Componentes
+
+### 📦 State Management
+
+#### PhoneValidationState (Freezed)
+
+Define el estado completo de la validación telefónica:
+
+```dart
+@freezed
+abstract class PhoneValidationState with _$PhoneValidationState {
+  const factory PhoneValidationState({
+    @Default(PhoneValidationStatus.unverified)
+    PhoneValidationStatus status,
+    String? requestId,           // ID de la solicitud de validación
+    String? phone,               // Número telefónico en validación
+    String? errorMessage,        // Mensaje de error
+    @Default(300) int remainingSeconds, // Contador de tiempo (5 min)
+    @Default('') String verificationCode, // Código ingresado
+  }) = _PhoneValidationState;
+}
+```
+
+**Propiedades:**
+
+-   `status`: Estado actual del proceso
+-   `requestId`: Identificador único de la solicitud (generado por API)
+-   `phone`: Teléfono siendo validado (enmascarado en logs)
+-   `errorMessage`: Descripción de errores específicos
+-   `remainingSeconds`: Tiempo restante en segundos (5 min = 300 seg)
+-   `verificationCode`: Código OTP ingresado por el usuario
+
+#### PhoneValidationStatus (Enum)
+
+Estados posibles durante el proceso:
+
+```dart
+enum PhoneValidationStatus {
+  unverified,          // No validado
+  sending,             // Enviando SMS con código
+  pendingVerification, // Esperando que usuario ingrese código
+  verified,            // Teléfono validado exitosamente ✅
+  error,               // Error en el proceso
+  expired,             // Código expiró (5 min)
+  cancelled,           // Usuario canceló
+}
+```
+
+#### PhoneValidationNotifier
+
+Gestor de estado y lógica de validación:
+
+```dart
+@Riverpod(keepAlive: true)
+class PhoneValidationNotifier extends _$PhoneValidationNotifier {
+  Timer? _timer;
+
+  @override
+  PhoneValidationState build() {
+    ref.onDispose(() {
+      _timer?.cancel();
+    });
+    return const PhoneValidationState();
+  }
+
+  // Métodos públicos
+  Future<void> validatePhone(String phone) async { }
+  Future<void> verifyCode(String code) async { }
+  void onPhoneCodeChanged(String phoneCode) { }
+  void cancelVerification() { }
+  void reset() { }
+}
+```
+
+**Métodos principales:**
+
+| Método                 | Parámetro          | Descripción                          |
+| ---------------------- | ------------------ | ------------------------------------ |
+| `validatePhone()`      | `String phone`     | Envía SMS con código OTP             |
+| `verifyCode()`         | `String code`      | Verifica código ingresado            |
+| `onPhoneCodeChanged()` | `String phoneCode` | Actualiza código mientras se escribe |
+| `cancelVerification()` | -                  | Cancela validación y limpia estado   |
+| `reset()`              | -                  | Reinicia a estado inicial            |
+
+**Getters de conveniencia:**
+
+```dart
+bool get isVerified => status == PhoneValidationStatus.verified;
+bool get isPending => status == PhoneValidationStatus.pendingVerification;
+bool get isLoading => status == PhoneValidationStatus.sending;
+bool get hasError => status == PhoneValidationStatus.error;
+bool get isExpired => status == PhoneValidationStatus.expired;
+String get formattedTime => 'MM:SS';
+```
+
+### 🔄 Repository Layer
+
+#### PhoneValidationRepository
+
+Encapsula toda la comunicación con API y manejo de errores:
+
+```dart
+class PhoneValidationRepository {
+  final HttpClient _httpClient;
+
+  PhoneValidationRepository(this._httpClient);
+
+  /// Paso 1: Solicita envío de código OTP
+  Future<PhoneValidationResponse> validatePhoneStep1(
+    String phone
+  ) async {
+    try {
+      final request = PhoneValidationRequest(phone: phone);
+      final response = await _httpClient.post(
+        '/client/validate-phone-step-1',
+        data: request.toJson(),
+      );
+      return PhoneValidationResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Paso 2: Verifica código OTP
+  Future<void> validatePhoneStep2({
+    required String requestId,
+    required String phoneCode,
+  }) async {
+    try {
+      final request = PhoneCodeVerificationRequest(
+        requestId: requestId,
+        phoneCode: phoneCode,
+      );
+      await _httpClient.post(
+        '/client/validate-phone-step-2',
+        data: request.toJson(),
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+}
+```
+
+**Responsabilidades:**
+
+-   Convertir datos a DTOs
+-   Enviar peticiones HTTP
+-   Capturar y transformar errores Dio
+-   Enmascarar datos sensibles en logs
+
+### 🎨 UI Components
+
+#### FirstLoanStepOneScreen
+
+Pantalla que solicita información personal, incluyendo validación del teléfono:
+
+**Secciones principales:**
+
+1. Campo de entrada de teléfono
+2. Validación en tiempo real del formato
+3. Botón para iniciar validación
+4. Indicador de estado de verificación
+
+#### PhoneVerificationModal
+
+Modal que captura el código OTP del usuario:
+
+**Características:**
+
+-   Campo de entrada para 6 dígitos
+-   Auto-detección de SMS entrantes
+-   Contador regresivo visible
+-   Mensaje de error si código es incorrecto
+-   Botón para solicitar nuevo código
+-   Opción de cancelar
+
+**Código ejemplo:**
+
+```dart
+PinFieldAutoFill(
+  controller: _otpController,
+  codeLength: 6,
+  autoFocus: true,
+  onCodeChanged: (code) {
+    if (code?.length == 6) {
+      ref.read(phoneValidationProvider.notifier).verifyCode(code!);
+    }
+  },
+)
+```
+
+---
+
+## APIs Utilizadas
+
+### Paso 1: Solicitar Código OTP
+
+#### `POST /client/validate-phone-step-1`
+
+**Descripción**: Solicita que se envíe un código OTP por SMS al número telefónico especificado.
+
+**Headers Requeridos**:
+
+```
+Content-Type: application/json
+Authorization: Bearer <token>
+Language: es
+```
+
+**Request Body**:
+
+```json
+{
+    "phone": "+503XXXXXXXX"
+}
+```
+
+**Formatos aceptados:**
+
+-   Local: `77771234` (8 dígitos)
+-   Formato local con guión: `7777-1234`
+-   Internacional: `+503 7777 1234`
+-   Internacional compacto: `+50377771234`
+-   Con espacios: `+503 7777 1234`
+
+**Response Exitosa (200 OK)**:
+
+```json
+{
+    "data": {
+        "requestId": "550e8400-e29b-41d4-a716-446655440000"
+    }
+}
+```
+
+**Respuestas de Error**:
+
+| Código | Situación           | Mensaje                       | Acción                     |
+| ------ | ------------------- | ----------------------------- | -------------------------- |
+| 400    | Error general       | Varío según servidor          | Reintentar después         |
+| 401    | No autenticado      | "Usuario no autenticado"      | Redirigir a login          |
+| 422    | Validación fallida  | Específico del campo          | Mostrar mensaje al usuario |
+| 429    | Demasiados intentos | "Límite de intentos excedido" | Mostrar tiempo de espera   |
+| 500    | Error del servidor  | "Error interno del servidor"  | Reintentar después         |
+
+**Ejemplo respuesta 422 (validación):**
+
+```json
+{
+    "errors": [
+        {
+            "code": "ValidationError",
+            "message": "El número de teléfono no es válido"
+        }
+    ]
+}
+```
+
+### Paso 2: Verificar Código OTP
+
+#### `POST /client/validate-phone-step-2`
+
+**Descripción**: Verifica que el código OTP ingresado por el usuario sea correcto.
+
+**Headers Requeridos**:
+
+```
+Content-Type: application/json
+Authorization: Bearer <token>
+Language: es
+```
+
+**Request Body**:
+
+```json
+{
+    "requestId": "550e8400-e29b-41d4-a716-446655440000",
+    "phoneCode": "123456"
+}
+```
+
+**Response Exitosa (200 OK)**:
+
+```json
+{
+    "data": {
+        "message": "Teléfono verificado exitosamente"
+    }
+}
+```
+
+**Respuestas de Error**:
+
+| Código | Situación             | Mensaje                              | Acción                 |
+| ------ | --------------------- | ------------------------------------ | ---------------------- |
+| 400    | Código inválido       | "Código incorrecto"                  | Pedir reintentar       |
+| 400    | requestId expirado    | "Solicitud de verificación expirada" | Solicitar nuevo código |
+| 422    | Validación del código | "Código debe ser 6 dígitos"          | Corregir entrada       |
+| 401    | No autenticado        | "Usuario no autenticado"             | Redirigir a login      |
+| 500    | Error del servidor    | Varío                                | Reintentar después     |
+
+---
+
+## Manejo de Errores
+
+### 🚨 Estrategia de Errores
+
+La aplicación maneja errores en múltiples niveles para proporcionar feedback claro:
+
+#### 1. Nivel Repository: PhoneValidationException
+
+```dart
+class PhoneValidationException implements Exception {
+  final String message;
+  final int? statusCode;
+  final PhoneValidationExceptionType type;
+  final Map<String, dynamic>? data;
+
+  const PhoneValidationException({
+    required this.message,
+    this.statusCode,
+    required this.type,
+    this.data,
+  });
+}
+
+enum PhoneValidationExceptionType {
+  network,      // Errores HTTP
+  validation,   // Validación fallida
+  unauthorized, // No autenticado
+  unknown,      // Error inesperado
+}
+```
+
+#### 2. Nivel Notifier: Captura y Transformación
+
+```dart
+Future<void> validatePhone(String phone) async {
+  try {
+    // ... lógica
+  } on PhoneValidationException catch (e, stackTrace) {
+    String errorMessage = 'Error al enviar código';
+
+    // Extraer mensaje específico según tipo de error
+    if (e.statusCode == 422) {
+      // Error de validación de datos
+      if (e.data?['phone'] != null) {
+        errorMessage = e.data!['phone']['message'];
+      }
+    } else if (e.statusCode == 401) {
+      errorMessage = 'Usuario no autenticado';
+    }
+
+    // Registrar error con contexto
+    LoggingService.error(
+      'Phone validation failed',
+      tag: 'PHONE_VALIDATION',
+      error: e,
+      stackTrace: stackTrace,
+      data: {'status_code': e.statusCode},
+    );
+
+    state = state.copyWith(
+      status: PhoneValidationStatus.error,
+      errorMessage: errorMessage,
+    );
+  }
+}
+```
+
+#### 3. Nivel UI: Presentación al Usuario
+
+```dart
+if (state.hasError) {
+  return ErrorWidget(
+    message: state.errorMessage,
+    onRetry: () {
+      ref.read(phoneValidationProvider.notifier).validatePhone(phone);
+    },
+  );
+}
+```
+
+### 📊 Árbol de Decisión de Errores
+
+```
+PhoneValidationException
+│
+├─> Tipo: NETWORK
+│   ├─> 400: Error general
+│   │   └─> Mostrar: "Error al procesar solicitud"
+│   │
+│   ├─> 401: No autenticado
+│   │   └─> Mostrar: "Usuario no autenticado"
+│   │   └─> Acción: Redirigir a login
+│   │
+│   ├─> 408/Timeout
+│   │   └─> Mostrar: "Tiempo de conexión agotado"
+│   │   └─> Acción: Botón reintentar
+│   │
+│   ├─> 422: Validación
+│   │   ├─> phone error
+│   │   │   └─> Mostrar: Mensaje específico del campo
+│   │   │
+│   │   └─> Otros
+│   │       └─> Mostrar: Mensaje de error del API
+│   │
+│   └─> 429: Límite de intentos
+│       └─> Mostrar: "Demasiados intentos. Intenta después"
+│
+├─> Tipo: VALIDATION
+│   └─> Mostrar: "Datos de validación inválidos"
+│
+├─> Tipo: UNKNOWN
+│   └─> Mostrar: "Error inesperado: [mensaje]"
+│
+└─> Exception genérica
+    └─> Mostrar: "Error inesperado. Intenta más tarde"
+```
+
+### ⏰ Manejo de Expiración
+
+```dart
+void _startCountdown() {
+  _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    if (!ref.mounted) {
+      timer.cancel();
+      return;
+    }
+
+    if (state.remainingSeconds <= 0) {
+      timer.cancel();
+      state = state.copyWith(
+        status: PhoneValidationStatus.expired,
+        errorMessage: 'El código ha expirado. Solicita uno nuevo',
+      );
+      // Mostrar botón "Solicitar nuevo código"
+    } else {
+      state = state.copyWith(
+        remainingSeconds: state.remainingSeconds - 1,
+      );
+    }
+  });
+}
+```
+
+---
+
+## 🔐 Seguridad
+
+### Consideraciones Importantes
+
+#### 1. Protección de Datos Sensibles
+
+-   **Números telefónicos**:
+
+    -   Se enmascaran en logs: `****1234`
+    -   No se guardan en caché local sin encriptación
+    -   Se transmiten solo vía HTTPS
+
+-   **Códigos OTP**:
+
+    -   Nunca se almacenan en localStorage sin encriptación
+    -   Se limpian automáticamente después de verificación
+    -   Tiempo de expiración: 5 minutos
+
+-   **Request ID**:
+    -   Único por solicitud
+    -   Generado por servidor
+    -   Tied a usuario y sesión
+
+#### 2. Validación Server-Side
+
+```
+CLIENTE                           SERVIDOR
+   ├─ Validar formato
+   └─ Mostrar error           (Primera línea)
+                                   │
+                        ┌──────────┴──────────┐
+                        │ VALIDACIÓN SERVER   │
+                        │ (AUTORIDAD)         │
+                        │                     │
+                        ├─ Validar formato   │
+                        ├─ Validar campo     │
+                        ├─ Verificar estado  │
+                        └─ Generar OTP       │
+```
+
+#### 3. Rate Limiting
+
+El servidor implementa límites para prevenir abuso:
+
+-   **Máx 3 intentos** por teléfono en 24 horas
+-   **Máx 5 minutos** por código
+-   **Máx 1 solicitud** por 2 minutos
+
+#### 4. Autenticación
+
+-   Todas las peticiones requieren token Bearer
+-   Token se valida en cada paso
+-   Se cancela todo si token expira
+
+#### 5. Prevención de Ataques
+
+**Ataques prevenidos:**
+
+-   Brute force: Rate limiting + códigos únicos
+-   Hijacking: Validación server-side del teléfono
+-   MITM: HTTPS obligatorio
+-   Replay: RequestId único + tiempo limitado
+
+---
+
+## 📝 Resumen de Capas
+
+| Capa           | Componente                | Responsabilidad       |
+| -------------- | ------------------------- | --------------------- |
+| **UI**         | FirstLoanStepOneScreen    | Entrada de teléfono   |
+| **UI**         | PhoneVerificationModal    | Captura de código OTP |
+| **State**      | PhoneValidationNotifier   | Orquestar flujo       |
+| **State**      | PhoneValidationState      | Mantener estado       |
+| **Repository** | PhoneValidationRepository | Acceso a API          |
+| **Data**       | HttpClient                | Comunicación HTTP     |
+| **Domain**     | DTOs                      | Modelos de datos      |
+
+---
+
+## 🚀 Próximos Pasos
+
+1. **Biometría**: Agregar validación por huella dactilar
+2. **Llamada verificadora**: Alternativa a SMS
+3. **Caché de validaciones**: Cachear validaciones previas
+4. **Analytics**: Rastrear éxito/fracaso de validaciones
+5. **A/B Testing**: Optimizar mensajes y tiempos
+6. **Integración con backup codes**: Para usuarios sin acceso a SMS
+
+---
+
+## 📚 Referencia de Archivos
+
+```
+📁 lib/features/first_loan/
+├── 📄 entities/first_loan_request.dart
+├── 📄 entities/first_loan_step.dart
+├── 📄 models/first_loan_request.dart
+├── 📄 providers/phone_validation_provider.dart
+├── 📄 providers/first_loan_step_one_provider.dart
+├── 📄 repositories/first_loan_repository.dart
+├── 📄 screens/first_loan_step_one_screen.dart
+│   └── 📄 widgets/phone_verification_modal.dart
+│
+
+📁 lib/shared/phone_validation/
+├── 📄 repositories/phone_validation_repository.dart
+└── 📄 models/
+    ├── 📄 phone_validation_request.dart
+    ├── 📄 phone_validation_response.dart
+    ├── 📄 phone_code_verification_request.dart
+    └── 📄 phone_code_verification_response.dart
+```
+
+---
+
+## 🔗 Relación con Otros Features
+
+-   **Primer Préstamo**: Paso 1 requiere validación telefónica
+-   **Perfil del Cliente**: Reutiliza lógica de validación en cambio de teléfono
+-   **Autenticación**: Comparte mecanismo de OTP
+
+---
+
+**Versión**: 1.0
+**Última actualización**: Octubre 2024
+**Autor**: Equipo de Desarrollo Pisto
+**Estado**: Producción ✅

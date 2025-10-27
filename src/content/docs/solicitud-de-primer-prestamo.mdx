@@ -1,0 +1,1359 @@
+---
+title: Flujo de Solicitud de primer préstamo
+slug: solicitud-de-primer-prestamo
+tags:
+    [
+        auth,
+        first-loan,
+        phone-number-verification,
+        otp,
+        image-upload,
+        flutter,
+        riverpod,
+        dio,
+        formz,
+    ]
+description: Flujo de solicitud de primer préstamo en la aplicación Pisto, incluyendo validación de número telefónico, carga de imágenes, manejo de errores y estados del proceso.
+---
+
+## Descripción General
+
+El **flujo de solicitud de primer préstamo** es el proceso central de Pisto que permite a nuevos usuarios solicitar su primer préstamo. El flujo está dividido en **7 pasos** (incluyendo bienvenida y confirmación) donde se recopila información completa del usuario.
+
+### 📊 Estructura de Pasos
+
+```
+┌─────────────┐     ┌────────────┐     ┌─────────────┐     ┌────────────┐     ┌──────────────┐     ┌────────────┐     ┌─────────────┐
+│  Welcome    │────▶│   Step 1   │────▶│   Step 2    │────▶│   Step 3   │────▶│   Step 4     │────▶│   Step 5   │────▶│ Completion  │
+│  (Intro)    │     │ (Personal) │     │  (Address)  │     │  (Finance) │     │(References) │     │  (Images)  │     │ (Confirm)   │
+└─────────────┘     └────────────┘     └─────────────┘     └────────────┘     └──────────────┘     └────────────┘     └─────────────┘
+     ✓ Auto           ✓ Manual           ✓ Manual           ✓ Manual           ✓ Manual           ✓ Manual          ✓ Auto/Manual
+     (Inicio)        (Validación)       (Selección)        (Ingreso)          (Ingreso)          (Cámara)         (Confirmación)
+```
+
+### ✨ Características Principales
+
+-   ✅ **7 pasos guiados**: Recolección progresiva de datos
+-   ✅ **Validación en tiempo real**: Feedback inmediato
+-   ✅ **Salto a pasos anteriores**: Corrección fácil
+-   ✅ **Datos del calculador**: Monto y plazo pre-seleccionados
+-   ✅ **Descarga de documentos**: PDF con términos y condiciones
+-   ✅ **Confirmación final**: Revisión antes de envío
+-   ✅ **Manejo robusto de errores**: Reintentos y recuperación
+-   ✅ **Logging completo**: Auditoría de todas las operaciones
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+La solicitud de primer préstamo es tu entrada a Pisto. En este proceso:
+
+-   **Verificamos tu identidad**: Necesitamos datos personales completos
+-   **Confirmamos tu ubicación**: Para determinar si puedes recibir préstamo
+-   **Evaluamos tu capacidad de pago**: Ingresos, deudas, referencias
+-   **Recolectamos documentos**: Fotos de tu DUI y selfie
+-   **Calculamos el préstamo**: Basado en lo que preseleccionaste
+
+### 📍 Ubicación en la App
+
+**Ruta**: `Settings → Solicitar Préstamo` o `Dashboard → Nuevo Préstamo`
+
+**Requisitos previos:**
+
+-   ✅ Cuenta creada y verificada
+-   ✅ Teléfono confirmado
+-   ✅ Email validado
+
+### 🚀 Flujo Paso a Paso
+
+#### **Paso 0: Bienvenida (Welcome Screen)**
+
+Esta pantalla es informativa y NO requiere entrada de datos.
+
+**Qué se muestra:**
+
+1. Bienvenida personalizada: "¡Hola [nombre]!"
+2. Monto y plazo que preseleccionaste en el calculador
+3. Resumen de lo que necesitaremos
+4. Información sobre documentos requeridos
+5. Botón "Comencemos"
+
+**Qué ocurre internamente:**
+
+-   El sistema carga los datos del calculador
+-   Se valida que el usuario tenga sesión activa
+-   Se prepara el estado para recibir datos
+
+**Campos:** Ninguno (solo botón de continuar)
+
+---
+
+#### **Paso 1: Información Personal (Step 1)**
+
+**Qué necesitamos:**
+
+| Campo      | Tipo      | Validación                                | Obligatorio |
+| ---------- | --------- | ----------------------------------------- | ----------- |
+| Nombre     | Texto     | Mínimo 2 caracteres, sin números          | ✅ Sí       |
+| Apellido   | Texto     | Mínimo 2 caracteres, sin números          | ✅ Sí       |
+| Género     | Selección | Masculino / Femenino                      | ✅ Sí       |
+| Fecha Nac. | Fecha     | Edad mínima 18 años, máximo 100 años      | ✅ Sí       |
+| DUI        | Texto     | 8 dígitos + guión + 1 dígito (12345678-9) | ✅ Sí       |
+| Teléfono   | Texto     | Validado en Step anterior (OTP)           | ✅ Sí       |
+
+**Validaciones especiales:**
+
+-   El teléfono viene pre-llenado del paso de validación
+-   Se requiere marca de verificación: ✅ Teléfono validado
+-   Si el usuario intenta cambiar el teléfono, debe validar nuevamente
+-   DUI sin espacios en formato: 12345678-9
+
+**Qué ocurre:**
+
+1. Usuario rellena los 6 campos
+2. Validación en tiempo real marca campos
+3. Cuando todos son válidos: Botón "Continuar" se habilita
+4. Usuario presiona "Continuar"
+5. Los datos se guardan en state de Step 1
+
+**Errores comunes:**
+
+| Error                  | Causa                  | Solución                    |
+| ---------------------- | ---------------------- | --------------------------- |
+| DUI inválido           | Formato incorrecto     | Usar formato: 12345678-9    |
+| Fecha muy antigua      | Mayor de 100 años      | Revisar fecha de nacimiento |
+| Teléfono no verificado | No pasó validación OTP | Validar número nuevamente   |
+| Nombre con números     | Carácter inválido      | Usar solo letras            |
+
+---
+
+#### **Paso 2: Dirección (Step 2)**
+
+**Qué necesitamos:**
+
+| Campo         | Tipo      | Validación              | Obligatorio |
+| ------------- | --------- | ----------------------- | ----------- |
+| Departamento  | Selección | Cargado desde API       | ✅ Sí       |
+| Distrito      | Selección | Depende de departamento | ✅ Sí       |
+| Municipio     | Selección | Depende de distrito     | ✅ Sí       |
+| Calle         | Texto     | Mínimo 3 caracteres     | ✅ Sí       |
+| Número Casa   | Texto     | Número o número + letra | ✅ Sí       |
+| Barrio/Sector | Texto     | Mínimo 3 caracteres     | ✅ Sí       |
+
+**Flujo de selección en cascada:**
+
+```
+Departamento (ej: San Salvador)
+    ↓ Carga Distritos
+Distrito (ej: San Salvador Centro)
+    ↓ Carga Municipio
+Municipio (ej: San Salvador)
+```
+
+**Validaciones geográficas:**
+
+-   Solo se pueden seleccionar departamentos de El Salvador
+-   Los distritos cambian según el departamento seleccionado
+-   El municipio es determinado automáticamente
+-   No se permiten direcciones vacías
+
+**Qué ocurre:**
+
+1. Pantalla carga departamentos automáticamente
+2. Usuario selecciona departamento
+3. Se cargan distritos del departamento
+4. Usuario selecciona distrito
+5. Se determina municipio automáticamente
+6. Usuario rellena calle, número y barrio
+7. Cuando todos son válidos: Botón "Continuar" se habilita
+
+**Errores comunes:**
+
+| Error                  | Causa                  | Solución                  |
+| ---------------------- | ---------------------- | ------------------------- |
+| No carga departamentos | Error de conexión      | Reintentar con WiFi       |
+| Departamento bloqueado | Restricción geográfica | Contáctanos               |
+| Calle rechazada        | Caracteres inválidos   | Evitar caracteres especia |
+
+---
+
+#### **Paso 3: Información Laboral/Financiera (Step 3)**
+
+**Qué necesitamos:**
+
+| Campo                 | Tipo      | Validación                         | Obligatorio |
+| --------------------- | --------- | ---------------------------------- | ----------- |
+| Tipo de Empleo        | Selección | Cargado desde API                  | ✅ Sí       |
+| Nombre Empresa        | Texto     | Mínimo 3 caracteres                | ✅ Sí       |
+| Teléfono Empresa      | Teléfono  | Formato válido                     | ✅ Sí       |
+| Ingreso Neto          | Selección | Rango de ingresos (ej: $500-$1000) | ✅ Sí       |
+| Ingreso Adicional     | Cantidad  | 0 a 99,999                         | ❌ Opcional |
+| Otras Deudas          | Cantidad  | 0 a 99,999                         | ❌ Opcional |
+| Propósito Préstamo    | Selección | Cargado desde API                  | ✅ Sí       |
+| Descripción Propósito | Texto     | Mínimo 10 caracteres               | ✅ Sí       |
+
+**Opciones de ingreso neto:**
+
+-   Menos de $500
+-   $500 - $1,000
+-   $1,000 - $2,000
+-   $2,000 - $5,000
+-   Más de $5,000
+
+**Propósitos de préstamo:**
+
+-   Emergencia médica
+-   Educación
+-   Reparación del hogar
+-   Negocio
+-   Otro
+
+**Validaciones especiales:**
+
+-   Si Ingreso Neto + Ingreso Adicional < $200: Advertencia
+-   Si Otras Deudas > Ingreso: Advertencia
+-   Descripción debe ser mayor a 10 caracteres
+
+**Qué ocurre:**
+
+1. Pantalla carga tipos de empleo y propósitos automáticamente
+2. Usuario selecciona tipo de empleo
+3. Usuario rellena datos de empresa
+4. Usuario selecciona ingreso neto
+5. Usuario rellena (opcionalmente) ingreso adicional y deudas
+6. Usuario selecciona propósito
+7. Usuario describe propósito del préstamo
+8. Sistema valida todo
+9. Botón "Continuar" se habilita
+
+**Errores comunes:**
+
+| Error                 | Causa                  | Solución            |
+| --------------------- | ---------------------- | ------------------- |
+| Ingreso muy bajo      | Menos de $200          | Agregar ingresos    |
+| Empresa no existe     | Nombre/teléfono falso  | Verificar datos     |
+| Deudas muy altas      | Mayor que ingresos     | Revisar deudas      |
+| Descripción muy corta | Menos de 10 caracteres | Ampliar descripción |
+
+---
+
+#### **Paso 4: Referencias Personales (Step 4)**
+
+**Qué necesitamos:**
+
+Dos referencias (Familiar y Amigo):
+
+| Campo          | Tipo     | Validación          | Obligatorio |
+| -------------- | -------- | ------------------- | ----------- |
+| Nombre Ref 1   | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Apellido Ref 1 | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Teléfono Ref 1 | Teléfono | Formato válido      | ✅ Sí       |
+| Nombre Ref 2   | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Apellido Ref 2 | Texto    | Mínimo 2 caracteres | ✅ Sí       |
+| Teléfono Ref 2 | Teléfono | Formato válido      | ✅ Sí       |
+
+**Restricciones:**
+
+-   No puede ser el mismo teléfono para ambas referencias
+-   No pueden ser números familiares (tuyo)
+-   Mínimo 2 referencias requeridas
+
+**Validaciones especiales:**
+
+-   El sistema puede validar si los números son válidos (rango válido de El Salvador)
+-   Se almacenan para potencial contacto posterior
+
+**Qué ocurre:**
+
+1. Usuario rellena datos de Referencia 1 (Familiar)
+2. Usuario rellena datos de Referencia 2 (Amigo)
+3. Sistema valida que ambas estén completas
+4. Sistema valida que no sean iguales
+5. Botón "Continuar" se habilita
+
+**Errores comunes:**
+
+| Error               | Causa                 | Solución               |
+| ------------------- | --------------------- | ---------------------- |
+| Referencias iguales | Mismo teléfono        | Usar números distintos |
+| Nombre muy corto    | Menos de 2 caracteres | Nombre completo        |
+| Teléfono inválido   | Formato incorrecto    | Formato: +503 7777777  |
+
+---
+
+#### **Paso 5: Verificación de Identidad (Step 5)**
+
+**Qué necesitamos:**
+
+3 imágenes (ya documentado en #15-carga-de-imagenes.md):
+
+1. Frente del DUI
+2. Revés del DUI
+3. Selfie con DUI
+
+**Validaciones:**
+
+-   Todas las 3 imágenes son obligatorias
+-   No se puede continuar sin las 3 imágenes cargadas exitosamente
+-   Solo se aceptan JPEG y PNG
+-   Máximo 5MB por imagen
+
+**Estado general:**
+
+-   ✅ Frente cargado
+-   ✅ Revés cargado
+-   ✅ Selfie cargado
+-   → "Continuar" habilitado
+
+**Qué ocurre:**
+
+1. Ver documentación de #15-carga-de-imagenes.md para detalles
+
+---
+
+#### **Paso 6: Confirmación (Completion Screen)**
+
+**Qué se muestra:**
+
+1. Resumen completo de datos ingresados
+2. Monto final del préstamo
+3. Plazo seleccionado
+4. Cálculo de intereses
+5. Fecha estimada de recepción
+6. Términos y condiciones
+7. Botón "Confirmar y Enviar"
+
+**Antes de enviar, se verifica:**
+
+-   ✅ Todos los pasos completados
+-   ✅ Validaciones pasadas
+-   ✅ Imágenes cargadas
+-   ✅ Usuario confirma información
+
+**Qué ocurre al presionar "Confirmar":**
+
+1. Sistema recolecta datos de todos los pasos
+2. Se construye el payload (FirstLoanRequest)
+3. Se envía a `/client/request-first-loan`
+4. Se muestra indicador de carga: ⏳ Procesando...
+5. Si éxito: Pantalla de confirmación final
+6. Si error: Mensaje de error con opción de reintentar
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Patrón Arquitectónico
+
+La solicitud de primer préstamo sigue una arquitectura **Feature-Based Multi-Step** con orquestación centralizada:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Presentation Layer (UI)                                    │
+│                                                              │
+│ ├─ FirstLoanWelcomeScreen          (Paso 0)                │
+│ ├─ FirstLoanStepOneScreen          (Paso 1: Personal)      │
+│ ├─ FirstLoanStepTwoScreen          (Paso 2: Dirección)     │
+│ ├─ FirstLoanStepThreeScreen        (Paso 3: Financiero)    │
+│ ├─ FirstLoanStepFourScreen         (Paso 4: Referencias)   │
+│ ├─ FirstLoanStepFiveScreen         (Paso 5: Imágenes)      │
+│ └─ FirstLoanCompletionScreen       (Paso 6: Confirmación)  │
+└─────────────────────────────────────────────────────────────┘
+                          ↑
+                          │ (Riverpod Consumers)
+        ┌─────────────────┼─────────────────┐
+        │                 │                 │
+┌───────▼───────┐ ┌───────▼───────┐ ┌────▼────────────┐
+│ State Mgmt    │ │ State Mgmt    │ │ State Mgmt      │
+│               │ │               │ │                 │
+│ Step1Notif.   │ │ Step2Notif.   │ │ Step3Notif. ... │
+│ Step4Notif.   │ │ Step5Notif.   │ │ Request Notif.  │
+│ Calculator    │ │ Geographic    │ │ LoanCalc Data   │
+└───────┬───────┘ └───────┬───────┘ └────┬────────────┘
+        │                 │               │
+        └─────────────────┼───────────────┘
+                          │
+        ┌─────────────────▼──────────────────┐
+        │ Repository Layer                   │
+        │                                    │
+        │ FirstLoanRepository               │
+        │ ├─ requestFirstLoan()             │
+        │                                    │
+        │ AdditionalDataRepository          │
+        │ ├─ getAdditionalData()            │
+        │                                    │
+        │ GeographicRepository              │
+        │ ├─ getDepartments()               │
+        │ └─ getDistricts()                 │
+        └─────────────────┬──────────────────┘
+                          │
+        ┌─────────────────▼──────────────────┐
+        │ Data Layer (APIs & Services)       │
+        │                                    │
+        │ POST /client/request-first-loan   │
+        │ GET  /client/additional-data      │
+        │ GET  /client/geographic/...       │
+        │ Bearer token authentication        │
+        └────────────────────────────────────┘
+```
+
+### 📦 Gestión de Estado con Riverpod
+
+**Provider Structure:**
+
+```dart
+@Riverpod(keepAlive: true)
+class FirstLoanStepOneNotifier extends _$FirstLoanStepOneNotifier {
+  // Gerencia el estado del Paso 1
+}
+
+@Riverpod(keepAlive: true)
+class FirstLoanStepTwoNotifier extends _$FirstLoanStepTwoNotifier {
+  // Gerencia el estado del Paso 2
+}
+
+// ... Paso 3, 4, 5
+
+@Riverpod(keepAlive: true)
+class FirstLoanRequestNotifier extends _$FirstLoanRequestNotifier {
+  // Orquestador: Valida todos los pasos y envía request
+}
+```
+
+**Por qué `keepAlive: true`?**
+
+-   Los datos se preservan durante navegación
+-   Si el usuario vuelve al paso anterior, los datos permanecen
+-   Permite cancelar y retomar sin perder información
+
+### 🔄 Flujo de Datos Completo
+
+```
+Usuario Ingresa Datos (Step 1)
+        ↓
+Step1Notifier.onNameChanged("Juan")
+        ↓
+state = state.copyWith(name: TextInput.dirty("Juan"))
+        ↓
+_updateValidation()  // Valida si nombre es válido
+        ↓
+isValid = true/false
+        ↓
+UI Re-renderiza con estado actualizado
+        ↓
+Botón "Continuar" se habilita/deshabilita
+```
+
+### 📐 Validación en Cascada
+
+```
+Usuario Presiona "Continuar"
+        ↓
+Step1 Valida:
+├─ Nombre: No vacío, no números ✓
+├─ Apellido: No vacío, no números ✓
+├─ Género: Seleccionado ✓
+├─ Fecha Nac.: Mayor de 18 años ✓
+├─ DUI: Formato correcto ✓
+└─ Teléfono: Validado anteriormente ✓
+        ↓
+Si alguno falla: Mostrar error ❌
+Si todos pasan: Guardar datos ✅
+        ↓
+Navegar a Step 2
+```
+
+### 🎯 Patrón de Construcción de Payload
+
+```dart
+FirstLoanRequest _buildFirstLoanRequest() {
+  final step1 = ref.read(firstLoanStepOneProvider);
+  final step2 = ref.read(firstLoanStepTwoProvider);
+  final step3 = ref.read(firstLoanStepThreeProvider);
+  final step4 = ref.read(firstLoanStepFourProvider);
+  final step5 = ref.read(firstLoanStepFiveProvider);
+  final calculator = ref.read(loanCalculatorProvider);
+
+  return FirstLoanRequest(
+    // Del calculador
+    amount: calculator.selectedAmount.toDouble(),
+    deadline: calculator.selectedDays,
+    promoCode: calculator.appliedPromoCode?.code ?? "",
+
+    // Del paso 1: Datos personales
+    name: step1.name.value,
+    surname: step1.surname.value,
+    gender: step1.gender.value,
+    birthDate: step1.birthDate.value,
+    dni: step1.dni.value,
+    phoneNumber: step1.phoneNumber.value,
+
+    // Del paso 2: Dirección
+    street: step2.street.value,
+    streetNumber: step2.streetNumber.value,
+    suburb: step2.suburb.value,
+    municipality: step2.selectedMunicipality?.name ?? "",
+    department: step2.selectedDepartment?.name ?? "",
+
+    // Del paso 3: Información laboral/financiera
+    jobType: step3.jobType.value,
+    companyName: step3.companyName.value,
+    companyPhone: step3.companyPhone.value,
+    netIncome: step3.selectedNetIncome?.value.toDouble() ?? 0.0,
+    additionalIncome: step3.additionalIncome.doubleValue,
+    otherLoan: step3.otherLoan.doubleValue,
+    purpose: step3.purpose.value,
+    purposeDescription: step3.purposeDescription.value,
+
+    // Del paso 4: Referencias
+    familiarName: step4.familiarName.value,
+    familiarSurname: step4.familiarSurname.value,
+    familiarPhone: step4.familiarPhone.value,
+    friendName: step4.friendName.value,
+    friendSurname: step4.friendSurname.value,
+    friendPhone: step4.friendPhone.value,
+
+    // Del paso 5: Imágenes
+    imageFrontIdCard: step5.frontIdCard.imageUrl,
+    imageBackIdCard: step5.backIdCard.imageUrl,
+    imageSelfie: step5.selfie.imageUrl,
+  );
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Secuencia Completa: De Welcome a Éxito
+
+```
+INICIO: Usuario presiona "Solicitar Préstamo"
+    ↓
+┌─ WELCOME SCREEN
+│  ├─ Cargar datos del calculador
+│  ├─ Mostrar monto y plazo preseleccionados
+│  └─ Presiona "Comencemos"
+│
+├─ STEP 1: INFORMACIÓN PERSONAL
+│  ├─ Usuario ingresa: Nombre, Apellido, Género, Fecha Nac., DUI
+│  ├─ Teléfono: Pre-llenado y validado
+│  ├─ Validaciones en tiempo real
+│  └─ Presiona "Continuar" → Datos guardados
+│
+├─ STEP 2: DIRECCIÓN
+│  ├─ Cargar departamentos
+│  ├─ Usuario selecciona departamento
+│  ├─ Sistema carga distritos
+│  ├─ Usuario selecciona distrito
+│  ├─ Sistema determina municipio
+│  ├─ Usuario ingresa: Calle, Número, Barrio
+│  └─ Presiona "Continuar" → Datos guardados
+│
+├─ STEP 3: INFORMACIÓN LABORAL/FINANCIERA
+│  ├─ Cargar opciones de: Empleo, Propósito, Ingresos
+│  ├─ Usuario ingresa todos los campos
+│  ├─ Validar que ingresos sean razonables
+│  └─ Presiona "Continuar" → Datos guardados
+│
+├─ STEP 4: REFERENCIAS PERSONALES
+│  ├─ Usuario ingresa Referencia 1: Nombre, Apellido, Teléfono
+│  ├─ Usuario ingresa Referencia 2: Nombre, Apellido, Teléfono
+│  ├─ Validar que referencias sean diferentes
+│  └─ Presiona "Continuar" → Datos guardados
+│
+├─ STEP 5: VERIFICACIÓN DE IDENTIDAD
+│  ├─ Capturar Frente DUI (con cámara, comprime a 50%)
+│  ├─ Upload Frente DUI (Multipart Form)
+│  ├─ Mostrar ✅ si éxito
+│  │
+│  ├─ Capturar Revés DUI
+│  ├─ Upload Revés DUI
+│  ├─ Mostrar ✅ si éxito
+│  │
+│  ├─ Capturar Selfie con DUI
+│  ├─ Upload Selfie
+│  ├─ Mostrar ✅ si éxito
+│  │
+│  └─ Presiona "Continuar" → Datos guardados
+│
+├─ COMPLETION SCREEN (Resumen)
+│  ├─ Mostrar resumen de TODOS los datos
+│  ├─ Mostrar monto final
+│  ├─ Mostrar plazo
+│  ├─ Mostrar cálculos de interés
+│  ├─ Usuario revisa todo
+│  └─ Presiona "Confirmar y Enviar"
+│
+├─ VALIDACIÓN FINAL
+│  ├─ Verificar que todos los steps estén completos
+│  ├─ Verificar que todas las validaciones pasen
+│  ├─ Verificar que todas las imágenes estén cargadas
+│  └─ Si TODO OK: Continuar, SI NO: Mostrar error
+│
+├─ CONSTRUCCIÓN DE PAYLOAD
+│  └─ Recolectar datos de todos los pasos → FirstLoanRequest
+│
+├─ ENVÍO A API
+│  ├─ POST /client/request-first-loan
+│  ├─ Body: FirstLoanRequest.toJson()
+│  ├─ Headers: Authorization: Bearer <token>
+│  └─ Response: FirstLoanResponse { message, requestId, ... }
+│
+└─ FIN: PANTALLA DE ÉXITO
+   ├─ "Tu solicitud fue enviada exitosamente"
+   ├─ Mostrar ID de solicitud
+   ├─ Mostrar fecha de revisión esperada
+   └─ Botón "Volver al Inicio"
+```
+
+---
+
+## Componentes y Pasos
+
+### 📦 State Models
+
+#### FirstLoanStepOneState
+
+```dart
+@freezed
+abstract class FirstLoanStepOneState with _$FirstLoanStepOneState {
+  const factory FirstLoanStepOneState({
+    @Default(TextInput.pure()) TextInput name,
+    @Default(TextInput.pure()) TextInput surname,
+    @Default(GenderInput.pure()) GenderInput gender,
+    @Default(BirthDateInput.pure()) BirthDateInput birthDate,
+    @Default(DuiInput.pure()) DuiInput dni,
+    @Default(PhoneInput.pure()) PhoneInput phoneNumber,
+    @Default(false) bool isPhoneVerified,  // Importa: Debe estar verificado
+    @Default(false) bool isValid,
+  }) = _FirstLoanStepOneState;
+}
+```
+
+#### FirstLoanStepTwoState
+
+```dart
+@freezed
+abstract class FirstLoanStepTwoState with _$FirstLoanStepTwoState {
+  const factory FirstLoanStepTwoState({
+    @Default(TextInput.pure()) TextInput street,
+    @Default(TextInput.pure()) TextInput streetNumber,
+    @Default(TextInput.pure()) TextInput suburb,
+    DepartmentEntity? selectedDepartment,
+    DistrictEntity? selectedDistrict,
+    MunicipalityEntity? selectedMunicipality,
+    @Default([]) List<DepartmentEntity> departments,
+    @Default([]) List<DistrictEntity> districts,
+    @Default(false) bool isLoadingDepartments,
+    @Default(false) bool isLoadingDistricts,
+    @Default(false) bool isLoadingMunicipality,
+    @Default(false) bool isValid,
+  }) = _FirstLoanStepTwoState;
+}
+```
+
+#### FirstLoanRequestState
+
+```dart
+@freezed
+abstract class FirstLoanRequestState with _$FirstLoanRequestState {
+  const factory FirstLoanRequestState({
+    @Default(RequestStatus.idle) RequestStatus status,  // idle, loading, success, error
+    @Default('') String errorMessage,
+    FirstLoanResponse? response,
+  }) = _FirstLoanRequestState;
+}
+
+enum RequestStatus { idle, loading, success, error }
+```
+
+### 🔧 Notifiers
+
+#### FirstLoanRequestNotifier (Orquestador Principal)
+
+```dart
+@Riverpod(keepAlive: true)
+class FirstLoanRequestNotifier extends _$FirstLoanRequestNotifier {
+  @override
+  FirstLoanRequestState build() {
+    return const FirstLoanRequestState();
+  }
+
+  Future<void> sendFirstLoanRequest() async {
+    try {
+      // 1. Validar todos los pasos
+      if (!_validateAllSteps()) {
+        state = state.copyWith(
+          status: RequestStatus.error,
+          errorMessage: 'Por favor complete todos los pasos',
+        );
+        return;
+      }
+
+      // 2. Actualizar estado a loading
+      state = state.copyWith(status: RequestStatus.loading);
+
+      // 3. Construir payload
+      final request = _buildFirstLoanRequest();
+
+      // 4. Enviar a API
+      final repository = ref.read(firstLoanRepositoryProvider);
+      final response = await repository.requestFirstLoan(request);
+
+      // 5. Guardar respuesta
+      state = state.copyWith(
+        status: RequestStatus.success,
+        response: response,
+      );
+    } catch (e, stackTrace) {
+      LoggingService.error(
+        'Failed to send first loan request',
+        tag: 'FIRST_LOAN_REQUEST',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      state = state.copyWith(
+        status: RequestStatus.error,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  bool _validateAllSteps() {
+    final step1 = ref.read(firstLoanStepOneProvider);
+    final step2 = ref.read(firstLoanStepTwoProvider);
+    final step3 = ref.read(firstLoanStepThreeProvider);
+    final step4 = ref.read(firstLoanStepFourProvider);
+    final step5 = ref.read(firstLoanStepFiveProvider);
+    final calculator = ref.read(loanCalculatorProvider);
+
+    return step1.isValid &&
+        step2.isValid &&
+        step3.isValid &&
+        step4.isValid &&
+        step5.isValid &&
+        calculator.selectedAmount > 0 &&
+        calculator.selectedDays > 0;
+  }
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### Endpoint Principal de Solicitud
+
+#### `POST /client/request-first-loan`
+
+**Descripción**: Envía la solicitud completa de primer préstamo al servidor.
+
+**Headers Requeridos**:
+
+```
+Content-Type: application/json
+Authorization: Bearer <token_del_usuario>
+Language: es
+```
+
+**Request Body (FirstLoanRequest)**:
+
+```json
+{
+    "amount": 500,
+    "deadline": 30,
+    "promoCode": "BIENVENIDA2024",
+    "name": "Juan",
+    "surname": "Pérez",
+    "gender": "M",
+    "birthDate": "1990-05-15",
+    "dni": "12345678-9",
+    "phoneNumber": "+503 7777-7777",
+    "street": "Avenida Central",
+    "streetNumber": "123A",
+    "suburb": "Barrio San Benito",
+    "municipality": "San Salvador",
+    "department": "San Salvador",
+    "district": "San Salvador Centro",
+    "jobType": "Empleado",
+    "companyName": "TechCorp SRL",
+    "companyPhone": "+503 2111-1111",
+    "netIncome": 800.0,
+    "additionalIncome": 200.0,
+    "otherLoan": 0.0,
+    "purpose": "Emergencia",
+    "purposeDescription": "Necesito reparar mi vehículo para llegar al trabajo",
+    "familiarName": "Carlos",
+    "familiarSurname": "Pérez",
+    "familiarPhone": "+503 7888-8888",
+    "friendName": "Roberto",
+    "friendSurname": "López",
+    "friendPhone": "+503 7999-9999",
+    "imageFrontIdCard": "https://storage.example.com/images/uuid/frontIdCard.jpg",
+    "imageBackIdCard": "https://storage.example.com/images/uuid/backIdCard.jpg",
+    "imageSelfie": "https://storage.example.com/images/uuid/selfie.jpg"
+}
+```
+
+**Response Exitosa (200 OK)**:
+
+```json
+{
+    "status": 200,
+    "message": "Solicitud enviada exitosamente",
+    "data": {
+        "requestId": "REQ-20241027-001234",
+        "approvalDate": "2024-10-29",
+        "processingTime": "48 horas"
+    }
+}
+```
+
+**Respuestas de Error**:
+
+| Código | Situación           | Mensaje                                     |
+| ------ | ------------------- | ------------------------------------------- |
+| 400    | Validación fallida  | "Campo [nombre] es inválido"                |
+| 401    | No autenticado      | "Usuario no autenticado"                    |
+| 408    | Timeout             | "Tiempo de conexión agotado"                |
+| 422    | Solicitud rechazada | "Solicitud no cumple requisitos"            |
+| 429    | Rate limiting       | "Demasiadas solicitudes, intenta más tarde" |
+| 500    | Error servidor      | "Error interno del servidor"                |
+
+### APIs Secundarias
+
+#### `GET /client/additional-data`
+
+**Descripción**: Obtiene listas dinámicas para el Paso 3.
+
+**Response**:
+
+```json
+{
+    "jobTypes": ["Empleado", "Independiente", "Desempleado"],
+    "purposes": ["Emergencia", "Educación", "Negocio"],
+    "netIncomes": [
+        { "value": 500, "label": "Menos de $500" },
+        { "value": 1000, "label": "$500 - $1,000" }
+    ]
+}
+```
+
+#### `GET /client/geographic/departments`
+
+**Descripción**: Obtiene departamentos de El Salvador.
+
+**Response**:
+
+```json
+{
+    "data": [
+        { "id": 1, "name": "San Salvador" },
+        { "id": 2, "name": "La Libertad" }
+    ]
+}
+```
+
+---
+
+## Manejo de Errores
+
+### 🚨 Estrategia de Errores
+
+Errores se capturan en múltiples niveles:
+
+#### Nivel 1: Validación en UI (Inmediata)
+
+```dart
+// Campo Nombre: No puede estar vacío
+if (state.name.value.isEmpty) {
+  return "El nombre es requerido";
+}
+
+// Campo DUI: Debe tener formato correcto
+if (!RegExp(r'^\d{8}-\d$').hasMatch(state.dni.value)) {
+  return "DUI debe tener formato: 12345678-9";
+}
+```
+
+#### Nivel 2: Validación en Notifier (Pre-envío)
+
+```dart
+bool _validateAllSteps() {
+  final step1 = ref.read(firstLoanStepOneProvider);
+
+  // ¿Paso 1 válido?
+  if (!step1.isValid) {
+    state = state.copyWith(
+      status: RequestStatus.error,
+      errorMessage: 'Por favor complete el Paso 1',
+    );
+    return false;
+  }
+
+  return true;
+}
+```
+
+#### Nivel 3: Validación en Repository (API)
+
+```dart
+try {
+  final response = await _httpClient.post(
+    '/client/request-first-loan',
+    data: request.toJson(),
+  );
+  return FirstLoanResponse.fromJson(response.data);
+} on DioException catch (e) {
+  if (e.response?.statusCode == 422) {
+    throw FirstLoanException(
+      message: 'Datos de solicitud inválidos',
+      statusCode: 422,
+      type: FirstLoanExceptionType.validation,
+      data: e.response?.data,
+    );
+  }
+  // ... manejar otros errores
+}
+```
+
+### 📊 Árbol de Decisión de Errores
+
+```
+Error en Envío
+    │
+    ├─ 400: Validación
+    │   └─ "Campo inválido: [detalles]"
+    │       → Resaltar campo, permitir edición
+    │
+    ├─ 401: Autenticación
+    │   └─ "Tu sesión expiró"
+    │       → Redirigir a login
+    │
+    ├─ 408: Timeout
+    │   └─ "Conexión lenta, intenta de nuevo"
+    │       → Botón "Reintentar"
+    │
+    ├─ 422: Rechazado
+    │   ├─ Edad no cumple (< 18)
+    │   │   → "Debes ser mayor de 18 años"
+    │   ├─ Ubicación no permitida
+    │   │   → "No podemos prestar en tu área"
+    │   └─ Criterios no cumplidos
+    │       → "No cumples requisitos actualmente"
+    │
+    ├─ 429: Rate Limit
+    │   └─ "Demasiadas solicitudes"
+    │       → Mostrar tiempo de espera
+    │
+    └─ 5xx: Servidor
+        └─ "Error del servidor, intenta más tarde"
+            → Reintentar con backoff exponencial
+```
+
+### 🔄 Estrategia de Reintentos
+
+**Automático:**
+
+-   Red: 3 intentos con backoff exponencial (1s, 2s, 4s)
+-   Timeout: 1 reintento automático después de 5 segundos
+
+**Manual:**
+
+-   Usuario puede presionar "Reintentar"
+-   Se limpia el estado de error
+-   Se reintenta el último paso fallido
+
+---
+
+## Validaciones
+
+### 📋 Validaciones por Paso
+
+#### Paso 1: Información Personal
+
+```dart
+class TextInput {
+  final String value;
+
+  bool get isValid {
+    // Nombre: 2-50 caracteres, solo letras
+    if (fieldName == 'name') {
+      return value.length >= 2 &&
+             value.length <= 50 &&
+             RegExp(r'^[a-záéíóúñ\s]+$', caseSensitive: false)
+               .hasMatch(value);
+    }
+    // ... más validaciones
+  }
+}
+
+class DuiInput {
+  bool get isValid {
+    // Formato: 12345678-9
+    return RegExp(r'^\d{8}-\d$').hasMatch(value) &&
+           _isValidChecksum(value);
+  }
+
+  bool _isValidChecksum(String dui) {
+    // Validar dígito verificador según algoritmo DUI El Salvador
+    // ...
+  }
+}
+```
+
+#### Paso 2: Dirección
+
+```dart
+// Cascada de dependencias
+- Departamento: Obligatorio
+  → Carga distritos
+- Distrito: Obligatorio
+  → Carga municipios
+- Municipio: Automático (determinado por distrito)
+- Calle: 3-100 caracteres
+- Número: 1-10 caracteres
+- Barrio: 3-50 caracteres
+```
+
+#### Paso 3: Información Laboral
+
+```dart
+- Tipo de Empleo: Obligatorio
+- Nombre Empresa: 3-100 caracteres
+- Teléfono Empresa: Formato válido
+- Ingreso Neto: Selección obligatoria
+- Ingreso Adicional: 0 - 99,999
+- Otras Deudas: 0 - 99,999
+- Propósito: Obligatorio
+- Descripción: 10-500 caracteres
+
+Regla de negocio:
+  Ingreso Total = Ingreso Neto + Ingreso Adicional
+  Monto Máximo Préstamo = Ingreso Total * 0.3
+```
+
+#### Paso 4: Referencias
+
+```dart
+- Referencia 1 (Familiar):
+  - Nombre: 2-50 caracteres
+  - Apellido: 2-50 caracteres
+  - Teléfono: Formato válido
+
+- Referencia 2 (Amigo):
+  - Nombre: 2-50 caracteres
+  - Apellido: 2-50 caracteres
+  - Teléfono: Formato válido
+
+Regla:
+  Los teléfonos deben ser distintos (no iguales entre sí ni al usuario)
+```
+
+#### Paso 5: Imágenes
+
+```dart
+- Frente DUI:
+  - Obligatorio: Sí
+  - Tipos: JPEG, PNG
+  - Tamaño: < 5MB
+  - Resolución: > 640x480
+
+- Revés DUI:
+  - Obligatorio: Sí
+  - Tipos: JPEG, PNG
+  - Tamaño: < 5MB
+  - Resolución: > 640x480
+
+- Selfie:
+  - Obligatorio: Sí
+  - Tipos: JPEG, PNG
+  - Tamaño: < 5MB
+  - Debe mostrar cara + DUI
+```
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### 1. Unit Tests - Validaciones
+
+```dart
+group('FirstLoanStepOneState Validations', () {
+  test('Nombre válido debe aceptar', () {
+    expect(
+      TextInput.dirty('Juan').isValid,
+      isTrue,
+    );
+  });
+
+  test('Nombre con números debe rechazar', () {
+    expect(
+      TextInput.dirty('Juan123').isValid,
+      isFalse,
+    );
+  });
+
+  test('DUI con formato correcto debe aceptar', () {
+    expect(
+      DuiInput.dirty('12345678-9').isValid,
+      isTrue,
+    );
+  });
+
+  test('DUI con formato incorrecto debe rechazar', () {
+    expect(
+      DuiInput.dirty('12345678').isValid,
+      isFalse,
+    );
+  });
+});
+```
+
+#### 2. State Management Tests
+
+```dart
+group('FirstLoanRequestNotifier', () {
+  late ProviderContainer container;
+  late MockFirstLoanRepository mockRepository;
+
+  setUp(() {
+    mockRepository = MockFirstLoanRepository();
+    container = ProviderContainer(
+      overrides: [
+        firstLoanRepositoryProvider.overrideWithValue(mockRepository),
+      ],
+    );
+  });
+
+  test('sendFirstLoanRequest updates status to loading', () {
+    final notifier = container.read(firstLoanRequestProvider.notifier);
+
+    notifier.sendFirstLoanRequest();
+
+    final state = container.read(firstLoanRequestProvider);
+    expect(state.status, equals(RequestStatus.loading));
+  });
+
+  test('sendFirstLoanRequest validates all steps', () async {
+    // Setup: Steps incompletos
+
+    final notifier = container.read(firstLoanRequestProvider.notifier);
+    await notifier.sendFirstLoanRequest();
+
+    final state = container.read(firstLoanRequestProvider);
+    expect(state.status, equals(RequestStatus.error));
+    expect(state.errorMessage, contains('complete'));
+  });
+
+  test('sendFirstLoanRequest sends correct payload', () async {
+    // Setup: Steps completos
+
+    when(mockRepository.requestFirstLoan(any))
+      .thenAnswer((_) async => FirstLoanResponse(...));
+
+    final notifier = container.read(firstLoanRequestProvider.notifier);
+    await notifier.sendFirstLoanRequest();
+
+    verify(
+      mockRepository.requestFirstLoan(
+        argThat(
+          isA<FirstLoanRequest>()
+            .having((r) => r.name, 'name', 'Juan')
+            .having((r) => r.surname, 'surname', 'Pérez'),
+        ),
+      ),
+    ).called(1);
+  });
+});
+```
+
+#### 3. Widget Tests
+
+```dart
+group('FirstLoanStepOneScreen', () {
+  testWidgets('displays all required fields', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        container: testContainer,
+        child: const MaterialApp(
+          home: FirstLoanStepOneScreen(),
+        ),
+      ),
+    );
+
+    expect(find.byType(TextFormField), findsWidgets);
+    expect(find.text('Nombre'), findsOneWidget);
+    expect(find.text('Apellido'), findsOneWidget);
+    expect(find.text('Género'), findsOneWidget);
+    expect(find.text('Fecha de Nacimiento'), findsOneWidget);
+    expect(find.text('DUI'), findsOneWidget);
+  });
+
+  testWidgets('continue button disabled when incomplete', (tester) async {
+    await tester.pumpWidget(/* ... */);
+
+    final continueButton = find.byType(ElevatedButton);
+    expect(
+      tester.widget<ElevatedButton>(continueButton).onPressed,
+      isNull,  // Deshabilitado
+    );
+  });
+
+  testWidgets('continue button enabled when complete', (tester) async {
+    // Fill all fields
+    await tester.enterText(find.byType(TextFormField).at(0), 'Juan');
+    // ... llenar otros campos
+
+    await tester.pumpAndSettle();
+
+    final continueButton = find.byType(ElevatedButton);
+    expect(
+      tester.widget<ElevatedButton>(continueButton).onPressed,
+      isNotNull,  // Habilitado
+    );
+  });
+
+  testWidgets('shows error on invalid DUI', (tester) async {
+    await tester.pumpWidget(/* ... */);
+
+    await tester.enterText(
+      find.byType(TextFormField).at(4),  // DUI field
+      '123',  // Inválido
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('DUI inválido'), findsOneWidget);
+  });
+});
+```
+
+---
+
+## Seguridad
+
+### 🔐 Consideraciones Importantes
+
+#### 1. Autenticación y Autorización
+
+**En cada petición:**
+
+```dart
+final response = await _httpClient.post(
+  '/client/request-first-loan',
+  data: request.toJson(),
+  options: Options(
+    headers: {
+      'Authorization': 'Bearer $token',  // Token único del usuario
+      'Content-Type': 'application/json',
+    },
+  ),
+);
+```
+
+**Validaciones servidor:**
+
+-   ✅ Token válido y no expirado
+-   ✅ Usuario existe y está activo
+-   ✅ Usuario no tiene otra solicitud en progreso
+
+#### 2. Validación de Datos
+
+**Cliente (Validaciones iniciales):**
+
+-   Formatos correctos (email, teléfono, DUI)
+-   Rangos válidos (edad, montos)
+-   Caracteres permitidos
+
+**Servidor (Validaciones definitivas):**
+
+-   Integridad referencial
+-   Duplicados (DNI, email, teléfono)
+-   Reglas de negocio (edad, capacidad de pago)
+-   Detección de fraude
+
+#### 3. Protección de Imágenes
+
+**En tránsito:**
+
+-   HTTPS obligatorio (TLS 1.2+)
+-   FormData multipart encriptado
+-   Urls firmadas con expiración
+
+**En servidor:**
+
+-   Almacenamiento en S3/Cloud Storage privado
+-   Encriptación en reposo
+-   Acceso mediante IAM roles
+-   Logs de acceso
+
+**En dispositivo:**
+
+-   No se guardan archivos permanentemente
+-   Se eliminan tras envío exitoso
+-   Permiso de cámara solicitado en tiempo de ejecución
+
+#### 4. Rate Limiting
+
+**Protección contra abuso:**
+
+```
+- Máximo 5 solicitudes por usuario en 24 horas
+- Máximo 100 solicitudes por IP en 1 hora
+- Retraso progresivo tras fallos (backoff exponencial)
+```
+
+#### 5. Cumplimiento Normativo
+
+-   **GDPR**: Derecho al olvido (datos eliminados tras 90 días si se rechaza)
+-   **CCPA**: Derecho a descargar datos personales
+-   **KYC**: Verificación Know Your Customer
+-   **AML**: Anti Money Laundering checks
+-   **Regulaciones Locales**: Compliance con leyes de El Salvador
+
+#### 6. Integridad de Datos
+
+**Verificaciones:**
+
+-   Checksums en requests
+-   Signatures en responses
+-   Versionamiento de API
+-   Logs inmutables de auditoría
+
+---
+
+## 📝 Resumen de Capas
+
+| Capa           | Componente                     | Responsabilidad             |
+| -------------- | ------------------------------ | --------------------------- |
+| **UI**         | FirstLoanStepXScreen           | Mostrar UI, recopilar input |
+| **State**      | FirstLoanStepXNotifier         | Validar, guardar estado     |
+| **State**      | FirstLoanRequestNotifier       | Orquestar, enviar           |
+| **Repository** | FirstLoanRepository            | HTTP POST request           |
+| **Data**       | HttpClient                     | HTTP client                 |
+| **Domain**     | FirstLoanRequest/FirstLoanStep | Modelos de datos            |
+
+---
+
+## 🚀 Próximos Pasos
+
+1. **Aprobación automática**: Verificar documentos con IA
+2. **Decisión acelerada**: Respuesta en < 5 minutos
+3. **Desembolso automático**: Transferencia directa a cuenta
+4. **Seguimiento**: Notificaciones de estado real-time
+5. **Refinanciamiento**: Pre-calificación para segundo préstamo
+6. **Historiales**: Descargar PDF de solicitud
+
+---
+
+**Versión**: 1.0
+**Última actualización**: Octubre 2024
+**Autor**: Equipo de Desarrollo Pisto
+**Estado**: Producción ✅

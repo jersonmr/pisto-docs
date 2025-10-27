@@ -1,0 +1,1007 @@
+---
+title: Flujo de Carga de Imágenes
+slug: carga-de-imagenes
+tags: [auth, image-upload, flutter, riverpod, dio, formz]
+description: Flujo de carga de imágenes. Incluye selección de imágenes, previsualización y manejo de errores y estados del proceso.
+---
+
+## Descripción General
+
+La funcionalidad de **Carga de Imágenes** es un componente fundamental en el proceso de verificación de identidad para Pisto. Esta funcionalidad permite a los usuarios capturar y cargar tres tipos de imágenes requeridas durante la solicitud del primer préstamo y préstamos posteriores:
+
+1. **Frente del DUI** (Documento Único de Identidad)
+2. **Revés del DUI**
+3. **Selfie con DUI** (foto del usuario sosteniendo el DUI)
+
+### Características Principales
+
+-   ✅ **Captura desde cámara**: Utiliza la cámara del dispositivo del usuario
+-   ✅ **Compresión automática**: Reduce tamaño manteniendo calidad (50% de calidad)
+-   ✅ **Upload multipart**: Carga de archivos con FormData
+-   ✅ **Validación de tipos**: Verifica que sea imagen válida
+-   ✅ **Indicador de progreso**: Muestra estado de carga
+-   ✅ **Reintentos**: Permite reintentar en caso de error
+-   ✅ **Almacenamiento de URLs**: Persiste las URLs retornadas por API
+-   ✅ **Reutilizable**: Mismo flujo en primer y posteriores préstamos
+-   ✅ **Manejo de errores específicos**: Diferentes mensajes según error
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+La carga de imágenes valida tu identidad:
+
+-   **Verificamos que eres tú**: Comparamos tu selfie con el DUI
+-   **Documento válido**: Aseguramos que sea documento oficial
+-   **Legibilidad**: Nos permite leer claramente tus datos
+-   **Cumplimiento**: Requisito regulatorio para préstamos
+
+### 📸 Pasos para cargar tus imágenes
+
+#### Paso 1: Prepararse para las fotos
+
+**Antes de empezar:**
+
+-   Colócate en un lugar bien iluminado
+-   Asegúrate de tener luz natural o artificial buena
+-   Ten tu DUI/carnet a mano
+-   Asegúrate de tener batería en tu dispositivo
+
+#### Paso 2: Capturar Frente del DUI
+
+1. Presiona **"Capturar frente del DUI"**
+2. Se abrirá la cámara del dispositivo
+3. Posiciona el DUI de frente, con todos los datos visibles
+4. Asegúrate de que:
+    - La foto sea clara y nítida
+    - Toda la información sea legible
+    - No hay sombras o reflejos
+5. Toma la foto
+6. El sistema procesará y comprimirá la imagen
+7. Verás "⏳ Cargando..." mientras se sube
+8. Confirmación: ✅ Imagen cargada
+
+**Consejos:**
+
+-   Usa zoom para que el DUI ocupe toda la pantalla
+-   Evita ángulos muy inclinados
+-   Asegúrate de que los números sean legibles
+-   Si no está bien, puedes capturar de nuevo
+
+#### Paso 3: Capturar Revés del DUI
+
+1. Presiona **"Capturar revés del DUI"**
+2. Da vuelta tu DUI mostrando el lado posterior
+3. Sigue los mismos consejos del paso anterior
+4. Toma la foto cuando esté clara
+
+#### Paso 4: Capturar Selfie con DUI
+
+1. Presiona **"Capturar selfie con DUI"**
+2. Saca una foto tuya sosteniendo el DUI
+3. Requisitos para que se acepte:
+    - Tu cara debe ser claramente visible
+    - Tu DUI debe verse claramente en la foto
+    - Ambos deben aparecer en la misma imagen
+    - Tu expresión facial natural (no necesita sonreír)
+
+**Consejos para selfie:**
+
+-   Extiende el brazo lo suficiente para que se vea todo
+-   Busca iluminación frontal (luz frente a tu cara)
+-   Evita sombras en tu rostro
+-   Asegúrate de que el DUI sea legible
+
+#### Paso 5: Revisión y Confirmación
+
+Una vez cargadas las 3 imágenes:
+
+-   Todas mostrarán estado ✅
+-   Podrás ver previsualizaciones (opcional)
+-   Presiona **"Continuar"** para siguiente paso
+-   O **"Cambiar imágenes"** si necesitas recapturar
+
+### ⚠️ Importante
+
+-   **Límite de tamaño**: Máximo 5MB por imagen (se comprime automáticamente)
+-   **Formatos**: JPEG, PNG (se convierten automáticamente)
+-   **Tiempo de espera**: Espera a que aparezca ✅ antes de continuar
+-   **Conexión**: Necesitas conexión a internet (WiFi o datos móviles)
+-   **Reintentos**: Si falla, puedes capturar de nuevo sin limite
+-   **Privacidad**: Tus imágenes se protegen con HTTPS
+-   **Datos**: El sistema no guarda las imágenes, solo valida
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Patrón de Arquitectura
+
+La funcionalidad sigue una arquitectura **Feature-Based** con separación clara:
+
+```
+┌────────────────────────────────────────────────┐
+│    Presentation Layer (UI)                     │
+│  FirstLoanStepFiveScreen / SubsequentLoanStepThreeScreen │
+│  + ImageCaptureWidget                          │
+│  + ImagePreviewWidget                          │
+└─────────────────┬────────────────────────────┘
+                  │
+┌─────────────────▼────────────────────────────┐
+│    State Management Layer                     │
+│  FirstLoanStepFiveNotifier (Riverpod)         │
+│  SubsequentLoanStepThreeNotifier              │
+│  ImageUploadState (Freezed)                   │
+└─────────────────┬────────────────────────────┘
+                  │
+┌─────────────────▼────────────────────────────┐
+│    Repository Layer                           │
+│  ImageUploadRepository                        │
+│  SubsequentImageUploadRepository              │
+│  Manejo de errores                            │
+└─────────────────┬────────────────────────────┘
+                  │
+┌─────────────────▼────────────────────────────┐
+│    Local Layer                                │
+│  ImagePicker (Camera)                         │
+│  File system                                  │
+└─────────────────┬────────────────────────────┘
+                  │
+┌─────────────────▼────────────────────────────┐
+│    Data Layer (API)                           │
+│  HttpClient provider                          │
+│  /client/upload-images endpoint               │
+│  FormData multipart                           │
+└────────────────────────────────────────────┘
+```
+
+### 🧩 Estructura de Directorios
+
+```
+📁 lib/features/first_loan/
+├── entities/
+│   ├── image_type_enum.dart          # Enum de tipos
+│   └── first_loan_request.dart       # Modelo de solicitud
+│
+├── models/
+│   ├── image_upload_request.dart     # DTO request
+│   ├── image_upload_response.dart    # DTO response
+│   └── ...
+│
+├── providers/
+│   ├── first_loan_step_five_provider.dart  # Step 5 (imágenes)
+│   └── ...
+│
+├── repositories/
+│   ├── image_upload_repository.dart  # Repository
+│   └── ...
+│
+└── screens/
+    ├── first_loan_step_five_screen.dart
+    └── widgets/
+        ├── image_capture_widget.dart
+        └── image_preview_widget.dart
+
+📁 lib/features/subsequent_loan/
+├── entities/
+│   ├── image_type_enum.dart
+│   └── ...
+│
+├── repositories/
+│   ├── subsequent_image_upload_repository.dart
+│   └── ...
+│
+└── screens/
+    └── subsequent_loan_step_three_screen.dart
+```
+
+### 🔄 Flujo de Reutilización
+
+```
+ImageUploadRepository (Compartido en ambos)
+         ↑
+         │
+    ┌────┴────┐
+    │          │
+First Loan    Subsequent Loan
+Step 5        Step 3
+```
+
+---
+
+## Flujo de Datos
+
+### 🔄 Flujo Principal: Captura y Carga
+
+#### Fase 1: Seleccionar Capturar Imagen
+
+```
+1. Usuario presiona "Capturar [tipo de imagen]"
+   │
+2. ImagePicker.pickImage(
+     source: ImageSource.camera,
+     imageQuality: 50,
+   )
+   │
+   ├─> Se abre la cámara del dispositivo
+   │   │
+   │   ├─> Usuario toma la foto
+   │   │
+   │   └─> Selecciona usar foto
+   │
+3. XFile? image = result
+   │
+   └─> ¿Imagen seleccionada?
+       ├─> NO: Retornar (usuario canceló)
+       └─> SI: Continuar
+```
+
+#### Fase 2: Preparar Carga
+
+```
+1. _updateImageState(
+     imageType,
+     isUploading: true,
+     localImagePath: image.path,
+   )
+   │
+   ├─> state.status = uploading
+   ├─> Mostrar indicador ⏳
+   │
+2. Preparar FormData:
+   │
+   ├─> FormData.fromMap({
+   │     'imageType': imageType.apiValue,  // 'frontIdCard'
+   │     'imageFile': MultipartFile.fromFile(
+   │       file.path,
+   │       filename: fileName,
+   │     ),
+   │   })
+```
+
+#### Fase 3: Enviar Archivo
+
+```
+1. ImageUploadRepository.uploadImage(
+     imagePath: image.path,
+     imageType: imageType,
+   )
+   │
+2. HttpClient.post(
+     '/client/upload-images',
+     data: FormData,
+   )
+   │
+   ├─> Request headers:
+   │   ├─> Content-Type: multipart/form-data
+   │   ├─> Authorization: Bearer <token>
+   │   └─> Language: es
+   │
+3. ¿Respuesta exitosa (200)?
+   │
+   ├─> SI:
+   │   ├─> Response: { "data": { "imageUrl": "https://..." } }
+   │   │
+   │   └─> ImageUploadResponse.fromJson()
+   │
+   └─> NO: Lanzar ImageUploadException
+```
+
+#### Fase 4: Actualizar Estado
+
+```
+1. ¿Carga exitosa?
+   │
+   ├─> SI:
+   │   ├─> _updateImageState(
+   │   │     imageType,
+   │   │     isUploading: false,
+   │   │     imageUrl: response.imageUrl,
+   │   │     localImagePath: image.path,
+   │   │   )
+   │   │
+   │   ├─> state.status = loaded ✅
+   │   │
+   │   └─> _updateValidation()
+   │       └─> ¿Todas las 3 imágenes?
+   │           ├─> SI: isValid = true
+   │           └─> NO: isValid = false
+   │
+   └─> NO:
+       ├─> _updateImageState(
+       │     imageType,
+       │     isUploading: false,
+       │     errorMessage: e.message,
+       │   )
+       │
+       └─> state.status = error
+           └─> Mostrar mensaje de error
+```
+
+### 📊 Diagrama de Estados por Imagen
+
+```
+┌────────────────────────────────────────────────┐
+│         ImageUploadState (por cada imagen)     │
+└────────────────────────────────────────────────┘
+
+Initial State:
+  isUploading: false
+  imageUrl: null
+  localImagePath: null
+  errorMessage: ''
+
+        ↓
+
+[Usuario presiona capturar]
+        ↓
+
+Uploading State:
+  isUploading: true
+  localImagePath: '/path/to/image.jpg'
+  errorMessage: ''
+  (Mostrar: ⏳ Cargando...)
+
+        ↓
+   ┌────┴────┐
+   │          │
+  SI         NO
+   │          │
+   ↓          ↓
+
+Success      Error
+   │          │
+   ↓          ↓
+
+Loaded       Error
+  ✅          ❌
+   │          │
+   ↓          ↓
+
+imageUrl: 'https://...'   errorMessage: '...'
+isUploading: false        isUploading: false
+
+        ↓
+
+[Usuario puede]
+├─> Continuar (si 3 imágenes)
+├─> Recapturar (presiona botón de nuevo)
+└─> Ver error (si ocurrió problema)
+```
+
+---
+
+## Componentes
+
+### 📦 State Management
+
+#### ImageUploadState (Por cada imagen)
+
+```dart
+@freezed
+abstract class ImageUploadState with _$ImageUploadState {
+  const factory ImageUploadState({
+    @Default(false) bool isUploading,      // ¿Está subiendo?
+    @Default('') String errorMessage,      // Mensaje de error
+    String? imageUrl,                      // URL de la imagen en servidor
+    String? localImagePath,                // Path local para preview
+  }) = _ImageUploadState;
+}
+```
+
+**Propiedades:**
+
+-   `isUploading`: `true` mientras se sube, `false` cuando termina
+-   `errorMessage`: Texto de error si algo falla
+-   `imageUrl`: URL en servidor (si éxito)
+-   `localImagePath`: Path local para mostrar preview
+
+#### FirstLoanStepFiveState
+
+Estado general del paso 5 (imágenes en primer préstamo):
+
+```dart
+@freezed
+abstract class FirstLoanStepFiveState with _$FirstLoanStepFiveState {
+  const factory FirstLoanStepFiveState({
+    @Default(false) bool isLoading,
+    @Default('') String errorMessage,
+    @Default(ImageUploadState()) ImageUploadState frontIdCard,
+    @Default(ImageUploadState()) ImageUploadState backIdCard,
+    @Default(ImageUploadState()) ImageUploadState selfie,
+    @Default(false) bool isValid,  // ¿Todas las 3 imágenes?
+  }) = _FirstLoanStepFiveState;
+}
+```
+
+**Propiedades:**
+
+-   `frontIdCard`: Estado de frente del DUI
+-   `backIdCard`: Estado de revés del DUI
+-   `selfie`: Estado de selfie
+-   `isValid`: `true` si las 3 están cargadas correctamente
+
+#### FirstLoanStepFiveNotifier
+
+Gestor de estado para carga de imágenes:
+
+```dart
+@Riverpod(keepAlive: true)
+class FirstLoanStepFiveNotifier extends _$FirstLoanStepFiveNotifier {
+  Future<void> captureAndUploadImage(ImageType imageType) async {
+    // 1. Capturar con cámara
+    // 2. Actualizar estado (uploading)
+    // 3. Subir a API
+    // 4. Actualizar con URL o error
+    // 5. Validar si todas están cargadas
+  }
+
+  Map<String, String> getUploadedImageUrls() {
+    // Retorna { 'frontIdCard': url, 'backIdCard': url, ... }
+  }
+}
+```
+
+**Métodos principales:**
+
+| Método                    | Parámetro   | Descripción              |
+| ------------------------- | ----------- | ------------------------ |
+| `captureAndUploadImage()` | `ImageType` | Captura y sube imagen    |
+| `getUploadedImageUrls()`  | -           | Retorna URLs de imágenes |
+| `clearImageError()`       | `ImageType` | Limpia error de imagen   |
+
+### 🔄 Repository Layer
+
+#### ImageUploadRepository
+
+Encapsula lógica de carga:
+
+```dart
+class ImageUploadRepository {
+  final HttpClient _httpClient;
+
+  Future<ImageUploadResponse> uploadImage({
+    required String imagePath,
+    required ImageType imageType,
+  }) async {
+    try {
+      final file = File(imagePath);
+      final fileName = file.path.split('/').last;
+
+      final FormData data = FormData.fromMap({
+        'imageType': imageType.apiValue,  // 'frontIdCard', etc
+        'imageFile': await MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+        ),
+      });
+
+      final response = await _httpClient.post(
+        '/client/upload-images',
+        data: data,
+      );
+
+      return ImageUploadResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      // Manejo de errores
+    }
+  }
+}
+```
+
+**Responsabilidades:**
+
+-   Crear FormData multipart
+-   Enviar petición POST
+-   Capturar y transformar errores
+-   Retornar URL de imagen
+
+### 📦 Models (DTOs)
+
+#### ImageType (Enum)
+
+```dart
+enum ImageType {
+  frontIdCard,   // Frente del DUI
+  backIdCard,    // Revés del DUI
+  selfie;        // Selfie con DUI
+
+  String get apiValue {
+    switch (this) {
+      case ImageType.frontIdCard:
+        return 'frontIdCard';
+      case ImageType.backIdCard:
+        return 'backIdCard';
+      case ImageType.selfie:
+        return 'selfie';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case ImageType.frontIdCard:
+        return 'Frente del DUI';
+      case ImageType.backIdCard:
+        return 'Revés del DUI';
+      case ImageType.selfie:
+        return 'Selfie con DUI';
+    }
+  }
+}
+```
+
+#### ImageUploadResponse
+
+```dart
+@freezed
+abstract class ImageUploadResponse with _$ImageUploadResponse {
+  const factory ImageUploadResponse({
+    required String imageUrl,  // URL de la imagen en servidor
+  }) = _ImageUploadResponse;
+
+  factory ImageUploadResponse.fromJson(Map<String, dynamic> json) =>
+      _$ImageUploadResponseFromJson(json);
+}
+```
+
+### 🎨 UI Components
+
+#### FirstLoanStepFiveScreen / SubsequentLoanStepThreeScreen
+
+Pantalla que muestra los botones para capturar imágenes:
+
+**Secciones:**
+
+1. Título: "Verifica tu identidad"
+2. Instrucciones: "Necesitamos 3 fotos..."
+3. Botón "Capturar frente del DUI"
+4. Botón "Capturar revés del DUI"
+5. Botón "Capturar selfie con DUI"
+6. Indicadores de estado (✅ o ⏳ o ❌)
+7. Botón "Continuar" (habilitado si válido)
+
+#### ImageCaptureWidget
+
+Widget individual para capturar una imagen:
+
+**Características:**
+
+-   Icono del tipo de imagen
+-   Nombre descriptivo
+-   Botón para capturar
+-   Indicador de estado
+-   Mensaje de error si aplica
+
+#### ImagePreviewWidget (Opcional)
+
+Muestra preview de la imagen capturada:
+
+-   Thumbnail de la imagen
+-   Opción de eliminar/recapturar
+-   Muestra URL de servidor
+
+---
+
+## APIs Utilizadas
+
+### Endpoint de Carga
+
+#### `POST /client/upload-images`
+
+**Descripción**: Carga una imagen verificada en el servidor.
+
+**Headers Requeridos**:
+
+```
+Content-Type: multipart/form-data
+Authorization: Bearer <token>
+Language: es
+```
+
+**Request Body** (FormData):
+
+```
+Form Fields:
+  - imageType: "frontIdCard" | "backIdCard" | "selfie"
+  - imageFile: <archivo binario JPEG/PNG>
+```
+
+**Parámetros:**
+
+-   `imageType`: Tipo de imagen (`frontIdCard`, `backIdCard`, `selfie`)
+-   `imageFile`: Archivo de imagen (multipart)
+
+**Validaciones servidor:**
+
+-   Archivo no vacío
+-   Formato válido (JPEG, PNG)
+-   Tamaño máximo: 5MB
+-   Dimensiones mínimas: 640x480
+-   No es imagen en blanco/corrupta
+
+**Response Exitosa (200 OK)**:
+
+```json
+{
+    "data": {
+        "imageUrl": "https://storage.example.com/images/uuid/frontIdCard.jpg"
+    }
+}
+```
+
+**La URL es permanente y se usa para:**
+
+-   Validación de identidad
+-   Procesamiento de solicitud
+-   Auditoría y cumplimiento
+
+**Respuestas de Error**:
+
+| Código | Situación            | Mensaje                       | Acción                      |
+| ------ | -------------------- | ----------------------------- | --------------------------- |
+| 400    | Archivo inválido     | "Archivo no válido"           | Recapturar                  |
+| 400    | Formato no soportado | "Formato de imagen no válido" | Usar JPEG/PNG               |
+| 400    | Imagen corrupta      | "Imagen corrupta o en blanco" | Recapturar                  |
+| 401    | No autenticado       | "Usuario no autenticado"      | Redirigir a login           |
+| 413    | Archivo muy grande   | "Archivo excede 5MB"          | Usar imagen más pequeña     |
+| 422    | Validación fallida   | "Imagen no cumple requisitos" | Recapturar con buena luz    |
+| 429    | Rate limit           | "Demasiadas peticiones"       | Esperar antes de reintentar |
+| 500    | Error servidor       | "Error interno del servidor"  | Reintentar después          |
+
+**Ejemplo error 422:**
+
+```json
+{
+    "errors": [
+        {
+            "code": "ValidationError",
+            "message": "Imagen debe ser clara y legible"
+        }
+    ]
+}
+```
+
+---
+
+## Manejo de Errores
+
+### 🚨 Estrategia de Errores
+
+Errores se capturan en múltiples niveles:
+
+#### 1. Nivel Repository
+
+```dart
+class ImageUploadException implements Exception {
+  final String message;
+  final int? statusCode;
+  final ImageUploadExceptionType type;
+  final Map<String, dynamic>? data;
+
+  const ImageUploadException({
+    required this.message,
+    this.statusCode,
+    required this.type,
+    this.data,
+  });
+}
+
+enum ImageUploadExceptionType {
+  network,      // Errores de red (DioException)
+  validation,   // Validación fallida
+  unauthorized, // 401
+  unknown,      // Inesperado
+}
+```
+
+#### 2. Nivel Notifier
+
+```dart
+try {
+  final response = await _imageUploadRepository.uploadImage(
+    imagePath: image.path,
+    imageType: imageType,
+  );
+
+  // Éxito: actualizar con URL
+  _updateImageState(
+    imageType,
+    isUploading: false,
+    imageUrl: response.imageUrl,
+  );
+} on ImageUploadException catch (e, stackTrace) {
+  LoggingService.error(
+    'Image upload failed',
+    tag: 'IMAGE_UPLOAD',
+    error: e,
+    data: {
+      'image_type': imageType.name,
+      'status_code': e.statusCode,
+    },
+  );
+
+  // Error: mostrar mensaje
+  String errorMessage = 'Error al subir imagen';
+
+  if (e.statusCode == 413) {
+    errorMessage = 'Archivo demasiado grande';
+  } else if (e.statusCode == 422) {
+    errorMessage = 'Imagen no cumple requisitos';
+  } else if (e.statusCode == 429) {
+    errorMessage = 'Intenta más tarde';
+  }
+
+  _updateImageState(
+    imageType,
+    isUploading: false,
+    errorMessage: errorMessage,
+  );
+}
+```
+
+#### 3. Nivel UI
+
+```dart
+Widget _buildImageStatus(ImageUploadState state, ImageType type) {
+  if (state.isUploading) {
+    return CircularProgressIndicator(); // ⏳
+  } else if (state.imageUrl != null) {
+    return Icon(Icons.check_circle, color: Colors.green); // ✅
+  } else if (state.errorMessage.isNotEmpty) {
+    return Column(
+      children: [
+        Icon(Icons.error, color: Colors.red), // ❌
+        Text(state.errorMessage),
+      ],
+    );
+  }
+  return SizedBox.shrink();
+}
+```
+
+### 📊 Árbol de Decisión
+
+```
+ImageUploadException
+│
+├─> Tipo: NETWORK
+│   ├─> 400: Archivo/Formato inválido
+│   │   └─> "Archivo no válido. Intenta de nuevo."
+│   │
+│   ├─> 401: No autenticado
+│   │   └─> "Tu sesión expiró. Inicia sesión de nuevo."
+│   │   └─> Acción: Redirigir a login
+│   │
+│   ├─> 408/Timeout
+│   │   └─> "Tiempo de conexión agotado. Intenta de nuevo."
+│   │
+│   ├─> 413: Archivo muy grande
+│   │   └─> "La imagen es muy grande (máx 5MB)"
+│   │
+│   ├─> 422: Validación fallida
+│   │   ├─> Si imagen en blanco
+│   │   │   └─> "Imagen en blanco. Asegúrate de iluminación."
+│   │   │
+│   │   ├─> Si imagen corrupta
+│   │   │   └─> "Imagen corrupta. Recaptura de nuevo."
+│   │   │
+│   │   └─> Otro error validación
+│   │       └─> "Imagen no cumple requisitos."
+│   │
+│   ├─> 429: Rate limiting
+│   │   └─> "Demasiadas peticiones. Espera unos segundos."
+│   │
+│   └─> 5xx: Error servidor
+│       └─> "Error del servidor. Intenta más tarde."
+│
+├─> Tipo: VALIDATION
+│   └─> "Datos de validación inválidos"
+│
+└─> Tipo: UNKNOWN
+    └─> "Error inesperado: [mensaje]"
+```
+
+### 🔄 Manejo de Reintentos
+
+El usuario puede reintentar sin límites:
+
+```dart
+// Si error, el botón "Capturar" sigue disponible
+// Usuario presiona nuevamente
+→ captureAndUploadImage() se ejecuta de nuevo
+
+// Cada reintento:
+// 1. Limpia errorMessage previo
+// 2. Abre cámara de nuevo
+// 3. Intenta nueva carga
+// 4. Actualiza estado con nuevo resultado
+```
+
+---
+
+## Optimización y Validación
+
+### 📊 Compresión de Imágenes
+
+```dart
+final XFile? image = await _imagePicker.pickImage(
+  source: ImageSource.camera,
+  imageQuality: 50,  // Compresión: 50% de calidad original
+);
+```
+
+**Beneficios:**
+
+-   Reduce tamaño: ~5MB → ~1MB
+-   Mantiene calidad: Suficiente para OCR
+-   Acelera upload: 3-5 segundos vs 10-15 segundos
+-   Ahorra datos: Importante en conexiones 3G/4G
+
+### 📐 Validaciones Cliente
+
+Antes de enviar:
+
+```dart
+// Validar archivo existe
+final file = File(imagePath);
+if (!file.existsSync()) {
+  throw Exception('Archivo no existe');
+}
+
+// Validar tamaño
+final fileSize = file.lengthSync();
+if (fileSize > 5 * 1024 * 1024) {  // 5MB
+  throw Exception('Archivo muy grande');
+}
+
+// Validar extension (opcional)
+if (!imagePath.endsWith('.jpg') && !imagePath.endsWith('.png')) {
+  throw Exception('Formato no válido');
+}
+```
+
+### 🖼️ Preview Local
+
+```dart
+// Mostrar preview mientras se carga
+if (state.localImagePath != null) {
+  return Image.file(
+    File(state.localImagePath!),
+    fit: BoxFit.cover,
+  );
+}
+```
+
+---
+
+## 🔐 Seguridad
+
+### Consideraciones Importantes
+
+#### 1. Protección de Imágenes
+
+**En tránsito:**
+
+-   HTTPS obligatorio (TLS 1.2+)
+-   FormData multipart encriptado
+-   No se envía por HTTP
+
+**En servidor:**
+
+-   Almacenamiento en S3/Cloud Storage
+-   Encriptación en reposo
+-   Acceso mediante URLs firmadas
+-   Expiración de URLs tras procesamiento
+
+**En dispositivo:**
+
+-   Se elimina archivo local después de upload
+-   No se guardan en caché sin permiso
+-   Se protegen con permisos del SO
+
+#### 2. Validación de Imágenes
+
+**Detección de fraude:**
+
+-   Análisis de metadatos EXIF
+-   Detección de edición
+-   Validación de resolución
+-   OCR para verificar documento
+
+**Límites:**
+
+-   Máximo 5MB por imagen
+-   Resolución mínima: 640x480
+-   Mínimo brillo/contraste
+
+#### 3. Autenticación
+
+-   Token Bearer requerido en headers
+-   Validado en cada petición
+-   Vinculado a usuario específico
+-   URL de imagen tied a usuario
+
+#### 4. Permisos del Dispositivo
+
+El app requiere:
+
+-   `CAMERA`: Para capturar fotos
+-   `WRITE_EXTERNAL_STORAGE`: Para guardar temporalmente
+-   `READ_EXTERNAL_STORAGE`: Para acceder a galería
+
+Se solicitan con:
+
+-   `permission_handler` package
+-   Permisos runtime en Android 6+
+
+#### 5. Cumplimiento Normativo
+
+-   GDPR: Derecho al olvido (datos se eliminan tras procesamiento)
+-   CCPA: Privacidad de datos
+-   Regulaciones de préstamos: Verificación KYC
+-   Auditoría: Logs de quién accedió a imágenes
+
+---
+
+## 📝 Resumen de Capas
+
+| Capa           | Componente                | Responsabilidad            |
+| -------------- | ------------------------- | -------------------------- |
+| **UI**         | FirstLoanStepFiveScreen   | Mostrar botones, estados   |
+| **UI**         | ImageCaptureWidget        | Widget individual captura  |
+| **State**      | FirstLoanStepFiveNotifier | Orquestar carga            |
+| **State**      | ImageUploadState          | Mantener estado por imagen |
+| **Repository** | ImageUploadRepository     | Carga a API                |
+| **Local**      | ImagePicker               | Acceso a cámara            |
+| **Data**       | HttpClient                | HTTP multipart             |
+| **Domain**     | ImageType                 | Tipos de imagen            |
+
+---
+
+## 🚀 Próximos Pasos
+
+1. **Validación con AI**: Detectar documentos falsos o editados
+2. **Selfie matching**: Comparar cara en selfie con DUI
+3. **Comprensión OCR**: Extraer datos de documento automáticamente
+4. **Múltiples idiomas**: Soportar otros documentos (pasaporte, etc.)
+5. **Descarga de histórico**: Permitir al usuario descargar sus imágenes
+6. **Edición local**: Permitir recortar/rotar antes de subir
+7. **Modo offline**: Cachear y subir cuando haya conexión
+
+---
+
+## 📚 Referencia de Archivos
+
+```
+📁 lib/features/first_loan/
+├── 📄 entities/image_type_enum.dart
+├── 📄 models/image_upload_request.dart
+├── 📄 models/image_upload_response.dart
+├── 📄 providers/first_loan_step_five_provider.dart
+├── 📄 repositories/image_upload_repository.dart
+└── 📄 screens/first_loan_step_five_screen.dart
+
+📁 lib/features/subsequent_loan/
+├── 📄 entities/image_type_enum.dart
+├── 📄 models/image_upload_response.dart
+├── 📄 repositories/subsequent_image_upload_repository.dart
+└── 📄 screens/subsequent_loan_step_three_screen.dart
+```
+
+---
+
+## 🔗 Relación con Otros Features
+
+-   **Primer Préstamo**: Paso 5 - Verificación de identidad
+-   **Préstamo Posterior**: Paso 3 - Verificación de identidad
+-   **Perfil del Cliente**: Recargar imágenes si son rechazadas
+-   **Autenticación**: Requiere token Bearer válido
+
+---
+
+**Versión**: 1.0
+**Última actualización**: Octubre 2024
+**Autor**: Equipo de Desarrollo Pisto
+**Estado**: Producción ✅

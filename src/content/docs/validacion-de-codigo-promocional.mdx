@@ -1,0 +1,711 @@
+---
+title: Flujo de Validación de Código Promocional
+slug: validacion-de-codigo-promocional
+tags: [auth, promocodes, flutter, riverpod, dio, formz]
+description: Flujo de validación de código promocional..
+---
+
+## Descripción General
+
+La funcionalidad de **Validación de Código Promocional** permite a los usuarios de Pisto gestionar y utilizar códigos promocionales. Esta característica facilita el programa de referidos, donde los usuarios pueden compartir su código promocional personal con otros usuarios para obtener descuentos en sus préstamos.
+
+### Características Principales
+
+-   ✅ **Ver código promocional personal**: Cada usuario tiene un código único que puede compartir
+-   ✅ **Copiar al portapapeles**: Facilita el compartir el código con otros usuarios
+-   ✅ **Historial de uso**: Seguimiento de cuántas veces ha sido utilizado el código propio
+-   ✅ **Descuentos por referidos**: Visualizar descuentos disponibles por amigos referidos
+-   ✅ **Historial de códigos usados**: Registro de códigos promocionales de otros usuarios que ha utilizado
+-   ✅ **Validar códigos**: Verificar la validez de códigos antes de aplicarlos
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+El código promocional es un beneficio del programa de referidos de Pisto:
+
+1. **Para ti como usuario referidor**:
+
+    - Tu código promocional es único y personal
+    - Puedes compartirlo con amigos
+    - Cada vez que un amigo utiliza tu código, acumulas descuentos
+
+2. **Para el usuario que usa tu código**:
+    - Obtiene un descuento en la solicitud del préstamo
+    - Valida el código antes de aplicarlo
+
+### 📱 Pasos para usar tu código promocional
+
+#### Paso 1: Acceder a la sección de Código Promocional
+
+-   Navega a la pantalla "Código Promocional"
+-   Verás tu código personal al inicio de la pantalla
+
+#### Paso 2: Copiar tu código
+
+-   Presiona el botón **"Copiar"** junto a tu código
+-   Recibirás una confirmación: "Copiado al portapapeles"
+-   Tu código ya está listo para compartir
+
+#### Paso 3: Compartir el código
+
+-   Puedes usar cualquier medio: WhatsApp, email, SMS, etc.
+-   Tu código es: 7-12 caracteres alfanuméricos
+-   Ejemplo: `NAG45RF`, `75YALMV`
+
+#### Paso 4: Ver historial y descuentos
+
+-   **Tabla de historial**: Muestra cada versión de tu código, cuántas veces ha sido utilizado y si está activo
+-   **Descuentos disponibles**: Cantidad de descuentos acumulados por referidos
+-   **Códigos que has usado**: Tabla con los códigos de otros usuarios que has utilizado y la fecha
+
+### ⚠️ Importante
+
+-   **No puedes usar tu propio código**: El sistema lo validará y rechazará
+-   **Cada código tiene validez limitada**: Algunos pueden estar inactivos
+-   **Los descuentos se acumulan**: Cada referido exitoso suma un descuento
+-   **Validación obligatoria**: Antes de aplicar un código, debe ser validado
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Patrón de Arquitectura
+
+La funcionalidad sigue una arquitectura **Feature-Based** con capas claramente definidas:
+
+```
+┌─────────────────────────────────────────────┐
+│         Presentation Layer (UI)             │
+│    promo_code_history_screen.dart           │
+│         + Widgets reutilizables             │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│      State Management Layer                 │
+│    PromoCodeHistoryProvider (Riverpod)      │
+│    PromoCodeHistoryNotifier                 │
+│    PromoCodeHistoryState (Freezed)          │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│         Repository Layer                    │
+│    PromoCodeHistoryRepository               │
+│    (Interface + Implementación)             │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│         Data Layer (API)                    │
+│    HttpClient provider                      │
+│    /client/promo-code endpoint              │
+└─────────────────────────────────────────────┘
+```
+
+### 🧩 Estructura de Directorios
+
+```
+lib/features/promo_code/
+├── entities/
+│   ├── promo_code_history_entity.dart          # Entity principal
+│   ├── times_used_own_code_entity.dart         # Historial de uso propio
+│   └── used_foreign_promo_code_entity.dart     # Códigos externos usados
+│
+├── models/
+│   ├── promo_code_history_response_dto.dart    # DTO respuesta API
+│   ├── times_used_own_code_dto.dart            # DTO historial propio
+│   └── used_foreign_promo_code_dto.dart        # DTO códigos externos
+│
+├── providers/
+│   ├── promo_code_history_provider.dart        # Notifier + State
+│   └── providers.dart                          # Barrel file
+│
+├── repositories/
+│   ├── promo_code_history_repository.dart      # Lógica de acceso a datos
+│   └── repositories.dart                       # Barrel file
+│
+├── screens/
+│   ├── promo_code_history_screen.dart          # Pantalla principal
+│   └── widgets/
+│       └── (Widgets reutilizables)
+│
+└── IMPLEMENTATION_PLAN.md
+```
+
+---
+
+## Flujo de Datos
+
+### 🔄 Flujo Principal: Carga de Código Promocional
+
+```
+1. Usuario accede a PromoCodeHistoryScreen
+   │
+   ├─> initState()
+   │   └─> loadPromoCodeHistory()
+   │
+2. PromoCodeHistoryNotifier.loadPromoCodeHistory()
+   │
+   ├─> state = loading
+   │   └─> PromoCodeHistoryStatus.loading
+   │
+3. PromoCodeHistoryRepository.getPromoCodeHistory()
+   │
+   ├─> HttpClient.get('/client/promo-code')
+   │   └─> API Response (200 OK)
+   │
+4. Response -> DTO -> Entity
+   │
+   ├─> PromoCodeHistoryResponseDto.fromJson()
+   │   └─> dto.toEntity() -> PromoCodeHistoryEntity
+   │
+5. Update State
+   │
+   ├─> state = loaded + data
+   │   └─> PromoCodeHistoryStatus.loaded
+   │
+6. UI Rebuild
+   │
+   └─> Mostrar código, tablas e información
+```
+
+### 🔄 Flujo de Copiar Código
+
+```
+1. Usuario presiona botón "Copiar"
+   │
+2. Clipboard.setData(ClipboardData(text: promoCode))
+   │
+3. ScaffoldMessenger.showSnackBar()
+   │
+└─> Mostrar feedback: "Copiado al portapapeles"
+```
+
+### 🔄 Flujo de Validación de Código (Future)
+
+```
+1. Usuario ingresa código en formulario
+   │
+2. Usuario presiona "Aplicar"
+   │
+3. PromoCodeValidator.validate(code)
+   │
+4. POST /client/validate-promo-code
+   │
+5. Respuesta:
+   ├─> 200: Válido (aplicar descuento)
+   ├─> 422: Errores específicos
+   │   ├─> Código ya utilizado
+   │   ├─> Código propio
+   │   └─> Código erróneo
+   └─> 401: No autenticado
+```
+
+---
+
+## Componentes
+
+### 📦 Entities (Domain Models)
+
+#### PromoCodeHistoryEntity
+
+Modelo principal que encapsula toda la información del código promocional del usuario.
+
+```dart
+@freezed
+abstract class PromoCodeHistoryEntity with _$PromoCodeHistoryEntity {
+  const factory PromoCodeHistoryEntity({
+    required String promoCode,                              // Código único
+    required List<TimesUsedOwnCodeEntity> timesUsedOwnCode, // Historial propio
+    required int referralDiscounts,                          // Descuentos acumulados
+    required List<UsedForeignPromoCodeEntity> usedForeignPromoCodes, // Códigos usados
+  }) = _PromoCodeHistoryEntity;
+}
+```
+
+**Propiedades:**
+
+-   `promoCode` (String): Código promocional único del usuario (ej: "NAG45RF")
+-   `timesUsedOwnCode` (List\<TimesUsedOwnCodeEntity\>): Historial de todas las versiones del código propio
+-   `referralDiscounts` (int): Cantidad total de descuentos acumulados
+-   `usedForeignPromoCodes` (List\<UsedForeignPromoCodeEntity\>): Códigos de otros usuarios que ha utilizado
+
+#### TimesUsedOwnCodeEntity
+
+Representa cada versión del código propio y su uso.
+
+```dart
+@freezed
+abstract class TimesUsedOwnCodeEntity with _$TimesUsedOwnCodeEntity {
+  const factory TimesUsedOwnCodeEntity({
+    required String code,        // Código (puede cambiar en el tiempo)
+    required int quantity,       // Veces utilizado por referidos
+    required bool active,        // ¿Está activo?
+  }) = _TimesUsedOwnCodeEntity;
+}
+```
+
+#### UsedForeignPromoCodeEntity
+
+Representa un código de otro usuario que ha sido utilizado.
+
+```dart
+@freezed
+abstract class UsedForeignPromoCodeEntity with _$UsedForeignPromoCodeEntity {
+  const factory UsedForeignPromoCodeEntity({
+    required String code,        // Código usado
+    required DateTime date,      // Fecha de uso
+  }) = _UsedForeignPromoCodeEntity;
+}
+```
+
+### 🎨 Widgets
+
+#### PromoCodeHistoryScreen
+
+Pantalla principal que muestra toda la información.
+
+**Secciones:**
+
+1. **Instrucción**: "Tu código de promoción personal es"
+2. **Código Promocional**: Muestra el código + botón Copiar
+3. **Instrucciones de Uso**: Explicación de cómo usar el código
+4. **Historial de Códigos**: Tabla con código, veces usado y estado
+5. **Descuentos por Referidos**: Total de descuentos acumulados
+6. **Códigos Usados**: Tabla con códigos ajenos y fechas de uso
+
+**Características:**
+
+-   RefreshIndicator para recargar datos
+-   Manejo de estados: loading, loaded, error
+-   Mensajes de error con botón "Reintentar"
+-   Formato de fechas en tabla: DD/MM/YYYY
+
+### 🔌 State Management
+
+#### PromoCodeHistoryState
+
+Estado que Freezed mantiene durante toda la sesión.
+
+```dart
+@freezed
+abstract class PromoCodeHistoryState with _$PromoCodeHistoryState {
+  const factory PromoCodeHistoryState({
+    @Default(PromoCodeHistoryStatus.initial)
+    PromoCodeHistoryStatus status,
+    @Default(null) PromoCodeHistoryEntity? data,
+    @Default(null) String? errorMessage,
+  }) = _PromoCodeHistoryState;
+
+  // Getters de conveniencia
+  bool get isLoading => status == PromoCodeHistoryStatus.loading;
+  bool get isLoaded => status == PromoCodeHistoryStatus.loaded;
+  bool get hasError => status == PromoCodeHistoryStatus.error;
+  bool get hasData => data != null;
+}
+```
+
+**Estados posibles:**
+
+-   `initial`: Sin cargar aún
+-   `loading`: Solicitando datos a la API
+-   `loaded`: Datos disponibles
+-   `error`: Falló la carga
+
+#### PromoCodeHistoryNotifier
+
+Gestiona la lógica y las transiciones de estado.
+
+```dart
+@Riverpod(keepAlive: true)
+class PromoCodeHistoryNotifier extends _$PromoCodeHistoryNotifier {
+  PromoCodeHistoryRepository get _repository =>
+      ref.read(promoCodeHistoryRepositoryProvider);
+
+  @override
+  PromoCodeHistoryState build() {
+    return const PromoCodeHistoryState();
+  }
+
+  // Métodos públicos
+  Future<void> loadPromoCodeHistory() async { }
+  Future<void> refresh() async { }
+  void clearError() { }
+  void reset() { }
+}
+```
+
+**Métodos:**
+
+-   `loadPromoCodeHistory()`: Carga inicial con protección contra múltiples llamadas
+-   `refresh()`: Recarga los datos (desde RefreshIndicator)
+-   `clearError()`: Limpia el mensaje de error
+-   `reset()`: Reinicia el estado a inicial
+
+### 🔄 Repository
+
+#### PromoCodeHistoryRepository
+
+Encapsula la lógica de acceso a datos y manejo de errores.
+
+```dart
+class PromoCodeHistoryRepository {
+  final HttpClient _httpClient;
+
+  PromoCodeHistoryRepository(this._httpClient);
+
+  Future<PromoCodeHistoryEntity> getPromoCodeHistory() async {
+    try {
+      final response = await _httpClient.get('/client/promo-code');
+      final dto = PromoCodeHistoryResponseDto.fromJson(response.data);
+      return dto.toEntity();
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw PromoCodeHistoryException('Error inesperado: ${e.toString()}');
+    }
+  }
+
+  PromoCodeHistoryException _handleDioError(DioException e) { }
+}
+```
+
+**Funcionalidades:**
+
+-   Convierte respuesta JSON a DTO y luego a Entity
+-   Manejo específico de errores Dio (timeouts, 401, etc.)
+-   Extrae mensajes de error de respuestas de API
+
+---
+
+## APIs Utilizadas
+
+### Endpoint Principal
+
+#### `GET /client/promo-code`
+
+**Descripción**: Obtiene la información completa del código promocional del usuario autenticado.
+
+**Headers Requeridos**:
+
+```
+Content-Type: application/json
+Authorization: Bearer <token>
+Language: es
+```
+
+**Respuesta Exitosa (200 OK)**:
+
+```json
+{
+    "data": {
+        "promoCode": "NAG45RF",
+        "timesUsedOwnCode": [
+            {
+                "code": "NAG45RF",
+                "quantity": 3,
+                "active": true
+            }
+        ],
+        "referralDiscounts": 3,
+        "usedForeignPromoCodes": [
+            {
+                "code": "75YALMV",
+                "date": "2024-10-15"
+            },
+            {
+                "code": "ABC12XY",
+                "date": "2024-09-20"
+            }
+        ]
+    }
+}
+```
+
+**Posibles Respuestas de Error**:
+
+| Código | Escenario              | Acción                           |
+| ------ | ---------------------- | -------------------------------- |
+| 401    | Usuario no autenticado | Redirigir a login                |
+| 408    | Timeout                | Mostrar error y botón reintentar |
+| 422    | Datos inválidos        | Mostrar mensaje específico       |
+| 500    | Error del servidor     | Mostrar error genérico           |
+
+---
+
+## Manejo de Errores
+
+### 🚨 Estrategia de Errores
+
+La aplicación maneja errores en múltiples niveles:
+
+#### 1. Nivel Repository
+
+```dart
+class PromoCodeHistoryException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  PromoCodeHistoryException(this.message, {this.statusCode});
+}
+```
+
+**Tipos de Errores Capturados**:
+
+-   `DioException`: Errores de red
+-   `SocketException`: Problemas de conexión
+-   Excepciones genéricas: Errores inesperados
+
+#### 2. Nivel Notifier
+
+```dart
+Future<void> loadPromoCodeHistory() async {
+  if (state.isLoading) return; // Protección
+
+  state = state.copyWith(status: PromoCodeHistoryStatus.loading);
+
+  try {
+    final data = await _repository.getPromoCodeHistory();
+    state = state.copyWith(
+      status: PromoCodeHistoryStatus.loaded,
+      data: data,
+    );
+  } on PromoCodeHistoryException catch (e) {
+    state = state.copyWith(
+      status: PromoCodeHistoryStatus.error,
+      errorMessage: e.message,
+    );
+  }
+}
+```
+
+#### 3. Nivel UI
+
+```dart
+if (state.hasError) {
+  return _buildErrorWidget(ref, state.errorMessage!);
+}
+```
+
+### 📊 Árbol de Manejo de Errores
+
+```
+PromoCodeHistoryException
+├─> 401: Usuario no autenticado
+├─> 408: Timeout de conexión
+├─> 422: Datos inválidos
+└─> Otros: Error inesperado
+
+↓
+
+UI muestra:
+├─> Ícono de error
+├─> Mensaje específico
+└─> Botón "Reintentar"
+```
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Tests
+
+#### 1. Unit Tests - Repository
+
+```dart
+group('PromoCodeHistoryRepository', () {
+  late MockHttpClient mockHttpClient;
+  late PromoCodeHistoryRepository repository;
+
+  setUp(() {
+    mockHttpClient = MockHttpClient();
+    repository = PromoCodeHistoryRepository(mockHttpClient);
+  });
+
+  test('getPromoCodeHistory returns PromoCodeHistoryEntity when successful',
+    () async {
+      // Mock response
+      when(mockHttpClient.get('/client/promo-code'))
+          .thenAnswer((_) async => Response(
+            data: {
+              'data': {
+                'promoCode': 'NAG45RF',
+                'timesUsedOwnCode': [],
+                'referralDiscounts': 0,
+                'usedForeignPromoCodes': [],
+              }
+            },
+            statusCode: 200,
+          ));
+
+      final result = await repository.getPromoCodeHistory();
+
+      expect(result.promoCode, equals('NAG45RF'));
+      verify(mockHttpClient.get('/client/promo-code')).called(1);
+    },
+  );
+
+  test('getPromoCodeHistory throws on 401', () async {
+    when(mockHttpClient.get('/client/promo-code'))
+        .thenThrow(DioException(
+          requestOptions: RequestOptions(path: ''),
+          response: Response(
+            statusCode: 401,
+            data: {'errors': [{'message': 'Usuario no autenticado'}]}
+          ),
+        ));
+
+    expect(
+      () => repository.getPromoCodeHistory(),
+      throwsA(isA<PromoCodeHistoryException>()),
+    );
+  });
+});
+```
+
+#### 2. State Management Tests
+
+```dart
+group('PromoCodeHistoryNotifier', () {
+  late ProviderContainer container;
+  late MockPromoCodeHistoryRepository mockRepository;
+
+  setUp(() {
+    mockRepository = MockPromoCodeHistoryRepository();
+    container = ProviderContainer(
+      overrides: [
+        promoCodeHistoryRepositoryProvider.overrideWithValue(mockRepository),
+      ],
+    );
+  });
+
+  test('initial state is correct', () {
+    final state = container.read(promoCodeHistoryProvider);
+    expect(state.status, equals(PromoCodeHistoryStatus.initial));
+    expect(state.data, isNull);
+  });
+
+  test('loadPromoCodeHistory updates state correctly', () async {
+    final entity = PromoCodeHistoryEntity(
+      promoCode: 'TEST123',
+      timesUsedOwnCode: [],
+      referralDiscounts: 5,
+      usedForeignPromoCodes: [],
+    );
+
+    when(mockRepository.getPromoCodeHistory())
+        .thenAnswer((_) async => entity);
+
+    final notifier = container.read(promoCodeHistoryProvider.notifier);
+    await notifier.loadPromoCodeHistory();
+
+    final state = container.read(promoCodeHistoryProvider);
+    expect(state.status, equals(PromoCodeHistoryStatus.loaded));
+    expect(state.data, equals(entity));
+  });
+});
+```
+
+#### 3. Widget Tests
+
+```dart
+group('PromoCodeHistoryScreen', () {
+  testWidgets('displays promo code correctly', (WidgetTester tester) async {
+    final mockRef = createMockRef();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: PromoCodeHistoryScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('NAG45RF'), findsOneWidget);
+    expect(find.byText('Copiar'), findsOneWidget);
+  });
+
+  testWidgets('copy button copies to clipboard', (WidgetTester tester) async {
+    await tester.pumpWidget(/* ... */);
+
+    await tester.tap(find.byText('Copiar'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
+});
+```
+
+---
+
+## 🔐 Seguridad
+
+### Consideraciones Importantes
+
+1. **Token de Autenticación**:
+
+    - Siempre se envía en headers
+    - Validado en cada petición
+    - Se renueva automáticamente si expira
+
+2. **Validación de Códigos**:
+
+    - Servidor valida códigos antes de aplicarlos
+    - Cliente nunca modifica el descuento directamente
+    - Validación server-side es autoridad
+
+3. **Datos Sensibles**:
+    - Códigos personales no se guardan en caché local
+    - Se cargan bajo demanda
+    - Se limpian al logout
+
+---
+
+## 📝 Resumen de Capas
+
+| Capa           | Componente                   | Responsabilidad                         |
+| -------------- | ---------------------------- | --------------------------------------- |
+| **UI**         | `PromoCodeHistoryScreen`     | Mostrar datos, capturar interacciones   |
+| **State**      | `PromoCodeHistoryNotifier`   | Gestionar estado, orquestar operaciones |
+| **Repository** | `PromoCodeHistoryRepository` | Acceso a datos, manejo de errores       |
+| **Data**       | `HttpClient`                 | Comunicación con API                    |
+| **Domain**     | `PromoCodeHistoryEntity`     | Modelo de dominio puro                  |
+
+---
+
+## 🚀 Próximos Pasos
+
+1. **Validación de Códigos**: Implementar flujo de validación al ingresar código
+2. **Caché Local**: Guardar última respuesta conocida para modo offline
+3. **Analytics**: Rastrear uso de códigos promocionales
+4. **Notificaciones**: Alertar cuando se logra un nuevo descuento
+5. **Compartir Mejorado**: Integración nativa con apps de mensajería
+
+---
+
+## 📚 Referencia de Archivos
+
+```
+📁 lib/features/promo_code/
+├── 📄 entities/promo_code_history_entity.dart
+├── 📄 entities/times_used_own_code_entity.dart
+├── 📄 entities/used_foreign_promo_code_entity.dart
+├── 📄 models/promo_code_history_response_dto.dart
+├── 📄 models/times_used_own_code_dto.dart
+├── 📄 models/used_foreign_promo_code_dto.dart
+├── 📄 providers/promo_code_history_provider.dart
+├── 📄 repositories/promo_code_history_repository.dart
+├── 📄 screens/promo_code_history_screen.dart
+└── 📄 IMPLEMENTATION_PLAN.md
+```
+
+---
+
+**Versión**: 1.0
+**Última actualización**: Octubre 2024
+**Autor**: Equipo de Desarrollo Pisto
+**Estado**: Producción ✅
