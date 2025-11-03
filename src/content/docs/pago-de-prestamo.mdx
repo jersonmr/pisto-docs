@@ -1,0 +1,983 @@
+---
+title: Flujo de pago de préstamo
+slug: pago-de-prestamo
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de pago de préstamo. Gestión completa del proceso de registro de pagos de préstamos.
+---
+
+## Descripción General
+
+La funcionalidad de **Pago de Préstamo** (`loan_payment`) es el módulo responsable de gestionar el proceso completo de registro de pagos de préstamos, permitiendo a los usuarios seleccionar entre diferentes operadores de pago (recargas, bancos) y registrar sus pagos de manera segura y eficiente. Este módulo proporciona una interfaz intuitiva para que los usuarios puedan realizar pagos desde diferentes plataformas y mantener un registro detallado de sus transacciones.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Dashboard       │────▶│ Información      │────▶│ Selección de     │────▶│ Formulario de    │────▶│ Confirmación    │
+│ Préstamos       │     │ Importante       │     │ Operador         │     │ Pago             │     │ de Éxito        │
+│ (MyLoan)        │     │ (Instrucciones)  │     │ (Recargas/Bancos)│     │ (Monto/Fecha)    │     │ (Comprobante)   │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Acceso directo      ✓ Manual            ✓ Dinámica          ✓ Validado          ✓ Automática
+```
+
+### ✨ Características Principales
+
+-   ✅ **Carga dinámica de operadores**: Obtiene lista actualizada de métodos de pago
+-   ✅ **Diferenciación por tipo**: Soporta operadores de recarga y bancos
+-   ✅ **Cálculo automático de comisiones**: Muestra costos transparentes
+-   ✅ **Validación inteligente**: Campos dinámicos según tipo de operador
+-   ✅ **Registro de pagos**: Proceso completo con confirmación
+-   ✅ **Manejo robusto de errores**: Recuperación ante fallos de red
+-   ✅ **Estado persistente**: Mantiene datos durante navegación
+-   ✅ **Integración con préstamos**: Información contextual del préstamo activo
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+El registro de pagos te permite:
+
+-   **Pagar tu préstamo**: Realizar abonos a tu préstamo desde diferentes plataformas
+-   **Elegir método de pago**: Seleccionar entre operadores de recarga o bancos
+-   **Ver comisiones**: Conocer los costos asociados a cada método de pago
+-   **Obtener comprobante**: Generar registro de tu pago para tu control
+
+### 📱 Pasos para registrar tu pago
+
+#### Paso 1: Acceso desde tu dashboard
+
+Desde tu pantalla principal de préstamos:
+
+1. 🏠 **Ve a "Mis Préstamos"** - Accede desde el menú principal
+2. 📄 **Selecciona tu préstamo activo** - Toca el préstamo que quieres pagar
+3. 💰 **Busca "Registrar Pago"** - Encuentra la opción de pago
+4. ▶️ **Presiona "Continuar"** - Inicia el proceso de registro
+
+#### Paso 2: Información importante
+
+Lee cuidadosamente las instrucciones:
+
+-   📋 **Requisitos del pago**: Monto mínimo y condiciones
+-   ⏰ **Horarios de procesamiento**: Cuándo se aplicará tu pago
+-   💡 **Métodos disponibles**: Qué opciones de pago tienes
+-   📞 **Soporte**: Contacto en caso de dudas
+-   ✅ **Presiona "Aceptar"** - Continúa al siguiente paso
+
+#### Paso 3: Selección del operador de pago
+
+Elige cómo quieres realizar tu pago:
+
+**Operadores de Recarga:**
+
+-   📱 **Recargas electrónicas**: Tigo, Claro, Movistar, etc.
+-   💰 **Comisiones bajas**: Generalmente montos fijos pequeños
+-   🕐 **Procesamiento rápido**: Aplicación inmediata o en minutos
+-   📲 **Conveniencia**: Paga desde tu teléfono
+
+**Bancos:**
+
+-   🏦 **Transferencias bancarias**: Todos los bancos principales
+-   💸 **Comisiones variables**: Porcentuales según el banco
+-   🕐 **Procesamiento estándar**: Puede tomar 1-2 horas
+-   📄 **Referencia requerida**: Necesitarás número de referencia
+
+#### Paso 4: Completar el formulario
+
+Ingresa los detalles de tu pago:
+
+**Información del Pago:**
+
+-   💰 **Monto a pagar**: Ingresa la cantidad que deseas abonar
+-   📅 **Fecha del pago**: Selecciona cuándo realizaste el pago
+-   🔢 **Número de referencia**: (Solo bancos) El código de tu transacción
+
+**Validación Automática:**
+
+-   ✅ **Monto válido**: Verifica que cumpla el mínimo requerido
+-   ✅ **Formato correcto**: Valida que los datos estén bien escritos
+-   ✅ **Comisión calculada**: Muestra cuánto recibirá Pisto
+-   ✅ **Total transparente**: Ve exactamente cuánto pagarás
+
+#### Paso 5: Confirmación del pago
+
+Revisa toda la información antes de registrar:
+
+**Resumen del Pago:**
+
+-   👀 **Operador seleccionado**: Confirma el método de pago
+-   💰 **Monto del pago**: Verifica la cantidad a registrar
+-   📊 **Comisión aplicada**: Revisa los costos del servicio
+-   🏦 **Monto neto**: Cuánto se aplicará a tu préstamo
+-   📅 **Fecha y hora**: Cuándo se realizó el pago
+
+**Confirmación Final:**
+
+-   ⚠️ **Verificación final**: "¿Estás seguro de registrar este pago?"
+-   ✅ **Presiona "Confirmar"** - Envía la información para procesar
+-   ⏳ **Espera la confirmación** - El sistema procesará tu registro
+
+#### Paso 6: Resultado del proceso
+
+**Si el pago se registra exitosamente:**
+
+-   🎉 **Pago registrado**: Confirmación inmediata del registro
+-   📧 **Comprobante generado**: Número de referencia del registro
+-   🏠 **Ve a tu dashboard**: Presiona "Continuar" para ver actualizaciones
+-   📊 **Préstamo actualizado**: Verás el nuevo saldo en tu préstamo
+
+**Si hay errores:**
+
+-   ❌ **Mensaje específico**: Explica qué necesita ser corregido
+-   🔄 **Opción de reintentar**: Corrige los datos e intenta nuevamente
+-   📞 **Contacta soporte**: Si el problema persiste
+-   💡 **Sugerencias**: Recomendaciones para completar el pago
+
+### ⚠️ Importante
+
+-   **Verifica el monto**: Asegúrate de pagar el monto correcto
+-   **Guarda tu comprobante**: Mantén el número de referencia
+-   **Horarios de procesamiento**: Algunos métodos tienen demoras
+-   **Comisiones**: Revisa los costos antes de confirmar
+-   **Soporte técnico**: Contacta si tienes problemas con el pago
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo sigue la arquitectura establecida en el proyecto Pisto con separación de responsabilidades clara:
+
+```
+loan_payment/
+├── models/                      # DTOs y entidades de datos
+│   ├── payment_operator.dart           # Operadores de pago disponibles
+│   ├── payment_operators_response.dart # Respuesta de lista de operadores
+│   ├── payment_request.dart            # Payload para registrar pago
+│   ├── payment_response.dart           # Respuesta del registro
+│   └── payment_form_state.dart         # Estado del formulario
+├── providers/                   # Gestión de estado con Riverpod
+│   └── loan_payment_provider.dart      # Estado principal del flujo
+├── repositories/               # Capa de acceso a datos
+│   └── loan_payment_repository.dart    # Comunicación con la API
+├── screens/                    # Interfaces de usuario
+│   ├── loan_payment_step_one_screen.dart   # Información importante
+│   ├── loan_payment_step_two_screen.dart  # Selección y formulario
+│   ├── loan_payment_success_screen.dart   # Confirmación de éxito
+│   └── loan_amount_info_section.dart      # Info del préstamo
+└── widgets/                    # Componentes reutilizables
+```
+
+### 📊 Models (Entidades de Datos)
+
+#### **PaymentOperator**
+
+Representa un operador de pago con sus características:
+
+```dart
+@freezed
+class PaymentOperator with _$PaymentOperator {
+  const factory PaymentOperator({
+    required int id,                           // ID único del operador
+    required String name,                      // Nombre del operador
+    required String operatorType,              // 'o' = operador, 'b' = banco
+    required String accountName,               // Nombre de la cuenta
+    required String logo,                      // URL del logo
+    required String commissionType,            // 'amount' | 'percentage'
+    double? commissionValueAmount,             // Comisión fija
+    double? commissionValuePercentage,         // Comisión porcentual
+    required String workingHours,              // Horario de atención
+    String? accountType,                       // Tipo de cuenta (bancos)
+    String? accountNumber,                     // Número de cuenta
+    required bool active,                      // Si está disponible
+  }) = _PaymentOperator;
+
+  // Métodos de conveniencia
+  bool get isOperator => operatorType == 'o';
+  bool get isBank => operatorType == 'b';
+  String get commissionText => /* Formato legible */;
+}
+```
+
+#### **PaymentRequest**
+
+Payload para registrar un pago:
+
+```dart
+@freezed
+class PaymentRequest with _$PaymentRequest {
+  const factory PaymentRequest({
+    required String operatorType,              // 'o' | 'b'
+    required int operatorId,                   // ID del operador
+    required double amount,                    // Monto del pago
+    String? reference,                         // Referencia (solo bancos)
+    required String date,                      // Fecha del pago
+  }) = _PaymentRequest;
+}
+```
+
+#### **PaymentFormState**
+
+Estado del formulario con validaciones:
+
+```dart
+@freezed
+class PaymentFormState with _$PaymentFormState {
+  const factory PaymentFormState({
+    @Default(AmountInput.pure()) AmountInput amount,
+    @Default(BirthDateInput.pure()) BirthDateInput paymentDate,
+    @Default(TextInput.pure()) TextInput reference,
+    @Default(false) bool isLoading,
+    String? error,
+    @Default(false) bool showConfirmation,
+    @Default(false) bool paymentCompleted,
+  }) = _PaymentFormState;
+
+  // Validación dinámica según tipo de operador
+  bool isFormValid(String operatorType);
+  double calculateReceivedAmount(double? commissionAmount);
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **LoanPaymentNotifier**
+
+StateNotifier principal con manejo completo del flujo:
+
+```dart
+@freezed
+class LoanPaymentState with _$LoanPaymentState {
+  const factory LoanPaymentState({
+    @Default(false) bool isLoading,           // Cargando operadores
+    @Default([]) List<PaymentOperator> paymentOperators,  // Lista completa
+    PaymentOperator? selectedOperator,         // Operador seleccionado
+    @Default(PaymentFormState()) PaymentFormState formState,  // Estado formulario
+    String? error,                             // Error general
+    String? successMessage,                    // Mensaje de éxito
+  }) = _LoanPaymentState;
+}
+
+@riverpod
+class LoanPaymentNotifier extends _$LoanPaymentNotifier {
+  // Métodos principales:
+  // - Future<void> loadPaymentOperators()
+  // - void selectOperator(PaymentOperator operator)
+  // - void updateAmount(String value)
+  // - void updateDate(String value)
+  // - void updateReference(String value)
+  // - Future<void> registerPayment()
+  // - void showConfirmation()
+  // - bool get isFormValid
+}
+```
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **LoanPaymentRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+class LoanPaymentRepository {
+  // GET /client/payment-operators
+  Future<PaymentOperatorsResponse> getPaymentOperators();
+
+  // POST /client/payment
+  Future<PaymentResponse> registerPayment(PaymentRequest request);
+}
+
+// Manejo específico de errores
+enum LoanPaymentExceptionType {
+  network,      // Problemas de conectividad
+  validation,   // Datos inválidos
+  unauthorized, // No autenticado
+  unknown,      // Error desconocido
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Navegación
+
+```
+MyLoan (Dashboard)
+  ↓
+/loan-payment/step-one (Información importante)
+  ↓
+/loan-payment/step-two (Selección y formulario)
+  ├─→ [Seleccionar operador] → Actualizar comisiones
+  ├─→ [Completar formulario] → Validar campos
+  ├─→ [Mostrar confirmación] → Diálogo de verificación
+  └─→ [Registrar pago] → POST /client/payment → /loan-payment/success
+```
+
+### 📊 Diagrama de Estado
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    LoanPaymentNotifier                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → loading → operators_loaded → submitting → completed │
+│                                                               ↑ error │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - paymentOperators: List<PaymentOperator>                     │
+│  - selectedOperator: PaymentOperator?                          │
+│  - formState: PaymentFormState (amount, date, reference)       │
+├─────────────────────────────────────────────────────────────────┤
+│  Lógica:                                                       │
+│  - activeOperators: Filtrados por type='o' y active=true       │
+│  - activeBanks: Filtrados por type='b' y active=true           │
+│  - isFormValid: Según tipo de operador seleccionado            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 🔄 Ciclo de Vida
+
+1. **Dashboard → Step One**: Navegación desde préstamos activos
+2. **Step One → Step Two**: Lectura de información y carga de operadores
+3. **Step Two → Selección**: Elección de operador y carga de comisiones
+4. **Selección → Formulario**: Completar datos del pago
+5. **Formulario → Confirmación**: Validación y diálogo de verificación
+6. **Confirmación → Registro**: Envío a API y procesamiento
+7. **Registro → Éxito**: Navegación a pantalla de confirmación
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 📋 LoanPaymentStepOneScreen
+
+-   **Ruta**: `/loan-payment/step-one`
+-   **Propósito**: Mostrar información importante sobre el proceso
+-   **Funcionalidad**:
+    -   Instrucciones claras sobre requisitos y horarios
+    -   Información sobre métodos de pago disponibles
+    -   Carga automática de operadores en background
+    -   Botones de navegación (Aceptar/Atrás)
+
+#### 2. 💳 LoanPaymentStepTwoScreen
+
+-   **Ruta**: `/loan-payment/step-two`
+-   **Propósito**: Selección de operador y formulario de pago
+-   **Funcionalidad**:
+    -   Grid de operadores de recarga y bancos
+    -   Formulario dinámico según tipo seleccionado
+    -   Cálculo automático de comisiones
+    -   Validación en tiempo real
+    -   Diálogo de confirmación antes de registrar
+
+#### 3. 🎉 LoanPaymentSuccessScreen
+
+-   **Ruta**: `/loan-payment/success`
+-   **Propósito**: Confirmación de pago registrado exitosamente
+-   **Funcionalidad**:
+    -   Mensaje de éxito con detalles
+    -   Información del comprobante generado
+    -   Botón para volver al dashboard
+    -   Limpieza automática del estado
+
+### 🧩 Componentes Reutilizables
+
+#### **LoanAmountInfoSection**
+
+Componente para mostrar información del préstamo activo:
+
+```dart
+class LoanAmountInfoSection extends StatelessWidget {
+  final LoanData loanData;
+
+  // Muestra: monto total, saldo pendiente, fecha límite
+}
+```
+
+#### **OperatorSelectionCard**
+
+Componente visual para selección de operadores:
+
+```dart
+class OperatorSelectionCard extends StatelessWidget {
+  final PaymentOperator operator;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  // Muestra: logo, nombre, comisión, estado
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **GET** `/client/payment-operators`
+
+**Propósito**: Obtener lista de operadores de pago disponibles
+
+**Headers Requeridos**:
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "Tigo Recargas",
+            "operator_type": "o",
+            "account_name": "Tigo Money",
+            "logo": "https://logo.pisto.co/tigo.png",
+            "commission_type": "amount",
+            "commission_value_amount": 0.5,
+            "commission_value_percentage": null,
+            "working_hours": "24/7",
+            "account_type": null,
+            "account_number": null,
+            "active": true
+        },
+        {
+            "id": 2,
+            "name": "Banco Agrícola",
+            "operator_type": "b",
+            "account_name": "Pisto SA de CV",
+            "logo": "https://logo.pisto.co/agricola.png",
+            "commission_type": "percentage",
+            "commission_value_amount": null,
+            "commission_value_percentage": 2.5,
+            "working_hours": "Lunes a Viernes 9:00-16:00",
+            "account_type": "Ahorro",
+            "account_number": "1234-5678-9012-3456",
+            "active": true
+        }
+    ]
+}
+```
+
+**Error 403 (Forbidden)**:
+
+```json
+{
+    "message": "No tienes permisos para realizar esta acción."
+}
+```
+
+#### **POST** `/client/payment`
+
+**Propósito**: Registrar un nuevo pago de préstamo
+
+**Request Body**:
+
+```json
+{
+    "operatorType": "o",
+    "operatorId": 1,
+    "amount": 50.0,
+    "reference": null,
+    "date": "2025-11-03"
+}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "message": "Pago registrado exitosamente. Se aplicará a tu préstamo en breve."
+}
+```
+
+**Error 422 (Validation Error)**:
+
+```json
+{
+    "errors": [
+        {
+            "message": "El monto mínimo de pago es $25.00"
+        }
+    ]
+}
+```
+
+**Error 401 (Unauthorized)**:
+
+```json
+{
+    "message": "Usuario no autenticado"
+}
+```
+
+### 🌐 Integración con HTTP Client
+
+```dart
+// Configuración del interceptor
+class LoanPaymentInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    // Agregar headers específicos para pagos
+    options.headers['X-Payment-Source'] = 'mobile_app';
+    super.onRequest(options, handler);
+  }
+
+  @override
+  void onError(DioException error, ErrorInterceptorHandler handler) {
+    // Manejar errores específicos de pagos
+    if (error.response?.statusCode == 422) {
+      // Error de validación de pago
+      throw LoanPaymentValidationException(error.response?.data);
+    }
+    super.onError(error, handler);
+  }
+}
+```
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Carga de Operadores**
+
+```dart
+// Error de red
+NetworkException {
+  message: "No se pudieron cargar los operadores de pago. Verifica tu conexión.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(loanPaymentProvider),
+}
+
+// Permiso denegado
+ForbiddenException {
+  message: "No tienes permisos para acceder a los operadores de pago.",
+  action: "contact_support",
+}
+```
+
+#### **2. Errores de Registro de Pago**
+
+```dart
+// Error de validación
+PaymentValidationException {
+  message: "El monto del pago no cumple los requisitos mínimos.",
+  field: "amount",
+  minValue: 25.00,
+}
+
+// Error de referencia
+ReferenceException {
+  message: "El número de referencia es inválido para este banco.",
+  field: "reference",
+  pattern: "\\d{10}",
+}
+```
+
+#### **3. Errores de Negocio**
+
+```dart
+// Préstamo no encontrado
+LoanNotFoundException {
+  message: "No se encontró un préstamo activo para registrar el pago.",
+  action: "redirect_to_dashboard",
+}
+
+// Pago duplicado
+DuplicatePaymentException {
+  message: "Ya existe un pago registrado con esta referencia.",
+  paymentId: "PAY-123456",
+}
+```
+
+#### **4. Errores de Sistema**
+
+```dart
+// Error del servidor
+ServerException {
+  message: "Error temporal del servidor. Por favor intenta más tarde.",
+  canRetry: true,
+  retryAfter: 300, // 5 minutos
+}
+
+// Timeout
+TimeoutException {
+  message: "La operación está tomando demasiado tiempo.",
+  canRetry: true,
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+@riverpod
+class PaymentRetryNotifier extends _$PaymentRetryNotifier {
+  int _retryCount = 0;
+  static const int maxRetries = 3;
+
+  Future<void> retryPaymentRegistration() async {
+    if (_retryCount < maxRetries) {
+      _retryCount++;
+      await Future.delayed(Duration(seconds: _retryCount * 3));
+      // Reintentar registro con backoff exponencial
+    }
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Opción de reintentar manual** el registro
+-   **Guardar borrador local** del formulario
+-   **Contactar soporte** con diagnóstico automático
+-   **Modo offline** permitiendo completar y sincronizar después
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Operadores**
+
+    - Verificación de operadores activos
+    - Filtrado por tipo (operador vs banco)
+    - Validación de horarios de operación
+
+2. **Validación de Formulario**
+
+    - Monto mínimo requerido ($25.00)
+    - Formato de fecha válido
+    - Referencia obligatoria para bancos
+    - Formato de referencia según banco
+
+3. **Validaciones de Negocio**
+    - Usuario con préstamo activo
+    - Monto no excede saldo pendiente
+    - No pagos duplicados
+    - Horario de procesamiento válido
+
+### 🔍 Lógica de Validación
+
+#### **Validación Dinámica del Formulario**
+
+```dart
+class PaymentValidator {
+  static ValidationResult validatePayment(
+    PaymentFormState formState,
+    PaymentOperator selectedOperator,
+  ) {
+    // Validar monto
+    if (!formState.amount.isValid || formState.amount.doubleValue < 25.00) {
+      return ValidationResult.invalid(
+        'El monto mínimo de pago es \$25.00',
+      );
+    }
+
+    // Validar referencia solo para bancos
+    if (selectedOperator.isBank && !formState.reference.isValid) {
+      return ValidationResult.invalid(
+        'La referencia es obligatoria para pagos bancarios',
+      );
+    }
+
+    // Validar fecha
+    if (!formState.paymentDate.isValid) {
+      return ValidationResult.invalid('Selecciona una fecha válida');
+    }
+
+    return ValidationResult.valid();
+  }
+}
+```
+
+#### **Cálculo de Comisiones**
+
+```dart
+class CommissionCalculator {
+  static double calculateCommission(
+    double amount,
+    PaymentOperator operator,
+  ) {
+    if (operator.commissionType == 'amount') {
+      return operator.commissionValueAmount ?? 0.0;
+    } else if (operator.commissionType == 'percentage') {
+      return amount * (operator.commissionValuePercentage ?? 0.0) / 100;
+    }
+    return 0.0;
+  }
+
+  static double calculateNetAmount(
+    double amount,
+    double commission,
+  ) {
+    return amount - commission;
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Los datos de pago se encriptan en tránsito
+-   No se almacenan números de referencia localmente
+-   Las transacciones tienen auditoría completa
+-   Los datos sensibles tienen tiempo de vida limitado
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/loan_payment_test.dart
+void main() {
+  group('LoanPaymentNotifier', () {
+    test('debe cargar operadores correctamente', () {
+      // Test de carga de operadores desde API
+    });
+
+    test('debe validar formulario según tipo de operador', () {
+      // Test de validación dinámica
+    });
+
+    test('debe calcular comisiones correctamente', () {
+      // Test de cálculo de montos y comisiones
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/loan_payment_screen_test.dart
+void main() {
+  testWidgets('debe mostrar operadores correctamente', (tester) async {
+    // Test de renderizado de lista de operadores
+  });
+
+  testWidgets('debe habilitar botón solo cuando formulario es válido', (tester) async {
+    // Test de lógica de habilitación
+  });
+
+  testWidgets('debe mostrar diálogo de confirmación', (tester) async {
+    // Test de flujo de confirmación
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/loan_payment_flow_test.dart
+void main() {
+  integrationTest('flujo completo de registro de pago', () async {
+    // Simular selección → formulario → confirmación → registro
+  });
+
+  integrationTest('manejo de errores de red', () async {
+    // Test de recuperación ante fallos de conectividad
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario completa pago con operador de recarga exitosamente
+-   ✅ Usuario completa pago con banco y referencia
+-   ✅ Usuario maneja error de validación de monto
+-   ✅ Usuario reintenta después de error de red
+-   ✅ Usuario navega hacia atrás y pierde progreso del formulario
+
+#### **Casos Límite**
+
+-   🔄 Cancelación del pago en el diálogo de confirmación
+-   🔄 Pérdida de conexión durante registro de pago
+-   🔄 Token expirado durante el proceso
+-   🔄 Cambio de operador después de completar formulario
+-   🔄 Monto exacto del saldo pendiente
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 85% para código crítico
+-   **Tests de flujos**: 100% de los caminos principales
+-   **Tests de validación**: Todas las reglas de negocio
+-   **Tests de error**: Todos los tipos de error cubiertos
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Datos**
+
+-   ✅ **Encriptación en tránsito**: Todos los datos viajan por HTTPS
+-   ✅ **No persistencia local**: Datos de formulario no almacenados
+-   ✅ **Tokens seguros**: Autenticación en cada petición
+-   ✅ **Validación de entrada**: Sanitización de todos los datos
+
+#### **2. Validaciones de Seguridad**
+
+```dart
+// Sanitización de datos de pago
+PaymentRequest sanitizePaymentRequest(PaymentRequest request) {
+  // Validar formato de monto
+  // Verificar formato de fecha
+  // Limpiar caracteres especiales de referencia
+  // Validar rangos permitidos
+}
+
+// Validación de integridad
+bool validatePaymentIntegrity(PaymentRequest request) {
+  // Verificar que el monto sea positivo
+  // Validar que la referencia tenga formato esperado
+  // Confirmar que el operador esté activo
+}
+```
+
+#### **3. Manejo de Sesión**
+
+-   ⏰ **Timeout de formulario**: Límite de tiempo para completar pago
+-   🔄 **Refresh automático**: Renovación de tokens durante proceso largo
+-   🚪 **Logout seguro**: Limpieza completa de datos sensibles
+
+### 🛡️ Consideraciones de Privacidad
+
+#### **Datos Sensibles**
+
+-   ❌ **No almacenar**: Números de referencia localmente
+-   ❌ **No hacer caché**: Información de tarjetas o cuentas
+-   ✅ **Solo memoria volátil**: Datos durante el proceso
+-   ✅ **Eliminación garantizada**: Clean up explícito en todos los casos
+
+#### **Cumplimiento Normativo**
+
+-   📋 **Protección financiera**: Cumplimiento con regulaciones de pago
+-   🔍 **Audit trail**: Registro completo de transacciones
+-   📊 **Transparencia**: Información clara de comisiones
+-   🏦 **Banking compliance**: Estándares de transacciones financieras
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecurePaymentService {
+  Future<PaymentResponse> registerPaymentSecurely(
+    PaymentRequest request,
+  ) async {
+    try {
+      // 1. Validar y sanitizar solicitud
+      final sanitizedRequest = _sanitizePaymentRequest(request);
+
+      // 2. Enviar con token seguro
+      final response = await _securePaymentRepository.register(
+        sanitizedRequest,
+        options: SecurePaymentOptions(
+          timeout: Duration(seconds: 30),
+          encryption: true,
+          auditLog: true,
+        ),
+      );
+
+      // 3. Limpiar datos sensibles
+      _cleanupSensitiveData();
+
+      return response;
+    } catch (e) {
+      // 4. Manejo seguro de errores
+      _handlePaymentError(e);
+      throw SecurePaymentException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    go_router: ^12.0.0 # Navegación
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+    dio: ^5.3.0 # Cliente HTTP
+    intl: ^0.18.0 # Formato de fechas y monedas
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/loan_payment/
+
+# Análisis estático
+flutter analyze lib/features/loan_payment/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos o providers
+2. **State Management**: Usar `keepAlive: true` para persistencia durante navegación
+3. **Error Handling**: Implementar manejo específico para cada tipo de error
+4. **Testing**: Mantener cobertura >85% para código crítico
+5. **Form Validation**: Validación en tiempo real con feedback claro
+6. **Documentation**: Actualizar este documento con cada cambio significativo
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos Relacionados
+
+-   **MyLoan**: Información del préstamo activo y dashboard
+-   **Auth**: Gestión de tokens y permisos
+-   **Network**: Configuración HTTP y manejo de errores
+-   **Shared**: Inputs reutilizables y widgets comunes
+-   **Logging**: Registro de operaciones financieras
+
+### 🔄 Flujo de Datos
+
+```
+MyLoan (Préstamo activo)
+  ↓
+LoanPayment (Registro de pago)
+  ↓
+PaymentOperators (Carga de métodos)
+  ↓
+PaymentAPI (Procesamiento de transacción)
+  ↓
+MyLoan (Actualización de saldo)
+```
