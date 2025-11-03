@@ -1,0 +1,875 @@
+---
+title: Flujo de aceptación de Préstamos
+slug: aceptacion-de-prestamo
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de aceptación de Préstamos. Gestión completa del proceso de confirmación de datos bancarios para la transferencia de fondos de préstamos aprobados.
+---
+
+## Descripción General
+
+La funcionalidad de **Aceptación de Préstamos** (`accept_loan`) es el módulo responsable de gestionar el proceso completo de confirmación de datos bancarios para la transferencia de fondos de préstamos aprobados. Este módulo se activa automáticamente después de que el usuario completa exitosamente el proceso de firma digital en el módulo **OneShot**.
+
+### 📊 Estructura de Pantallas
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────┐     ┌─────────────┐
+│ OneShot     │────▶│ Splash Screen    │────▶│ Confirmar Datos │────▶│ Formulario   │────▶│ Resultado   │
+│ (Firma)     │     │ (Carga inicial)  │     │ (Previos/Nuevo) │     │ (Bancarios)  │     │ (Éxito)     │
+└─────────────┘     └──────────────────┘     └─────────────────┘     └──────────────┘     └─────────────┘
+     ✓ Completado        ✓ Automática           ✓ Opción múltiple      ✓ Validación      ✓ Transferencia
+```
+
+### ✨ Características Principales
+
+-   ✅ **Flujo condicional inteligente**: Detecta datos bancarios previos
+-   ✅ **Validación dinámica**: Adaptada a las reglas de cada banco
+-   ✅ **Reutilización de datos**: Opción de usar cuentas anteriores
+-   ✅ **Seguridad robusta**: No persiste datos sensibles localmente
+-   ✅ **Manejo de errores específicos**: Diferentes mensajes por tipo
+-   ✅ **Integración con OneShot**: Activación automática post-firma
+-   ✅ **Estado persistente**: Mantiene datos durante navegación
+-   ✅ **Experiencia optimizada**: Flujo guiado y feedback inmediato
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+La aceptación de préstamos es el paso final para recibir tu dinero:
+
+-   **Confirma tu cuenta**: Donde recibirás los fondos
+-   **Valida tus datos**: Asegura que la información sea correcta
+-   **Procesa la transferencia**: Autoriza el envío del dinero
+-   **Garantiza seguridad**: Protege tu información bancaria
+
+### 📱 Pasos para aceptar tu préstamo
+
+#### Paso 1: Finalización de OneShot
+
+Después de completar la firma digital:
+
+1. ✅ **Firma completada** - Documentos firmados exitosamente
+2. ✅ **Redirección automática** - La app te llevará a la pantalla de aceptación
+3. ✅ **Carga de datos** - El sistema obtiene información de tu préstamo aprobado
+
+#### Paso 2: Revisión de datos bancarios
+
+**Si tienes datos previos:**
+
+-   📋 **Verás tu información**: Banco, número y tipo de cuenta
+-   🔍 **Confirma los datos**: Asegúrate que sean correctos
+-   ⚖️ **Toma una decisión**:
+    -   "Transferir a la misma cuenta" - Si los datos son correctos
+    -   "Registrar nueva cuenta" - Si quieres cambiar de banco
+    -   "Cancelar" - Si necesitas más tiempo
+
+**Si es tu primer préstamo:**
+
+-   🏦 **Selecciona un banco**: Elige de la lista de bancos disponibles
+-   👆 **Toca el banco deseado**: Se mostrará seleccionado
+-   ▶️ **Presiona "Continuar"**: Avanza al formulario de datos
+
+#### Paso 3: Ingreso de datos bancarios
+
+Completa el formulario con:
+
+-   📝 **Número de cuenta**: Ingresa tu número de cuenta bancaria
+-   💳 **Tipo de cuenta**: Selecciona "Ahorro" o "Corriente"
+-   ✅ **Validación automática**: El sistema verifica que el número sea correcto
+-   🔢 **Dígitos requeridos**: Varía según banco y tipo de cuenta
+
+#### Paso 4: Confirmación final
+
+Revisa toda la información:
+
+-   👀 **Verifica los datos**: Banco, cuenta y tipo
+-   ⚠️ **Advertencia importante**: "Verifica que los datos sean correctos"
+-   ✅ **Presiona "Confirmar"**: Envía la información para procesar
+-   ⏳ **Espera la confirmación**: El sistema procesará tu solicitud
+
+#### Paso 5: Resultado del proceso
+
+**Si es exitoso:**
+
+-   🎉 **Préstamo aceptado**: Mensaje de confirmación
+-   💰 **Transferencia en proceso**: El dinero llegará pronto a tu cuenta
+-   🏠 **Ve a tu dashboard**: Presiona "Continuar" para ver tu préstamo
+
+**Si hay errores:**
+
+-   ❌ **Mensaje de error**: Explica qué salió mal
+-   🔄 **Opción de reintentar**: Corrige los datos e intenta nuevamente
+-   📞 **Contacta soporte**: Si el problema persiste
+
+### ⚠️ Importante
+
+-   **Verifica dos veces**: Los datos bancarios no se pueden cambiar después de confirmar
+-   **Ten tu cuenta a mano**: Necesitarás el número completo de tu cuenta
+-   **Conoce tu tipo de cuenta**: Ahorro o Corriente según tu banco
+-   **No cierres la app**: Mantén la aplicación abierta durante el proceso
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo sigue la arquitectura establecida en el proyecto Pisto con separación de responsabilidades clara:
+
+```
+accept_loan/
+├── models/                      # DTOs y entidades de datos
+│   ├── bank_entity.dart        # Información de bancos disponibles
+│   ├── accept_loan_step_one_response.dart # Respuesta inicial
+│   ├── accept_loan_request.dart # Payload para confirmación
+│   └── accept_loan_success_response.dart # Respuesta final
+├── providers/                   # Gestión de estado con Riverpod
+│   ├── accept_loan_data_provider.dart # Carga inicial de datos
+│   └── accept_loan_provider.dart # Estado principal del flujo
+├── repositories/               # Capa de acceso a datos
+│   └── accept_loan_repository.dart # Comunicación con la API
+├── screens/                    # Interfaces de usuario
+│   ├── accept_loan_splash_screen.dart # Punto de entrada
+│   ├── confirm_old_bank_data_screen.dart # Datos previos
+│   ├── register_new_account_screen.dart # Selección de banco
+│   ├── add_bank_data_screen.dart # Formulario de datos
+│   ├── confirm_bank_data_screen.dart # Confirmación final
+│   └── accept_loan_result_screen.dart # Resultado del proceso
+└── widgets/                    # Componentes reutilizables
+```
+
+### 📊 Models (Entidades de Datos)
+
+#### **BankEntity**
+
+Representa la información de un banco con sus reglas de validación:
+
+```dart
+@freezed
+class BankEntity with _$BankEntity {
+  const factory BankEntity({
+    required int id,                           // ID único del banco
+    required String name,                      // Nombre del banco
+    required String logo,                      // URL del logo
+    required int minDigitsSaving,              // Dígitos mínimos para ahorro
+    required int maxDigitsSaving,              // Dígitos máximos para ahorro
+    required int minDigitsChecking,            // Dígitos mínimos para corriente
+    required int maxDigitsChecking,            // Dígitos máximos para corriente
+  }) = _BankEntity;
+}
+```
+
+#### **AcceptLoanStepOneResponse**
+
+Respuesta del endpoint inicial con datos del préstamo:
+
+```dart
+@freezed
+class AcceptLoanStepOneResponse with _$AcceptLoanStepOneResponse {
+  const factory AcceptLoanStepOneResponse({
+    required int loanId,                       // ID del préstamo aprobado
+    int? oldBankId,                           // null si es primera vez
+    String? oldAccountNumber,                 // Cuenta anterior
+    String? oldAccountType,                   // "ahorro" | "corriente"
+    required String contract,                  // URL del contrato
+    required List<BankEntity> banks,          // Lista de bancos disponibles
+  }) = _AcceptLoanStepOneResponse;
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **AcceptLoanDataProvider**
+
+FutureProvider para carga inicial de datos:
+
+```dart
+@riverpod
+Future<AcceptLoanStepOneResponse> acceptLoanData(Ref ref) async {
+  final repository = ref.read(acceptLoanRepositoryProvider);
+  return repository.fetchLoanData();
+}
+```
+
+#### **AcceptLoanNotifier**
+
+StateNotifier principal con seguimiento de estado:
+
+```dart
+enum AcceptLoanStatus {
+  initial,        // Estado inicial
+  loading,        // Cargando datos
+  dataLoaded,     // Datos cargados exitosamente
+  submitting,     // Enviando confirmación
+  completed,      // Proceso completado
+  error,          // Error en el proceso
+}
+
+@Riverpod(keepAlive: true)
+class AcceptLoanNotifier extends _$AcceptLoanNotifier {
+  // Métodos principales:
+  // - void selectBank(BankEntity bank)
+  // - void onAccountNumberChanged(String value)
+  // - void onAccountTypeChanged(String type)
+  // - Future<void> submitBankAccount()
+  // - void reset()
+}
+```
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **AcceptLoanRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+class AcceptLoanRepository {
+  // GET /client/accept-loan-step-1
+  Future<AcceptLoanStepOneResponse> fetchLoanData();
+
+  // POST /client/accept-loan-step-2
+  Future<AcceptLoanSuccessResponse> acceptLoan(AcceptLoanRequest request);
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Navegación
+
+#### **Flujo con Datos Bancarios Previos**
+
+```
+OneShot (Firma completada)
+  ↓
+/accept-loan/splash (Carga datos)
+  ↓ [Detecta datos previos]
+/accept-loan/confirm-old-bank-data
+  ├─→ [Transferir a misma cuenta]
+  │   └─→ /accept-loan/confirm-bank-data
+  │       └─→ /accept-loan/result
+  │           └─→ /my-loan (Dashboard)
+  │
+  └─→ [Registrar nueva cuenta]
+      └─→ /accept-loan/register-new-account
+          └─→ /accept-loan/add-bank-data
+              └─→ /accept-loan/confirm-bank-data
+                  └─→ /accept-loan/result
+                      └─→ /my-loan (Dashboard)
+```
+
+#### **Flujo sin Datos Previos (Primera vez)**
+
+```
+OneShot (Firma completada)
+  ↓
+/accept-loan/splash (Carga datos)
+  ↓ [Sin datos previos]
+/accept-loan/register-new-account
+  ↓
+/accept-loan/add-bank-data
+  ↓
+/accept-loan/confirm-bank-data
+  ↓
+/accept-loan/result
+  ↓
+/my-loan (Dashboard)
+```
+
+### 📊 Diagrama de Estado
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        AcceptLoanNotifier                        │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → loading → dataLoaded → submitting → completed │
+│                                                            ↑ error │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                         │
+│  - loanData: AcceptLoanStepOneResponse?                         │
+│  - selectedBank: BankEntity?                                    │
+│  - accountNumber: String                                        │
+│  - accountType: AccountTypeInput?                               │
+│  - isAccountNumberValid: bool                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 🔄 Ciclo de Vida
+
+1. **OneShot → Splash**: Navegación automática post-firma
+2. **Splash → Decisión**: Carga datos y elige ruta
+3. **Decisión → Formulario**: Basado en existencia de datos previos
+4. **Formulario → Confirmación**: Validación y resumen
+5. **Confirmación → Resultado**: Envío y procesamiento
+6. **Result → Dashboard**: Navegación final y limpieza
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 📱 AcceptLoanSplashScreen
+
+-   **Ruta**: `/accept-loan/splash`
+-   **Propósito**: Punto de entrada que carga datos y decide el flujo
+-   **Funcionalidad**:
+    -   Carga automática de datos del préstamo aprobado
+    -   Decisión inteligente de navegación basada en historial
+    -   Manejo de estados de carga y error
+
+#### 2. 🏦 ConfirmOldBankDataScreen
+
+-   **Ruta**: `/accept-loan/confirm-old-bank-data`
+-   **Propósito**: Mostrar datos bancarios de préstamos anteriores
+-   **Funcionalidad**:
+    -   Muestra banco, número y tipo de cuenta anterior
+    -   Opción de reutilizar datos existentes
+    -   Opción de registrar nueva cuenta
+    -   Botón de cancelación para regresar al dashboard
+
+#### 3. 🎯 RegisterNewAccountScreen
+
+-   **Ruta**: `/accept-loan/register-new-account`
+-   **Propósito**: Selección de banco mediante grid visual
+-   **Funcionalidad**:
+    -   Grid de bancos disponibles (2 columnas)
+    -   Cards con logo y nombre de cada banco
+    -   Selección única con radio button
+    -   Validación de selección antes de continuar
+
+#### 4. 📝 AddBankDataScreen
+
+-   **Ruta**: `/accept-loan/add-bank-data`
+-   **Propósito**: Formulario para capturar datos bancarios
+-   **Funcionalidad**:
+    -   Muestra información del usuario (solo lectura)
+    -   Muestra banco seleccionado (solo lectura)
+    -   Campo editable para número de cuenta
+    -   Selector de tipo de cuenta (Ahorro/Corriente)
+    -   Validación dinámica según banco y tipo
+
+#### 5. ✅ ConfirmBankDataScreen
+
+-   **Ruta**: `/accept-loan/confirm-bank-data`
+-   **Propósito**: Confirmación final antes de enviar
+-   **Funcionalidad**:
+    -   Resumen completo de datos a confirmar
+    -   Mensaje de advertencia sobre verificación
+    -   Botón de confirmación con estado de carga
+    -   Opción para regresar y editar datos
+
+#### 6. 🎉 AcceptLoanResultScreen
+
+-   **Ruta**: `/accept-loan/result`
+-   **Propósito**: Mostrar resultado final del proceso
+-   **Funcionalidad**:
+    -   Mensaje de éxito con detalles
+    -   Información sobre transferencia próxima
+    -   Botón para continuar al dashboard
+    -   Limpieza automática del estado
+
+### 🧩 Componentes Reutilizables
+
+#### **BankSelectionCard**
+
+Componente visual para selección de bancos:
+
+```dart
+class BankSelectionCard extends StatelessWidget {
+  final BankEntity bank;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  // Muestra logo, nombre y estado de selección
+}
+```
+
+#### **AccountTypeSelector**
+
+Selector para tipo de cuenta bancaria:
+
+```dart
+class AccountTypeSelector extends ConsumerWidget {
+  final String currentValue;
+  final Function(String) onChanged;
+
+  // Opciones: "ahorro" | "corriente"
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **GET** `/client/accept-loan-step-1`
+
+**Propósito**: Obtener datos del préstamo aprobado y bancos disponibles
+
+**Headers Requeridos**:
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "loanId": 123,
+    "oldBankId": 1, // null si es primera vez
+    "oldAccountNumber": "1234567890",
+    "oldAccountType": "ahorro",
+    "contract": "https://contrato.pisto.co/...",
+    "banks": [
+        {
+            "id": 1,
+            "name": "Banco Agrícola",
+            "logo": "https://logo.pisto.co/agricola.png",
+            "min_digits_saving": 10,
+            "max_digits_saving": 14,
+            "min_digits_checking": 10,
+            "max_digits_checking": 14
+        }
+    ]
+}
+```
+
+**Error 401**:
+
+```json
+{
+    "message": "No autenticado"
+}
+```
+
+#### **POST** `/client/accept-loan-step-2`
+
+**Propósito**: Confirmar aceptación del préstamo con datos bancarios
+
+**Request Body**:
+
+```json
+{
+    "bankId": 1,
+    "accountNumber": "1234567890",
+    "accountType": "ahorro"
+}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "message": "Préstamo aceptado exitosamente. El dinero será transferido pronto."
+}
+```
+
+**Error 422 (Validation Error)**:
+
+```json
+{
+    "message": "Datos bancarios inválidos",
+    "errors": {
+        "accountNumber": [
+            "El número de cuenta debe tener entre 10 y 14 dígitos"
+        ]
+    }
+}
+```
+
+### 🌐 Integración con HTTP Client
+
+```dart
+// Configuración del interceptor
+class AcceptLoanInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    // Agregar headers de autenticación
+    options.headers['Authorization'] = 'Bearer ${token}';
+    super.onRequest(options, handler);
+  }
+
+  @override
+  void onError(DioException error, ErrorInterceptorHandler handler) {
+    // Manejar errores específicos de aceptación
+    if (error.response?.statusCode == 422) {
+      // Error de validación
+      throw AcceptLoanValidationException(error.response?.data);
+    }
+    super.onError(error, handler);
+  }
+}
+```
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Red**
+
+```dart
+// Timeout o conexión perdida
+NetworkException {
+  message: "No se pudo conectar con el servidor. Verifica tu conexión a internet.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(acceptLoanDataProvider),
+}
+```
+
+#### **2. Errores de Autenticación**
+
+```dart
+// Token expirado o inválido
+AuthException {
+  message: "Tu sesión ha expirado. Por favor inicia sesión nuevamente.",
+  action: "redirect_to_login",
+}
+```
+
+#### **3. Errores de Validación**
+
+```dart
+// Datos bancarios inválidos
+ValidationException {
+  message: "El número de cuenta no es válido para este banco",
+  field: "accountNumber",
+  expectedFormat: "10-14 dígitos para cuenta de ahorro",
+}
+```
+
+#### **4. Errores de Negocio**
+
+```dart
+// Préstamo no encontrado o ya procesado
+BusinessException {
+  message: "Este préstamo ya ha sido procesado",
+  code: "LOAN_ALREADY_PROCESSED",
+  action: "redirect_to_dashboard",
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+@riverpod
+class AcceptLoanRetryNotifier extends _$AcceptLoanRetryNotifier {
+  int _retryCount = 0;
+  static const int maxRetries = 3;
+
+  Future<void> retryLastOperation() async {
+    if (_retryCount < maxRetries) {
+      _retryCount++;
+      // Implementar backoff exponencial
+      await Future.delayed(Duration(seconds: _retryCount * 2));
+      // Reintentar operación
+    }
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Opción de reintentar manual**
+-   **Guardar borrador local** (no sensible)
+-   **Contactar soporte** con código de error
+-   **Redirección segura** al dashboard
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación Dinámica de Cuentas**
+
+    - Cada banco tiene sus propias reglas de dígitos
+    - Validación en tiempo real mientras el usuario escribe
+    - Diferenciación entre cuenta de ahorro y corriente
+
+2. **Seguridad en Datos**
+
+    - No se almacenan datos bancarios localmente
+    - Token de autenticación requerido en todas las peticiones
+    - Enmascarado de número de cuenta en pantallas de confirmación
+
+3. **Manejo de Errores**
+    - Validación tanto en cliente como servidor
+    - Mensajes de error específicos y amigables
+    - Opción de reintentar en caso de fallos de red
+
+### 🔍 Lógica de Validación
+
+#### **Validación de Número de Cuenta**
+
+```dart
+bool validateAccountNumber(String number, String type, BankEntity bank) {
+  final digitCount = number.replaceAll(RegExp(r'\D'), '').length;
+
+  if (type == 'ahorro') {
+    return digitCount >= bank.minDigitsSaving &&
+           digitCount <= bank.maxDigitsSaving;
+  } else if (type == 'corriente') {
+    return digitCount >= bank.minDigitsChecking &&
+           digitCount <= bank.maxDigitsChecking;
+  }
+
+  return false;
+}
+```
+
+#### **Validación de Formulario Completo**
+
+```dart
+bool isFormValid(AcceptLoanState state) {
+  return state.accountNumber.isNotEmpty &&
+         state.accountType != null &&
+         state.selectedBank != null &&
+         state.isAccountNumberValid;
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Los datos bancarios solo se utilizan para el procesamiento del préstamo actual
+-   No se persiste información sensible en el dispositivo
+-   Todas las comunicaciones se realizan través de HTTPS
+-   El usuario tiene control total sobre la información que proporciona
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/accept_loan_test.dart
+void main() {
+  group('AcceptLoanNotifier', () {
+    test('debe seleccionar banco correctamente', () {
+      // Test de selección de banco
+    });
+
+    test('debe validar número de cuenta según banco', () {
+      // Test de validación dinámica
+    });
+
+    test('debe decidir flujo basado en oldBankId', () {
+      // Test de lógica de decisión
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/accept_loan_splash_test.dart
+void main() {
+  testWidgets('debe mostrar loading mientras carga datos', (tester) async {
+    // Test de estado de carga
+  });
+
+  testWidgets('debe navegar correctamente según datos previos', (tester) async {
+    // Test de navegación condicional
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/accept_loan_flow_test.dart
+void main() {
+  integrationTest('flujo completo con datos previos', () async {
+    // Simular OneShot → AcceptLoan → MyLoan
+  });
+
+  integrationTest('flujo completo primer préstamo', () async {
+    // Simular flujo completo sin datos previos
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario con datos previos que los reutiliza
+-   ✅ Usuario con datos previos que registra nueva cuenta
+-   ✅ Usuario primerizo que completa registro completo
+-   ✅ Manejo de errores de red durante carga de datos
+-   ✅ Validación de número de cuenta con diferentes bancos
+-   ✅ Navegación hacia atrás en pantallas críticas
+
+#### **Casos Límite**
+
+-   🔄 Cancelación del proceso en cualquier paso
+-   🔄 Pérdida de conexión durante envío
+-   🔄 Token expirado durante el flujo
+-   🔄 Banco no disponible en lista
+-   🔄 Número de cuenta con caracteres inválidos
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 80% para código crítico
+-   **Tests de flujos**: 100% de los caminos principales
+-   **Tests de validación**: Todas las reglas de banco
+-   **Tests de error**: Todos los tipos de error cubiertos
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Datos**
+
+-   ✅ **No persistencia local**: Datos bancarios solo en memoria
+-   ✅ **Enmascarado visual**: `****1234` en pantallas de confirmación
+-   ✅ **HTTPS obligatorio**: Todas las comunicaciones cifradas
+-   ✅ **Token-based auth**: Autenticación en cada petición
+
+#### **2. Validaciones de Seguridad**
+
+```dart
+// Sanitización de inputs
+String sanitizeAccountNumber(String input) {
+  return input.replaceAll(RegExp(r'[^0-9]'), '');
+}
+
+// Validación de estructura
+bool isValidAccountStructure(String number, BankEntity bank) {
+  // Validar longitud y formato según banco
+}
+```
+
+#### **3. Manejo de Sesión**
+
+-   ⏰ **Timeout de sesión**: Auto-logout por inactividad
+-   🔄 **Refresh token**: Renovación automática de tokens
+-   🚪 **Logout forzado**: En detección de actividad sospechosa
+
+### 🛡️ Consideraciones de Privacidad
+
+#### **Datos Sensibles**
+
+-   ❌ **No almacenar**: Números de cuenta completos
+-   ❌ **No cachear**: Información bancaria en dispositivo
+-   ✅ **Solo memoria**: Datos eliminados al finalizar flujo
+-   ✅ **Encriptación**: Para cualquier dato temporal
+
+#### **Cumplimiento Normativo**
+
+-   📋 **GDPR-like**: Derecho al olvido de datos
+-   🔍 **Audit trail**: Registro de todas las operaciones
+-   📊 **Data minimization**: Solo datos necesarios
+-   🏦 **Banking compliance**: Estándares financieros
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureAcceptLoanService {
+  Future<void> submitSecurely(AcceptLoanRequest request) async {
+    try {
+      // 1. Validar en cliente primero
+      _validateRequest(request);
+
+      // 2. Enviar con token seguro
+      final response = await _secureHttpClient.post(
+        '/client/accept-loan-step-2',
+        data: request.toJson(),
+        options: Options(
+          headers: {'Authorization': 'Bearer $_secureToken'},
+          timeout: const Duration(seconds: 30),
+        ),
+      );
+
+      // 3. Limpiar datos sensibles
+      _cleanupSensitiveData();
+
+    } catch (e) {
+      // 4. Manejo seguro de errores
+      _handleSecureError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    go_router: ^12.0.0 # Navegación
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+    dio: ^5.3.0 # Cliente HTTP
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/accept_loan/
+
+# Análisis estático
+flutter analyze lib/features/accept_loan/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos o providers
+2. **State Management**: Usar `keepAlive: true` para persistencia durante navegación
+3. **Error Handling**: Implementar manejo específico para cada tipo de error
+4. **Testing**: Mantener cobertura >80% para código crítico
+5. **Documentation**: Actualizar este documento con cada cambio significativo
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos Relacionados
+
+-   **OneShot**: Módulo previo de firma digital
+-   **MyLoan**: Destino final después de aceptación
+-   **Auth**: Gestión de tokens y autenticación
+-   **Network**: Configuración HTTP y manejo de errores
+
+### 🔄 Flujo de Datos
+
+```
+OneShot (Firma completada)
+  ↓
+AcceptLoan (Confirmación bancaria)
+  ↓
+MyLoan (Dashboard del préstamo)
+```
