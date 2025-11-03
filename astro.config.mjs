@@ -122,6 +122,26 @@ export default defineConfig({
                     label: "23. Historial de préstamos",
                     slug: "historial-de-prestamos",
                 },
+                {
+                    label: "24. Descarga de documentos legales",
+                    slug: "descarga-de-documentos-legales",
+                },
+                {
+                    label: "25. Códigos promocionales",
+                    slug: "codigos-promocionales",
+                },
+                {
+                    label: "26. Perfil de usuario",
+                    slug: "perfil-de-usuario",
+                },
+                {
+                    label: "27. Preguntas frecuentes",
+                    slug: "preguntas-frecuentes",
+                },
+                {
+                    label: "28. Contacto",
+                    slug: "contacto",
+                },
             ],
         }),
     ],
