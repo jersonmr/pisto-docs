@@ -1,0 +1,926 @@
+---
+title: Flujo de descarga de documentos legales
+slug: descarga-de-documentos-legales
+tags:
+    [
+        auth,
+        flutter,
+        riverpod,
+        dio,
+        formz,
+        go_router,
+        freezed,
+        json_annotation,
+        pdf,
+    ]
+description: Flujo de descarga de documentos legales. Gestión completa del proceso de acceso y descarga de documentos legales.
+---
+
+## Descripción General
+
+La funcionalidad de **Descarga de Documentos Legales** (`documents_repository`) es el servicio centralizado responsable de gestionar el acceso seguro a todos los documentos legales y contractuales de la plataforma Pisto. Este repositorio proporciona una interfaz unificada para obtener URLs temporales y seguras de documentos, incluyendo contratos de préstamo, pagarés, solicitudes y políticas legales, garantizando que solo los usuarios autorizados puedan acceder a la documentación correspondiente.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Módulo          │────▶│ DocumentsRepo    │────▶│ API Segura       │────▶│ URL Temporal     │────▶│ Visor/Descarga   │
+│ Solicitante     │     │ (Validación)     │     │ (Autenticación)  │     │ (Firmada)        │     │ (PDF/Nativo)     │
+│ (History/Other) │     │                     │     │                     │     │                     │     │                     │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Petición            ✓ Verificación        ✓ Generación         ✓ Acceso            ✓ Visualización
+```
+
+### ✨ Características Principales
+
+-   ✅ **Acceso centralizado**: Único punto de acceso para todos los documentos
+-   ✅ **URLs seguras temporales**: URLs firmadas con expiración controlada
+-   ✅ **Validación de permisos**: Verificación automática de acceso autorizado
+-   ✅ **Manejo robusto de errores**: Recuperación ante fallos de red o permisos
+-   ✅ **Flexibilidad de respuesta**: Soporta múltiples formatos de API
+-   ✅ **Logging detallado**: Trazabilidad completa de accesos a documentos
+-   ✅ **Integración múltiple**: Utilizado por varios módulos del sistema
+-   ✅ **Seguridad financiera**: Cumplimiento con estándares de documentos legales
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+El repositorio de documentos te permite acceder de forma segura a:
+
+-   **Contratos de préstamo**: Acuerdos legales de tus préstamos
+-   **Pagarés firmados**: Documentos de compromiso de pago
+-   **Solicitudes originales**: Tu solicitud inicial de préstamo
+-   **Políticas de privacidad**: Cómo manejamos tus datos personales
+-   **Términos de servicio**: Condiciones de uso de la plataforma
+
+### 📱 Cómo funciona el acceso a documentos
+
+#### Paso 1: Acceso desde diferentes módulos
+
+Puedes acceder a documentos desde varias áreas de la app:
+
+**Desde Historial de Préstamos:**
+
+1. 📋 **Ve a "Historial de Préstamos"** - En el menú lateral
+2. 👆 **Selecciona un préstamo** - Toca cualquier préstamo completado
+3. 📄 **Busca "Documentos"** - Encuentra la sección de documentos legales
+4. 👁️ **Toca el documento deseado** - Contrato, pagaré o solicitud
+
+**Desde Proceso de Préstamo:**
+
+1. 🏠 **Durante la solicitud** - Se te mostrarán términos y condiciones
+2. 📋 **Al completar pasos** - Podrás revisar tu solicitud firmada
+3. 📄 **Al aprobar préstamo** - Acceso al contrato final
+
+#### Paso 2: Verificación de acceso
+
+Cuando solicitas un documento:
+
+**Validación automática:**
+
+-   🔐 **Verificación de identidad**: Confirmamos que eres tú
+-   📋 **Validación de permisos**: Comprobamos que puedes acceder
+-   🏦 **Propiedad del préstamo**: Aseguramos que el documento es tuyo
+-   ⏰ **Estado del préstamo**: Algunos documentos requieren estados específicos
+
+**Si todo es válido:**
+
+-   ✅ **URL generada**: Creamos un enlace seguro temporal
+-   🔗 **Acceso directo**: Te llevamos al documento
+-   📱 **Visor integrado**: Se abre automáticamente
+
+#### Paso 3: Visualización y descarga
+
+Una vez accedes al documento:
+
+**Opciones disponibles:**
+
+-   📖 **Visualización online**: Lee el documento directamente
+-   🔍 **Zoom y navegación**: Usa gestos para explorar el contenido
+-   📤 **Compartir**: Envía por email, WhatsApp u otras apps
+-   💾 **Descargar**: Guarda una copia en tu dispositivo
+-   🖨️ **Imprimir**: Envía a impresora si es necesario
+
+**Contenido del documento:**
+
+-   📄 **Formato PDF**: Visualización profesional
+-   🏷️ **Marca de agua**: Identificación segura
+-   📅 **Fecha y hora**: Cuándo se generó el documento
+-   🔒 **Protección**: Documento seguro y validado
+
+#### Paso 4: Seguridad y privacidad
+
+**Protección de tus documentos:**
+
+-   🔐 **Solo tú puedes acceder**: Verificación estricta de identidad
+-   ⏰ **URLs temporales**: Los enlaces expiran rápidamente
+-   📱 **No almacenamiento local**: No guardamos copias sensibles
+-   🔍 **Auditoría completa**: Registro de cada acceso
+
+**Buenas prácticas:**
+
+-   💾 **Guarda copias importantes**: Descarga documentos que necesites
+-   🚫 **No compartas con terceros**: Los documentos son confidenciales
+-   📞 **Reporta problemas**: Si no puedes acceder, contacta soporte
+-   🔒 **Cierra sesión**: Protege tu cuenta en dispositivos compartidos
+
+### ⚠️ Información importante
+
+**Disponibilidad de documentos:**
+
+-   📄 Los contratos firmados están disponibles para préstamos completados
+-   ⏳ Puede haber un pequeño delay para documentos recientes
+-   🏦 Los pagarés requieren que el préstamo esté en estado específico
+
+**Consideraciones técnicas:**
+
+-   📱 Necesitas conexión a internet para acceder a los documentos
+-   🔗 Las URLs tienen tiempo limitado (generalmente 1-24 horas)
+-   📊 Algunos documentos grandes pueden tardar en cargar
+-   🔄 Si falla la carga, intenta nuevamente o contacta soporte
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Repositorio
+
+El repositorio sigue un patrón centralizado con manejo robusto de errores:
+
+```
+documents_repository/
+├── documents_repository.dart       # Repositorio principal
+├── models/
+│   └── document_url_response.dart  # Modelo de respuesta URL
+└── exceptions/
+    └── document_exception.dart     # Manejo específico de errores
+```
+
+### 📊 Modelo de Datos
+
+#### **DocumentUrlResponse**
+
+Modelo para manejar diferentes formatos de respuesta de la API:
+
+```dart
+@freezed
+class DocumentUrlResponse with _$DocumentUrlResponse {
+  const factory DocumentUrlResponse({
+    required String url,                    // URL del documento
+  }) = _DocumentUrlResponse;
+
+  factory DocumentUrlResponse.fromJson(Map<String, dynamic> json) =>
+      _$DocumentUrlResponseFromJson(json);
+}
+```
+
+### 🎯 Repositorio Principal
+
+#### **DocumentsRepository**
+
+Clase centralizada con manejo unificado de documentos:
+
+```dart
+@riverpod
+DocumentsRepository documentsRepository(Ref ref) {
+  final httpClient = ref.watch(httpClientProvider);
+  return DocumentsRepository(httpClient);
+}
+
+class DocumentsRepository {
+  final HttpClient _httpClient;
+
+  // Métodos principales:
+  // - Future<String> getLoanContract(int loanId)
+  // - Future<String> getLoanRequest(int loanId)
+  // - Future<String> getLoanContractSigned(int loanId)
+  // - Future<String> getPromissoryNoteSigned(int loanId)
+  // - Future<String> getPersonalDataPolicy()
+  // - Future<String> getTermsOfService()
+  // - String _extractUrl(dynamic responseData)
+  // - DocumentException _handleDioError(DioException dioError)
+}
+```
+
+### 🌐 Manejo de Errores Específico
+
+#### **DocumentException**
+
+Excepción personalizada para manejo de errores de documentos:
+
+```dart
+class DocumentException implements Exception {
+  final String message;
+  final DocumentExceptionType type;
+  final int? statusCode;
+
+  const DocumentException({
+    required this.message,
+    required this.type,
+    this.statusCode,
+  });
+}
+
+enum DocumentExceptionType {
+  networkError,      // Problemas de conectividad
+  unauthorizedError, // No autenticado
+  notFoundError,     // Documento no encontrado
+  timeoutError,      // Tiempo de espera agotado
+  serverError,       // Error del servidor
+  unknown,           // Error desconocido
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Solicitudes
+
+```
+Módulo Solicitante (LoansHistory/OneShot)
+  ↓
+DocumentsRepository (Validación y preparación)
+  ↓
+HTTP Client (Headers de autenticación)
+  ↓
+API Backend (/client/download-*)
+  ├─→ Validación de permisos
+  ├─→ Generación de URL firmada
+  └─→ Respuesta con URL temporal
+  ↓
+_extractUrl() (Procesamiento de respuesta)
+  ↓
+URL segura devuelta al módulo solicitante
+  ↓
+Visor PDF / Descarga / Compartir
+```
+
+### 📊 Diagrama de Estado
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  DocumentsRepository                           │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: Stateless (Cada llamada es independiente)              │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Flujo por solicitud:                                           │
+│  1. Validar parámetros (loanId, autenticación)                 │
+│  2. Construir request HTTP con headers seguros                 │
+│  3. Llamar endpoint específico del documento                   │
+│  4. Procesar respuesta (String | JSON)                          │
+│  5. Extraer URL y devolver al solicitante                       │
+│  6. Manejar errores específicos de documentos                  │
+├─────────────────────────────────────────────────────────────────┤
+│  Documentos soportados:                                         │
+│  - Contratos de préstamo (firmados/no firmados)                 │
+│  - Pagarés firmados                                             │
+│  - Solicitudes originales                                       │
+│  - Políticas y términos generales                               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 🔄 Ciclo de Vida de una Solicitud
+
+1. **Solicitud del módulo**: LoansHistory solicita contrato firmado
+2. **Validación en repository**: Verifica parámetros y autenticación
+3. **Construcción de request**: HTTP GET con headers de seguridad
+4. **Llamada a API**: `/client/download-loan-contract-signed/{loanId}`
+5. **Procesamiento de respuesta**: Extrae URL (String o JSON)
+6. **Retorno de URL**: URL temporal firmada al solicitante
+7. **Acceso al documento**: Módulo abre URL en visor o descarga
+
+---
+
+## Componentes y Pasos
+
+### 🔧 Métodos del Repositorio
+
+#### 1. 📄 getLoanContract(int loanId)
+
+-   **Endpoint**: `/client/download-loan-contract/{loanId}`
+-   **Propósito**: Obtener contrato de préstamo no firmado
+-   **Uso**: Durante proceso de solicitud o revisión
+-   **Validación**: Usuario debe ser propietario del préstamo
+
+#### 2. 📋 getLoanRequest(int loanId)
+
+-   **Endpoint**: `/client/download-loan-request/{loanId}`
+-   **Propósito**: Obtener solicitud original de préstamo
+-   **Uso**: Documentación completa del proceso
+-   **Validación**: Acceso según estado del préstamo
+
+#### 3. ✅ getLoanContractSigned(int loanId)
+
+-   **Endpoint**: `/client/download-loan-contract-signed/{loanId}`
+-   **Propósito**: Obtener contrato firmado y ejecutable
+-   **Uso**: Préstamos completados o activos
+-   **Validación**: Estado específico requerido
+
+#### 4. 🏦 getPromissoryNoteSigned(int loanId)
+
+-   **Endpoint**: `/client/download-promissory-note-signed/{loanId}`
+-   **Propósito**: Obtener pagaré firmado
+-   **Uso**: Documento legal de compromiso de pago
+-   **Validación**: Solo para préstamos con estados específicos
+
+#### 5. 🔒 getPersonalDataPolicy()
+
+-   **Endpoint**: `/client/download-personal-data-policy`
+-   **Propósito**: Política de protección de datos personales
+-   **Uso**: Información legal sobre manejo de datos
+-   **Validación**: Acceso público para usuarios autenticados
+
+#### 6. 📋 getTermsOfService()
+
+-   **Endpoint**: `/client/download-terms-of-service`
+-   **Propósito**: Términos y condiciones de la plataforma
+-   **Uso**: Acuerdo de uso del servicio
+-   **Validación**: Acceso público para usuarios autenticados
+
+### 🧩 Componentes Internos
+
+#### **\_extractUrl(dynamic responseData)**
+
+Método auxiliar para manejar diferentes formatos de respuesta:
+
+```dart
+String _extractUrl(dynamic responseData) {
+  if (responseData is String) {
+    // API devuelve String directamente
+    return responseData;
+  } else if (responseData is Map<String, dynamic>) {
+    // API devuelve objeto JSON
+    final urlResponse = DocumentUrlResponse.fromJson(responseData);
+    return urlResponse.url;
+  } else {
+    throw DocumentException(
+      message: 'Formato de respuesta inválido',
+      type: DocumentExceptionType.unknown,
+    );
+  }
+}
+```
+
+#### **\_handleDioError(DioException dioError)**
+
+Manejo específico de errores de red para documentos:
+
+```dart
+DocumentException _handleDioError(DioException dioError) {
+  // Mapeo detallado de errores HTTP a excepciones de documentos
+  // Incluye: timeout, 401 unauthorized, 404 not found, 500 server error
+  // Proporciona mensajes específicos para cada tipo de error
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de Documentos
+
+#### **Documentos de Préstamo**
+
+**GET** `/client/download-loan-contract/{loanId}`
+
+```json
+// Response (String directo)
+"https://storage.pisto.co/contracts/loan-123-contract.pdf?signature=abc123"
+
+// Response (JSON)
+{
+  "url": "https://storage.pisto.co/contracts/loan-123-contract.pdf?signature=abc123"
+}
+```
+
+**GET** `/client/download-loan-request/{loanId}`
+
+```json
+// URL temporal para solicitud original
+"https://storage.pisto.co/requests/loan-123-request.pdf?signature=def456"
+```
+
+**GET** `/client/download-loan-contract-signed/{loanId}`
+
+```json
+// URL para contrato firmado
+"https://storage.pisto.co/contracts/loan-123-signed.pdf?signature=ghi789"
+```
+
+**GET** `/client/download-promissory-note-signed/{loanId}`
+
+```json
+// URL para pagaré firmado
+"https://storage.pisto.co/notes/loan-123-note.pdf?signature=jkl012"
+```
+
+#### **Documentos Generales**
+
+**GET** `/client/download-personal-data-policy`
+
+```json
+// URL para política de datos
+"https://storage.pisto.co/policies/personal-data.pdf?signature=mno345"
+```
+
+**GET** `/client/download-terms-of-service`
+
+```json
+// URL para términos de servicio
+"https://storage.pisto.co/policies/terms-of-service.pdf?signature=pqr678"
+```
+
+### 🔒 Headers de Seguridad
+
+```http
+GET /client/download-loan-contract-signed/123 HTTP/1.1
+Host: api.pisto.co
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+X-Client-Version: 1.0.0
+X-Device-ID: {device_identifier}
+```
+
+### 🌐 Características de las URLs
+
+-   **Firmadas digitalmente**: Incluyen signature temporal
+-   **Expiración controlada**: Generalmente 1-24 horas
+-   **Acceso único**: Cada URL es para una sesión específica
+-   **HTTPS obligatorio**: Solo transporte seguro
+-   **Dominio restringido**: Solo desde storage.pisto.co
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Conectividad**
+
+```dart
+// Error de red
+NetworkException {
+  message: "Error de conexión. Verifique su conectividad.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(documentsRepositoryProvider),
+}
+
+// Timeout
+TimeoutException {
+  message: "Tiempo de espera agotado. Intente nuevamente.",
+  canRetry: true,
+  retryDelay: Duration(seconds: 5),
+}
+```
+
+#### **2. Errores de Autorización**
+
+```dart
+// No autenticado
+UnauthorizedException {
+  message: "No autorizado. Inicie sesión nuevamente.",
+  action: "redirect_to_login",
+}
+
+// Sin permisos
+ForbiddenException {
+  message: "No tienes permiso para acceder a este documento.",
+  reason: "loan_ownership_required",
+}
+```
+
+#### **3. Errores de Recursos**
+
+```dart
+// Documento no encontrado
+DocumentNotFoundException {
+  message: "El documento solicitado no existe.",
+  suggestion: "Verifique el ID del préstamo",
+}
+
+// Documento no disponible
+DocumentNotAvailableException {
+  message: "Este documento aún no está disponible.",
+  reason: "loan_status_incomplete",
+  expectedStatus: "completed",
+}
+```
+
+#### **4. Errores del Servidor**
+
+```dart
+// Error interno
+ServerException {
+  message: "Error temporal del servidor. Intente más tarde.",
+  canRetry: true,
+  retryAfter: 300, // 5 minutos
+}
+
+// Error de generación
+DocumentGenerationException {
+  message: "Error al generar el documento.",
+  action: "contact_support",
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+class DocumentRetryStrategy {
+  static const int maxRetries = 3;
+  static const Duration baseDelay = Duration(seconds: 2);
+
+  static Future<String> retryWithBackoff(
+    Future<String> Function() documentCall,
+  ) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await documentCall();
+      } catch (e) {
+        if (attempt == maxRetries) rethrow;
+
+        // Backoff exponencial
+        final delay = baseDelay * math.pow(2, attempt - 1);
+        await Future.delayed(delay);
+      }
+    }
+    throw DocumentException(
+      message: 'No se pudo obtener el documento después de $maxRetries intentos',
+      type: DocumentExceptionType.unknown,
+    );
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Opción de reintentar manual** la descarga
+-   **Contactar soporte** con diagnóstico automático
+-   **Acceso alternativo** por email si falla la app
+-   **Modo offline** con documentos previamente cacheados
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Autenticación**
+
+    - Verificación de token JWT válido
+    - Confirmación de sesión activa
+    - Validación de permisos de usuario
+
+2. **Validación de Acceso**
+
+    - Propiedad del préstamo (solo dueño puede acceder)
+    - Estado del préstamo (algunos documentos requieren estados específicos)
+    - Disponibilidad del documento (generado y firmado)
+
+3. **Validación de Parámetros**
+    - Formato válido de loanId (entero positivo)
+    - Headers requeridos presentes
+    - Límites de rate limiting
+
+### 🔍 Lógica de Validación
+
+#### **Validación de Disponibilidad de Documentos**
+
+```dart
+class DocumentAvailabilityValidator {
+  static bool canDownloadContract(int loanStatus) {
+    // Contrato disponible para préstamos aprobados o completados
+    return [3, 7, 8, 12].contains(loanStatus);
+  }
+
+  static bool canDownloadSignedDocuments(int loanStatus) {
+    // Documentos firmados solo para estados finales
+    return [7, 8, 12].contains(loanStatus);
+  }
+
+  static ValidationResult validateDocumentAccess(
+    int loanId,
+    int userId,
+    int loanStatus,
+    DocumentType documentType,
+  ) {
+    // Validar propiedad del préstamo
+    if (!_isLoanOwner(loanId, userId)) {
+      return ValidationResult.invalid(
+        'No tienes permiso para acceder a este documento',
+      );
+    }
+
+    // Validar disponibilidad según tipo
+    switch (documentType) {
+      case DocumentType.contractSigned:
+        if (!canDownloadSignedDocuments(loanStatus)) {
+          return ValidationResult.invalid(
+            'El contrato firmado aún no está disponible',
+          );
+        }
+        break;
+      case DocumentType.promissoryNote:
+        if (!canDownloadSignedDocuments(loanStatus)) {
+          return ValidationResult.invalid(
+            'El pagaré aún no está disponible',
+          );
+        }
+        break;
+      default:
+        // Otros documentos tienen validaciones específicas
+        break;
+    }
+
+    return ValidationResult.valid();
+  }
+}
+```
+
+#### **Validación de URLs Seguras**
+
+```dart
+class SecureUrlValidator {
+  static bool isValidDocumentUrl(String url) {
+    // Validar dominio permitido
+    if (!url.startsWith('https://storage.pisto.co/')) {
+      return false;
+    }
+
+    // Validar presencia de firma
+    if (!url.contains('signature=')) {
+      return false;
+    }
+
+    // Validar formato de PDF
+    if (!url.endsWith('.pdf')) {
+      return false;
+    }
+
+    return true;
+  }
+
+  static DateTime extractExpiryFromUrl(String url) {
+    // Extraer timestamp de la URL si está disponible
+    // Validar que no esté expirada
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Las URLs tienen expiración temporal automática
+-   No se almacenan URLs localmente en el dispositivo
+-   Auditoría completa de cada acceso a documentos
+-   Rate limiting para prevenir accesos abusivos
+-   Encriptación en tránsito obligatoria
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/documents_repository_test.dart
+void main() {
+  group('DocumentsRepository', () {
+    test('debe obtener URL de contrato correctamente', () {
+      // Test de obtención de contrato
+    });
+
+    test('debe manejar respuesta JSON y String', () {
+      // Test de _extractUrl con diferentes formatos
+    });
+
+    test('debe lanzar excepción para documento no encontrado', () {
+      // Test de manejo de 404
+    });
+  });
+}
+```
+
+#### **2. Integration Tests**
+
+```dart
+// test/integration/documents_flow_test.dart
+void main() {
+  integrationTest('flujo completo de acceso a documentos', () async {
+    // Simular: historial → detalle → documento → visor
+  });
+
+  integrationTest('manejo de errores de red', () async {
+    // Test de recuperación ante fallos de conectividad
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario accede a contrato firmado desde historial
+-   ✅ Usuario descarga política de datos desde onboarding
+-   ✅ Usuario maneja error de documento no disponible
+-   ✅ Usuario reintenta después de error de red
+-   ✅ Usuario comparte documento por email
+
+#### **Casos Límite**
+
+-   🔄 URL expirada durante acceso
+-   🔄 Documento muy grande que causa timeout
+-   🔄 Token expirado durante descarga
+-   🔄 Préstamo sin documentos generados
+-   🔄 Rate limiting activado
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 90% para código crítico de seguridad
+-   **Tests de API**: Todos los endpoints cubiertos
+-   **Tests de error**: Todos los tipos de error cubiertos
+-   **Tests de seguridad**: Validación de acceso y permisos
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Acceso**
+
+-   ✅ **Autenticación obligatoria**: Token JWT requerido
+-   ✅ **Validación de propiedad**: Solo dueño del préstamo
+-   ✅ **Control por estado**: Documentos según estado del préstamo
+-   ✅ **URLs temporales**: Expiración automática de enlaces
+
+#### **2. Seguridad en Tránsito**
+
+-   ✅ **HTTPS obligatorio**: Todo encriptado en tránsito
+-   ✅ **URLs firmadas**: Firmas digitales previenen manipulación
+-   ✅ **Headers seguros**: Validación de cliente y dispositivo
+-   ✅ **Rate limiting**: Protección contra accesos abusivos
+
+#### **3. Auditoría y Logging**
+
+```dart
+class DocumentSecurityLogger {
+  static void logDocumentAccess(
+    int userId,
+    int loanId,
+    DocumentType documentType,
+    String ipAddress,
+    bool success,
+  ) {
+    // Registro completo para auditoría
+    // Incluye: timestamp, user, document, IP, resultado
+  }
+
+  static void detectSuspiciousAccess(
+    int userId,
+    int accessCount,
+    Duration timeWindow,
+  ) {
+    // Detección de patrones anómalos
+    // Alertas de seguridad si es necesario
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+#### **Datos Sensibles**
+
+-   ❌ **No almacenamiento local**: URLs no persisten en dispositivo
+-   ❌ **No caché de documentos**: Siempre se obtienen del servidor
+-   ✅ **Memoria volátil**: URLs solo durante la sesión
+-   ✅ **Eliminación garantizada**: Clean up explícito en todos los casos
+
+#### **Cumplimiento Normativo**
+
+-   📋 **Protección financiera**: Cumplimiento con regulaciones de documentos
+-   🔍 **Audit trail**: Registro completo de accesos a documentos legales
+-   📊 **Retención controlada**: Políticas de retención según normativa
+-   🏦 **Banking compliance**: Estándares de manejo de documentos financieros
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureDocumentAccess {
+  Future<String> getSecureDocumentUrl(
+    int loanId,
+    DocumentType type,
+    UserContext user,
+  ) async {
+    try {
+      // 1. Validar autenticación y permisos
+      await _validateDocumentAccess(loanId, type, user);
+
+      // 2. Obtener URL firmada temporal
+      final secureUrl = await _documentsRepository.getDocumentUrl(loanId, type);
+
+      // 3. Validar seguridad de la URL
+      if (!_securityValidator.isValidDocumentUrl(secureUrl)) {
+        throw SecurityException('URL de documento inválida');
+      }
+
+      // 4. Registrar acceso para auditoría
+      _securityLogger.logDocumentAccess(user.id, loanId, type, true);
+
+      return secureUrl;
+    } catch (e) {
+      _securityLogger.logDocumentAccess(user.id, loanId, type, false);
+      throw SecureDocumentException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    dio: ^5.3.0 # Cliente HTTP
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/shared/repositories/documents_repository_test.dart
+
+# Análisis estático
+flutter analyze lib/shared/repositories/documents_repository.dart
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos
+2. **Error Handling**: Manejar específicamente cada tipo de error de documento
+3. **Security**: Nunca almacenar URLs de documentos localmente
+4. **Testing**: Mantener cobertura >90% para código de seguridad
+5. **Logging**: Registrar todos los accesos para auditoría
+6. **Performance**: Usar timeouts apropiados para documentos grandes
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos que utilizan DocumentsRepository
+
+#### **Loans History**
+
+-   Acceso a contratos firmados y pagarés
+-   Documentos de préstamos completados
+-   URLs para visor PDF integrado
+
+#### **One Shot (Proceso de Préstamo)**
+
+-   Contratos durante proceso de solicitud
+-   Términos y condiciones durante onboarding
+-   Políticas de privacidad en registro
+
+#### **Auth (Potencialmente)**
+
+-   Términos de servicio al aceptar registro
+-   Políticas de privacidad al crear cuenta
+
+### 🔄 Flujo de Datos
+
+```
+Módulo Solicitante
+  ↓
+DocumentsRepository (Validación + API)
+  ↓
+Storage Seguro (URLs temporales)
+  ↓
+Visor PDF / Descarga
+```
