@@ -1,0 +1,1012 @@
+---
+title: Flujo de códigos promocionales
+slug: codigos-promocionales
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de códigos promocionales. Gestión completa del proceso de generación y aplicación de códigos promocionales.
+---
+
+## Descripción General
+
+La funcionalidad de **Códigos Promocionales** (`promo_code`) es el sistema completo que gestiona el programa de referidos y descuentos de la plataforma Pisto. Este módulo permite a los usuarios generar su propio código promocional, aplicar códigos de otros usuarios para obtener descuentos, y llevar un registro completo de su historial de códigos utilizados y descuentos obtenidos. El sistema fomenta el crecimiento orgánico de la plataforma mediante incentivos económicos para usuarios nuevos y existentes.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Mi Préstamo      │────▶│ Aplicación de    │────▶│ Validación      │────▶│ Descuento        │────▶│ Historial        │
+│ (Solicitud)     │     │ Código Promocional│     │ (API Backend)   │     │ Aplicado         │     │ (Registro)       │
+│                 │     │ (Formulario)     │     │                     │     │                     │     │                     │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Ingreso manual      ✓ Validación          ✓ Descuento         ✓ Actualización      ✓ Seguimiento
+```
+
+### ✨ Características Principales
+
+-   ✅ **Generación automática**: Cada usuario tiene su propio código promocional
+-   ✅ **Validación en tiempo real**: Verificación instantánea de códigos
+-   ✅ **Descuentos automáticos**: Aplicación directa al monto del préstamo
+-   ✅ **Historial completo**: Registro de todos los códigos utilizados
+-   ✅ **Sistema de referidos**: Beneficios para both referente y referido
+-   ✅ **Control de uso**: Prevención de uso múltiple del mismo código
+-   ✅ **Interfaz intuitiva**: Formulario simple y claro para aplicar códigos
+-   ✅ **Estadísticas de uso**: Métricas de rendimiento del programa
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirven los códigos promocionales?
+
+Los códigos promocionales te permiten:
+
+-   **Obtener descuentos**: Reduce el interés o comisiones de tu préstamo
+-   **Referir amigos**: Comparte tu código y gana beneficios
+-   **Ahorrar dinero**: Menores costos en tus préstamos
+-   **Ayudar a otros**: Tus amigos obtienen descuentos con tu código
+-   **Llevar control**: Revisa tu historial de códigos utilizados
+
+### 📱 Cómo usar códigos promocionales
+
+#### Paso 1: Obtener tu código promocional
+
+Tu código se genera automáticamente:
+
+**Desde el historial de códigos:**
+
+1. 🏠 **Abre el menú lateral** - Toca el ícono de hamburguesa (☰)
+2. 📋 **Busca "Código Promocional"** - Encuentra la opción en el menú
+3. 👁️ **Ver tu código** - Tu código personal aparecerá destacado
+4. 📤 **Compartirlo** - Toca "Compartir" para enviarlo a amigos
+
+**Características de tu código:**
+
+-   🔤 **Formato único**: Generalmente 6-8 caracteres alfanuméricos
+-   🔄 **Siempre activo**: Tu código no expira mientras estés activo
+-   📊 **Sin límite de uso**: Varios amigos pueden usar tu código
+-   💰 **Beneficios automáticos**: Ganas descuentos cuando lo usan
+
+#### Paso 2: Aplicar un código promocional
+
+Cuando solicitas un préstamo:
+
+**Durante el proceso de solicitud:**
+
+1. 🏠 **Inicia solicitud de préstamo** - Ve a "Mi Préstamo" o "Solicitar"
+2. 📋 **Busca "Código Promocional"** - Encuentra el campo en el formulario
+3. ⌨️ **Ingresa el código** - Escribe el código que recibiste
+4. ✅ **Validación automática** - El sistema verificará el código
+5. 💰 **Descuento aplicado** - Verás el descuento en el cálculo
+
+**Validación del código:**
+
+-   ✅ **Código válido**: El descuento se aplica automáticamente
+-   ❌ **Código inválido**: Mensaje claro de por qué no funciona
+-   ⚠️ **Ya utilizado**: No puedes usar el mismo código dos veces
+-   🚫 **Tu propio código**: No puedes aplicar tu propio código
+
+#### Paso 3: Verificar el descuento aplicado
+
+Una vez aplicado el código:
+
+**Confirmación visual:**
+
+-   💰 **Monto original**: Verás el monto sin descuento
+-   📉 **Descuento aplicado**: Cantidad descontada automáticamente
+-   💵 **Nuevo total**: Monto final con el descuento incluido
+-   ✅ **Confirmación verde**: Indicador de que se aplicó correctamente
+
+**Detalles del descuento:**
+
+-   📊 **Porcentaje o monto fijo**: Según el tipo de promoción
+-   🏷️ **Código usado**: Referencia del código aplicado
+-   📅 **Fecha de aplicación**: Cuándo se utilizó el código
+-   🔄 **No reversible**: El código aplicado no se puede cambiar
+
+#### Paso 4: Consultar tu historial
+
+Revisa toda tu actividad de códigos:
+
+**Desde la pantalla de códigos:**
+
+1. 📋 **Accede a "Código Promocional"** - En el menú lateral
+2. 📊 **Sección "Historial"** - Lista completa de actividad
+3. 👁️ **Códigos usados por ti** - Los que has aplicado a tus préstamos
+4. 🎯 **Códigos usados por otros** - Quienes usaron tu código
+
+**Información disponible:**
+
+-   📅 **Fechas de uso**: Cuándo se aplicaron los códigos
+-   💰 **Descuentos obtenidos**: Cuánto ahorraste
+-   👥 **Referidos exitosos**: Quienes usaron tu código
+-   📈 **Estadísticas generales**: Tu impacto en el programa
+
+### ⚠️ Información importante
+
+**Reglas de uso:**
+
+-   🚫 **Un código por préstamo**: Solo puedes aplicar un código cada vez
+-   🔄 **No se puede cambiar**: Una vez aplicado, no hay modificaciones
+-   👤 **Códigos de otros**: Solo puedes usar códigos de otros usuarios
+-   ⏰ **Validación instantánea**: El código se valida al momento de ingresarlo
+
+**Beneficios del programa:**
+
+-   💰 **Para el referido**: Descuento en su primer préstamo
+-   🎁 **Para el referente**: Bonificaciones o descuentos futuros
+-   📊 **Sin límites**: Puedes referir a tantos amigos como quieras
+-   🔄 **Beneficios acumulables**: Ganas más entre más referidos tengas
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo de códigos promocionales sigue una arquitectura dual con separación clara de responsabilidades:
+
+```
+promo_code/
+├── entities/                    # Entidades de dominio
+│   ├── promo_code_history_entity.dart     # Historial completo
+│   ├── used_foreign_promo_code_entity.dart # Códigos usados por el usuario
+│   └── times_used_own_code_entity.dart    # Uso del código propio
+├── models/                      # DTOs para API
+│   ├── promo_code_history_response_dto.dart # Respuesta del historial
+│   ├── times_used_own_code_dto.dart       # DTO de uso propio
+│   └── used_foreign_promo_code_dto.dart   # DTO de uso externo
+├── providers/                   # Gestión de estado
+│   └── promo_code_history_provider.dart   # Estado del historial
+├── repositories/               # Acceso a datos
+│   └── promo_code_history_repository.dart # API del historial
+└── screens/                    # Interfaces de usuario
+    └── promo_code_history_screen.dart     # Pantalla principal
+
+my_loan/ (integración)
+├── entities/
+│   └── promo_code_entity.dart             # Entidad de validación
+├── models/
+│   ├── promo_code_request_dto.dart        # Request de validación
+│   └── promo_code_response_dto.dart       # Response de validación
+├── providers/
+│   └── promo_code_provider.dart           # Estado de validación
+├── repositories/
+│   └── promo_code_repository.dart         # API de validación
+└── widgets/
+    └── promo_code_widget.dart             # UI de aplicación
+```
+
+### 📊 Entities (Entidades de Dominio)
+
+#### **PromoCodeHistoryEntity**
+
+Entidad principal que contiene toda la información del código promocional:
+
+```dart
+@freezed
+class PromoCodeHistoryEntity with _$PromoCodeHistoryEntity {
+  const factory PromoCodeHistoryEntity({
+    required String promoCode,                    // Código del usuario
+    required List<TimesUsedOwnCodeEntity> timesUsedOwnCode,    // Uso propio
+    required int referralDiscounts,               // Descuentos de referidos
+    required List<UsedForeignPromoCodeEntity> usedForeignPromoCodes, // Códigos usados
+  }) = _PromoCodeHistoryEntity;
+}
+```
+
+#### **TimesUsedOwnCodeEntity**
+
+Registro de cuántas veces se ha usado el código propio:
+
+```dart
+@freezed
+class TimesUsedOwnCodeEntity with _$TimesUsedOwnCodeEntity {
+  const factory TimesUsedOwnCodeEntity({
+    required String code,                         // Código promocional
+    required int quantity,                        // Veces usado
+    required bool active,                         // Si está activo
+  }) = _TimesUsedOwnCodeEntity;
+}
+```
+
+#### **UsedForeignPromoCodeEntity**
+
+Registro de códigos de otros usuarios utilizados:
+
+```dart
+@freezed
+class UsedForeignPromoCodeEntity with _$UsedForeignPromoCodeEntity {
+  const factory UsedForeignPromoCodeEntity({
+    required String code,                         // Código usado
+    required DateTime date,                       // Fecha de uso
+  }) = _UsedForeignPromoCodeEntity;
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **PromoCodeHistoryNotifier**
+
+StateNotifier para el historial de códigos:
+
+```dart
+@Riverpod(keepAlive: true)
+class PromoCodeHistoryNotifier extends _$PromoCodeHistoryNotifier {
+  @override
+  PromoCodeHistoryState build() {
+    return const PromoCodeHistoryState();
+  }
+
+  // Métodos principales:
+  // - Future<void> loadPromoCodeHistory()
+  // - Future<void> refresh()
+  // - void clearError()
+  // - void reset()
+}
+
+@freezed
+class PromoCodeHistoryState with _$PromoCodeHistoryState {
+  const factory PromoCodeHistoryState({
+    @Default(PromoCodeHistoryStatus.initial) PromoCodeHistoryStatus status,
+    PromoCodeHistoryEntity? data,
+    String? errorMessage,
+  }) = _PromoCodeHistoryState;
+}
+
+enum PromoCodeHistoryStatus { initial, loading, loaded, error }
+```
+
+#### **PromoCodeFormNotifier** (en my_loan)
+
+StateNotifier para validación de códigos:
+
+```dart
+@riverpod
+class PromoCodeFormNotifier extends _$PromoCodeFormNotifier {
+  @override
+  PromoCodeFormState build() {
+    return const PromoCodeFormState();
+  }
+
+  // Métodos principales:
+  // - void onPromoCodeChange(String value)
+  // - Future<void> validatePromoCode()
+  // - void clearPromoCode()
+}
+
+@freezed
+class PromoCodeFormState with _$PromoCodeFormState {
+  const factory PromoCodeFormState({
+    @Default(PromoCodeInput.pure()) PromoCodeInput promoCode,
+    @Default(FormzSubmissionStatus.initial) FormzSubmissionStatus status,
+    @Default(false) bool isValid,
+    String? errorMessage,
+    @Default(false) bool isLoading,
+    @Default(false) bool isApplied,
+  }) = _PromoCodeFormState;
+}
+```
+
+### 🌐 Repositories (Acceso a Datos)
+
+#### **PromoCodeHistoryRepository**
+
+Repository para consulta de historial:
+
+```dart
+class PromoCodeHistoryRepository {
+  Future<PromoCodeHistoryEntity> getPromoCodeHistory() async {
+    // GET /client/promo-code
+    // Retorna historial completo del usuario
+  }
+}
+```
+
+#### **PromoCodeRepository** (en my_loan)
+
+Repository para validación de códigos:
+
+```dart
+abstract class IPromoCodeRepository {
+  Future<PromoCodeValidationResult> validatePromoCode(String promoCode);
+}
+
+class PromoCodeRepository implements IPromoCodeRepository {
+  @override
+  Future<PromoCodeValidationResult> validatePromoCode(String promoCode) async {
+    // POST /client/validate-promo-code
+    // Valida y aplica código promocional
+  }
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Validación y Aplicación
+
+```
+Formulario de Préstamo (MyLoan)
+  ↓
+PromoCodeFormNotifier (Validación local)
+  ↓
+PromoCodeRepository (POST /client/validate-promo-code)
+  ├─→ Validación backend
+  ├─→ Verificación de disponibilidad
+  ├─→ Cálculo de descuento
+  └─→ Respuesta con resultado
+  ↓
+PromoCodeValidationResult (Success/Error/AlreadyUsed/OwnCode)
+  ↓
+Actualización de UI (Descuento aplicado o mensaje de error)
+  ↓
+LoanCalculator (Recálculo con descuento)
+```
+
+### 🔄 Flujo de Consulta de Historial
+
+```
+Menú Principal
+  ↓
+PromoCodeHistoryScreen
+  ↓
+PromoCodeHistoryNotifier (loadPromoCodeHistory)
+  ↓
+PromoCodeHistoryRepository (GET /client/promo-code)
+  ├─→ Obtener código propio
+  ├─→ Cargar uso del código propio
+  ├─→ Listar códigos externos usados
+  └─→ Calcular descuentos de referidos
+  ↓
+PromoCodeHistoryEntity (Datos completos)
+  ↓
+UI renderizada con estadísticas e historial
+```
+
+### 📊 Diagrama de Estados
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                PromoCodeFormNotifier                           │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → validating → success/error → applied         │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - promoCode: PromoCodeInput (validación local)                │
+│  - status: FormzSubmissionStatus (estado del formulario)       │
+│  - isValid: bool (formulario válido)                           │
+│  - isApplied: bool (código aplicado al préstamo)               │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - onPromoCodeChange(): Validación en tiempo real              │
+│  - validatePromoCode(): Validación backend y aplicación        │
+│  - clearPromoCode(): Reset del formulario                      │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│              PromoCodeHistoryNotifier                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → loading → loaded → error                      │
+│                                                               ↑ refresh │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - data: PromoCodeHistoryEntity? (historial completo)          │
+│  - status: PromoCodeHistoryStatus (estado de carga)            │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - loadPromoCodeHistory(): Carga desde API                      │
+│  - refresh(): Recarga manual                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 💳 PromoCodeWidget (integrado en MyLoan)
+
+-   **Ubicación**: Dentro del formulario de préstamo
+-   **Propósito**: Aplicar códigos promocionales durante solicitud
+-   **Funcionalidad**:
+    -   Campo de texto para ingreso de código
+    -   Validación en tiempo real mientras se escribe
+    -   Botón de "Aplicar" con estado de loading
+    -   Indicador visual de éxito o error
+    -   Mostrar descuento aplicado con cálculo
+
+#### 2. 📊 PromoCodeHistoryScreen
+
+-   **Ruta**: `/promo-code-history`
+-   **Propósito**: Vista completa del historial y estadísticas
+-   **Funcionalidad**:
+    -   Código promocional propio destacado
+    -   Botón de compartir código propio
+    -   Sección de historial de códigos usados
+    -   Estadísticas de referidos y descuentos
+    -   Pull-to-refresh para actualizar datos
+    -   Manejo de estados loading/error/empty
+
+### 🧩 Componentes Reutilizables
+
+#### **PromoCodeInput**
+
+Input personalizado para códigos promocionales:
+
+```dart
+class PromoCodeInput extends FormzInput<String, PromoCodeValidationError> {
+  // Validación de formato de código
+  // Reglas de longitud y caracteres permitidos
+}
+```
+
+#### **PromoCodeCard**
+
+Componente visual para mostrar información de código:
+
+```dart
+class PromoCodeCard extends StatelessWidget {
+  final String code;
+  final double discount;
+  final DateTime date;
+  final bool isOwnCode;
+
+  // Muestra: código, descuento, fecha, tipo
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **POST** `/client/validate-promo-code`
+
+**Propósito**: Validar y aplicar un código promocional
+
+**Request Body**:
+
+```json
+{
+    "promoCode": "REF12345"
+}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "validatePromoCode": 50.0
+}
+```
+
+**Errores de Validación (422)**:
+
+```json
+{
+  "errors": [
+    {
+      "message": "Este código ya ha sido utilizado"
+    }
+  ]
+}
+{
+  "errors": [
+    {
+      "message": "No puedes usar tu propio código promocional"
+    }
+  ]
+}
+{
+  "errors": [
+    {
+      "message": "El código promocional no es válido"
+    }
+  ]
+}
+```
+
+#### **GET** `/client/promo-code`
+
+**Propósito**: Obtener historial completo de códigos promocionales
+
+**Headers Requeridos**:
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "promoCode": "USER67890",
+    "timesUsedOwnCode": [
+        {
+            "code": "USER67890",
+            "quantity": 5,
+            "active": true
+        }
+    ],
+    "referralDiscounts": 250.0,
+    "usedForeignPromoCodes": [
+        {
+            "code": "REF12345",
+            "date": "2025-11-01T10:30:00Z"
+        },
+        {
+            "code": "REF67890",
+            "date": "2025-10-15T14:20:00Z"
+        }
+    ]
+}
+```
+
+**Error 401 (Unauthorized)**:
+
+```json
+{
+    "message": "Usuario no autenticado"
+}
+```
+
+### 🔒 Headers de Seguridad
+
+```http
+POST /client/validate-promo-code HTTP/1.1
+Host: api.pisto.co
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+X-Client-Version: 1.0.0
+X-Device-ID: {device_identifier}
+```
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Validación**
+
+```dart
+// Código ya utilizado
+AlreadyUsedException {
+  message: "Este código ya ha sido utilizado",
+  suggestion: "Usa un código diferente",
+}
+
+// Propio código
+OwnCodeException {
+  message: "No puedes usar tu propio código promocional",
+  suggestion: "Pide el código de un amigo",
+}
+
+// Código inválido
+InvalidCodeException {
+  message: "El código promocional no es válido",
+  suggestion: "Verifica el código e intenta nuevamente",
+}
+```
+
+#### **2. Errores de Conectividad**
+
+```dart
+// Error de red
+NetworkException {
+  message: "Error de conexión. Verifica tu conectividad.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(promoCodeFormProvider),
+}
+
+// Timeout
+TimeoutException {
+  message: "Tiempo de espera agotado. Intente nuevamente.",
+  canRetry: true,
+  retryDelay: Duration(seconds: 3),
+}
+```
+
+#### **3. Errores de Autenticación**
+
+```dart
+// No autenticado
+UnauthorizedException {
+  message: "Usuario no autenticado",
+  action: "redirect_to_login",
+}
+
+// Sesión expirada
+SessionExpiredException {
+  message: "Tu sesión ha expirado. Inicia sesión nuevamente.",
+  action: "force_logout",
+}
+```
+
+#### **4. Errores del Servidor**
+
+```dart
+// Error interno
+ServerException {
+  message: "Error temporal del servidor. Intente más tarde.",
+  canRetry: true,
+  retryAfter: 300, // 5 minutos
+}
+
+// Error de validación backend
+ValidationException {
+  message: "Error al validar el código",
+  details: "Contacta soporte si el problema persiste",
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+class PromoCodeRetryStrategy {
+  static const int maxRetries = 3;
+  static const Duration baseDelay = Duration(seconds: 2);
+
+  static Future<PromoCodeValidationResult> retryValidation(
+    String promoCode,
+    IPromoCodeRepository repository,
+  ) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await repository.validatePromoCode(promoCode);
+      } catch (e) {
+        if (attempt == maxRetries) rethrow;
+
+        final delay = baseDelay * math.pow(2, attempt - 1);
+        await Future.delayed(delay);
+      }
+    }
+    throw PromoCodeException(
+      'No se pudo validar el código después de $maxRetries intentos',
+    );
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Opción de reintentar** la validación manualmente
+-   **Continuar sin código** si la validación falla
+-   **Contactar soporte** con diagnóstico automático
+-   **Guardar código** para intentar más tarde
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Formato**
+
+    - Longitud mínima y máxima del código
+    - Caracteres alfanuméricos permitidos
+    - Sin espacios ni caracteres especiales
+
+2. **Validación de Negocio**
+
+    - El código no puede ser del propio usuario
+    - El código no debe haber sido usado previamente
+    - El código debe estar activo y vigente
+    - El usuario debe estar autenticado
+
+3. **Validación de Estado**
+    - Un solo código por préstamo
+    - El código se aplica antes de finalizar la solicitud
+    - No se puede modificar un código ya aplicado
+
+### 🔍 Lógica de Validación
+
+#### **Validación Local**
+
+```dart
+class PromoCodeValidator {
+  static PromoCodeValidationError? validate(String value) {
+    if (value.isEmpty) {
+      return PromoCodeValidationError.empty;
+    }
+
+    if (value.length < 4) {
+      return PromoCodeValidationError.tooShort;
+    }
+
+    if (value.length > 12) {
+      return PromoCodeValidationError.tooLong;
+    }
+
+    if (!RegExp(r'^[A-Z0-9]+$').hasMatch(value.toUpperCase())) {
+      return PromoCodeValidationError.invalidFormat;
+    }
+
+    return null; // Válido
+  }
+}
+```
+
+#### **Validación Backend**
+
+```dart
+class BackendPromoCodeValidator {
+  static Future<PromoCodeValidationResult> validateBackend(
+    String promoCode,
+    int userId,
+  ) async {
+    // 1. Verificar que el código existe
+    // 2. Confirmar que no es del propio usuario
+    // 3. Verificar que no ha sido usado por este usuario
+    // 4. Confirmar que el código está activo
+    // 5. Calcular descuento aplicable
+    // 6. Registrar uso del código
+  }
+}
+```
+
+### 🛡️ Consideraciones de Seguridad
+
+-   Los códigos son únicos por usuario
+-   Prevención de uso múltiple del mismo código
+-   Validación de autenticación obligatoria
+-   Rate limiting para prevenir abusos
+-   Auditoría completa de usos de códigos
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/promo_code_test.dart
+void main() {
+  group('PromoCodeFormNotifier', () {
+    test('debe validar código correctamente', () {
+      // Test de validación local
+    });
+
+    test('debe manejar código ya utilizado', () {
+      // Test de respuesta alreadyUsed
+    });
+
+    test('debe rechazar propio código', () {
+      // Test de respuesta ownCode
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/promo_code_widget_test.dart
+void main() {
+  testWidgets('debe mostrar descuento al aplicar código válido', (tester) async {
+    // Test de UI de aplicación exitosa
+  });
+
+  testWidgets('debe mostrar error al aplicar código inválido', (tester) async {
+    // Test de UI de manejo de errores
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/promo_code_flow_test.dart
+void main() {
+  integrationTest('flujo completo de código promocional', () async {
+    // Simular: formulario → validación → descuento → préstamo
+  });
+
+  integrationTest('manejo de errores de red', () async {
+    // Test de recuperación ante fallos
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario aplica código válido y obtiene descuento
+-   ✅ Usuario intenta usar su propio código (rechazado)
+-   ✅ Usuario intenta usar código ya utilizado (rechazado)
+-   ✅ Usuario consulta su historial completo
+-   ✅ Usuario comparte su código con amigos
+
+#### **Casos Límite**
+
+-   🔄 Código con formato inválido
+-   🔄 Pérdida de conexión durante validación
+-   🔄 Token expirado durante aplicación
+-   🔄 Múltiples intentos de validación fallidos
+-   🔄 Código aplicado y luego cancelado
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 85% para lógica de negocio
+-   **Tests de validación**: 100% de reglas de negocio
+-   **Tests de error**: Todos los tipos de error cubiertos
+-   **Tests de UI**: Interacciones críticas del usuario
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección contra Abusos**
+
+-   ✅ **Un uso por usuario**: Prevención de uso múltiple
+-   ✅ **Validación de propiedad**: No usar propio código
+-   ✅ **Rate limiting**: Límite de intentos por tiempo
+-   ✅ **Autenticación obligatoria**: Solo usuarios validados
+
+#### **2. Seguridad en Transacciones**
+
+-   ✅ **Validación backend**: Verificación centralizada
+-   ✅ **Auditoría completa**: Registro de todos los usos
+-   ✅ **Tokens seguros**: Prevención de manipulación
+-   ✅ **Encriptación en tránsito**: HTTPS obligatorio
+
+#### **3. Control de Acceso**
+
+```dart
+class PromoCodeSecurityValidator {
+  static bool canUsePromoCode(
+    String promoCode,
+    int userId,
+    List<String> usedCodes,
+  ) {
+    // Validar que no es propio código
+    if (_isOwnCode(promoCode, userId)) return false;
+
+    // Validar que no ha sido usado
+    if (usedCodes.contains(promoCode)) return false;
+
+    // Validar formato y vigencia
+    return _isValidFormat(promoCode) && _isActive(promoCode);
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Los códigos promocionales son públicos pero vinculados a usuarios
+-   El historial de uso es privado y solo visible por el propietario
+-   Las estadísticas de referidos son información sensible
+-   Auditoría completa para cumplimiento normativo
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecurePromoCodeService {
+  Future<PromoCodeValidationResult> validateAndApplyCode(
+    String promoCode,
+    UserContext user,
+  ) async {
+    try {
+      // 1. Validar autenticación
+      await _validateAuthentication(user);
+
+      // 2. Validar reglas de negocio
+      if (!_securityValidator.canUsePromoCode(promoCode, user.id, user.usedCodes)) {
+        return PromoCodeValidationResult.invalid(
+          message: 'No puedes usar este código promocional',
+        );
+      }
+
+      // 3. Validar en backend con seguridad
+      final result = await _repository.validatePromoCode(promoCode);
+
+      // 4. Registrar para auditoría
+      _auditLogger.logPromoCodeUsage(user.id, promoCode, result);
+
+      return result;
+    } catch (e) {
+      _auditLogger.logPromoCodeError(user.id, promoCode, e);
+      throw SecurePromoCodeException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    formz: ^0.6.0 # Validación de formularios
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+    dio: ^5.3.0 # Cliente HTTP
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/promo_code/
+flutter test test/features/my_loan/test/promo_code/
+
+# Análisis estático
+flutter analyze lib/features/promo_code/
+flutter analyze lib/features/my_loan/providers/promo_code_provider.dart
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos o providers
+2. **State Management**: Usar `keepAlive: true` para persistencia durante navegación
+3. **Validation**: Validación local y backend para mejor UX
+4. **Error Handling**: Manejo específico para cada tipo de error de validación
+5. **Testing**: Mantener cobertura >85% para lógica de negocio
+6. **Security**: Validación estricta para prevenir abusos
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos que utilizan Códigos Promocionales
+
+#### **My Loan (Préstamo Actual)**
+
+-   Aplicación de códigos durante solicitud
+-   Validación en tiempo real del formulario
+-   Cálculo automático de descuentos
+-   Integración con calculadora de préstamos
+
+#### **First Loan (Primer Préstamo)**
+
+-   Aplicación de códigos para nuevos usuarios
+-   Descuentos especiales para primer préstamo
+-   Validación de referidos
+
+#### **Subsequent Loan (Préstamos Subsecuentes)**
+
+-   Aplicación de códigos en préstamos adicionales
+-   Descuentos por lealtad o referencias
+-   Historial de códigos utilizados
+
+### 🔄 Flujo de Datos
+
+```
+Formulario de Préstamo (MyLoan/FirstLoan/SubsequentLoan)
+  ↓
+PromoCodeFormNotifier (Validación local)
+  ↓
+PromoCodeRepository (Validación backend)
+  ↓
+LoanCalculator (Recálculo con descuento)
+  ↓
+PromoCodeHistory (Registro de uso)
+```
