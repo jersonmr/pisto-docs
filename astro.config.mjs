@@ -87,24 +87,40 @@ export default defineConfig({
                     slug: "validacion-de-codigo-promocional",
                 },
                 {
-                    label: "14. Validación de Número Telefónico",
+                    label: "15. Validación de Número Telefónico",
                     slug: "validacion-de-numero-telefonico",
                 },
                 {
-                    label: "15. Carga de Imágenes",
+                    label: "16. Carga de Imágenes",
                     slug: "carga-de-imagenes",
                 },
                 {
-                    label: "16. Solicitud de Primer Préstamo",
+                    label: "17. Solicitud de Primer Préstamo",
                     slug: "solicitud-de-primer-prestamo",
                 },
                 {
-                    label: "17. Solicitud de Préstamo Posterior",
+                    label: "18. Solicitud de Préstamo Posterior",
                     slug: "solicitud-de-prestamo-posterior",
                 },
                 {
-                    label: "18. Rechazo de Préstamo",
+                    label: "19. Rechazo de Préstamo",
                     slug: "rechazo-de-prestamo",
+                },
+                {
+                    label: "20. Aceptación de Préstamo",
+                    slug: "aceptacion-de-prestamo",
+                },
+                {
+                    label: "21. Recarga de Fotos No Adecuadas",
+                    slug: "recarga-de-fotos-no-adecuadas",
+                },
+                {
+                    label: "22. Pago de prestamo",
+                    slug: "pago-de-prestamo",
+                },
+                {
+                    label: "23. Historial de préstamos",
+                    slug: "historial-de-prestamos",
                 },
             ],
         }),
