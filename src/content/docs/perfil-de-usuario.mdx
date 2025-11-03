@@ -1,0 +1,1239 @@
+---
+title: Flujo de perfil de usuario
+slug: perfil-de-usuario
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de perfil de usuario. Gestión completa del proceso de actualización y verificación de la información del perfil.
+---
+
+## Descripción General
+
+La funcionalidad de **Perfil de Usuario** (`client_profile`) es el módulo central que permite a los usuarios gestionar y mantener actualizada su información personal en la plataforma Pisto. Este sistema proporciona una interfaz segura e intuitiva para modificar datos críticos como número de teléfono, contraseña y dirección, garantizando la integridad de los datos mediante validaciones robustas, verificación por SMS y actualización automática del estado de autenticación.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Perfil Principal │────▶│ Selección de     │────▶│ Formulario de    │────▶│ Validación       │────▶│ Confirmación     │
+│ ( Vista General )│     │ Actualización    │     │ Cambio           │     │ (API/SMS)        │     │ (Resultado)      │
+│                 │     │ (Teléfono/Pass)  │     │                     │     │                     │     │                     │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Datos actuales      ✓ Opciones           ✓ Validación          ✓ Verificación        ✓ Éxito/Error
+```
+
+### ✨ Características Principales
+
+-   ✅ **Gestión centralizada**: Único punto para actualizar datos personales
+-   ✅ **Validación en tiempo real**: Verificación instantánea de cambios
+-   ✅ **Verificación por SMS**: Seguridad adicional para cambios críticos
+-   ✅ **Actualización automática**: Sincronización con estado de autenticación
+-   ✅ **Historial de cambios**: Registro completo de modificaciones
+-   ✅ **Interfaz intuitiva**: Formularios claros con validación visual
+-   ✅ **Manejo robusto de errores**: Recuperación ante fallos
+-   ✅ **Seguridad financiera**: Cumplimiento con estándares de datos personales
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve el perfil de usuario?
+
+El perfil te permite:
+
+-   **Actualizar tu teléfono**: Mantener tu número de contacto actual
+-   **Cambiar tu contraseña**: Mejorar la seguridad de tu cuenta
+-   **Modificar tu dirección**: Actualizar tu domicilio para envíos y comunicaciones
+-   **Ver tus datos**: Consultar toda tu información registrada
+-   **Mantener seguridad**: Controlar quién puede acceder a tu cuenta
+
+### 📱 Cómo gestionar tu perfil
+
+#### Paso 1: Acceder a tu perfil
+
+Para ver y editar tu información:
+
+**Desde el menú principal:**
+
+1. 🏠 **Abre el menú lateral** - Toca el ícono de hamburguesa (☰)
+2. 👤 **Busca "Configuración de perfil"** - Encuentra la opción en el menú
+3. 👆 **Presiona la opción** - Accederás a tu perfil completo
+4. 📊 **Revisa tus datos** - Verás toda tu información actual
+
+**Información disponible:**
+
+-   📞 **Datos de contacto** - Teléfono y email
+-   👤 **Datos personales** - Nombre, DUI, fecha de nacimiento
+-   🏠 **Dirección** - Domicilio completo
+-   📋 **Información adicional** - Datos de registro y actividad
+
+#### Paso 2: Actualizar tu número de teléfono
+
+Para cambiar tu número de contacto:
+
+**Proceso de cambio:**
+
+1. 📞 **Toca "Teléfono"** - En la sección de datos de contacto
+2. 📱 **Ingresa nuevo número** - Escribe el nuevo número telefónico
+3. ✅ **Validación automática** - El sistema verifica el formato
+4. 📲 **Recibirás SMS** - Código de verificación en tu nuevo número
+5. 🔢 **Ingresa el código** - Confirma que eres el dueño del número
+6. ✅ **Confirmación** - Tu teléfono será actualizado
+
+**Características de seguridad:**
+
+-   🔒 **Verificación obligatoria** - Siempre se requiere SMS
+-   ⏰ **Código temporal** - El SMS expira en 5 minutos
+-   🚫 **Un intento activo** - No puedes iniciar múltiples cambios
+-   📊 **Historial registrado** - Se guarda el cambio anterior
+
+#### Paso 3: Cambiar tu contraseña
+
+Para mejorar la seguridad de tu cuenta:
+
+**Proceso seguro:**
+
+1. 🔐 **Toca "Contraseña"** - En la sección de seguridad
+2. 🔑 **Ingresa contraseña actual** - Confirma tu identidad
+3. 🆕 **Escribe nueva contraseña** - Crea una contraseña segura
+4. ✅ **Confirma nueva contraseña** - Repite para evitar errores
+5. 📊 **Validación de fortaleza** - El sistema indica si es segura
+6. ✅ **Aplicación inmediata** - Tu contraseña se actualiza al instante
+
+**Requisitos de contraseña:**
+
+-   🔤 **Mínimo 8 caracteres** - Para mayor seguridad
+-   🔢 **Incluir números** - Caracteres numéricos obligatorios
+-   🔠 **Letras mayúsculas** - Al menos una mayúscula
+-   🚫 **No repetir anterior** - Debe ser diferente a la actual
+
+#### Paso 4: Actualizar tu dirección
+
+Para modificar tu domicilio:
+
+**Proceso de actualización:**
+
+1. 🏠 **Toca "Dirección"** - En la sección de ubicación
+2. 🌍 **Selecciona departamento** - Elige tu departamento
+3. 🏙️ **Elige municipio** - Selecciona tu municipio
+4. 📍 **Selecciona distrito** - Encuentra tu distrito específico
+5. 🏘️ **Ingresa detalles** - Calle, número y colonia/barrio
+6. ✅ **Confirmación** - Tu dirección se actualiza inmediatamente
+
+**Validación de dirección:**
+
+-   🗺️ **Datos geográficos válidos** - Solo ubicaciones existentes
+-   📝 **Campos obligatorios** - Todos los datos requeridos
+-   🏷️ **Formato estandarizado** - Direcciones consistentes
+-   📊 **Actualización automática** - Se refleja en todo el sistema
+
+#### Paso 5: Confirmación de cambios
+
+Una vez realizados los cambios:
+
+**Confirmación visual:**
+
+-   ✅ **Mensaje de éxito** - Confirmación clara del cambio
+-   📊 **Resumen de modificación** - Qué se cambió y cuándo
+-   🔄 **Actualización automática** - Los datos se sincronizan
+-   📱 **Notificación (opcional)** - Recordatorio del cambio
+
+**Para cambios críticos:**
+
+-   📧 **Email de confirmación** - Para cambios de teléfono
+-   🔐 **Actualización de sesión** - Para cambios de contraseña
+-   🏠 **Validación de dirección** - Para cambios de domicilio
+
+### ⚠️ Información importante
+
+**Consideraciones de seguridad:**
+
+-   🔒 **Verificación obligatoria** - Algunos cambios requieren SMS
+-   📊 **Historial completo** - Todos los cambios quedan registrados
+-   🚫 **Limitaciones de intentos** - Prevención de abusos
+-   🔐 **Autenticación requerida** - Solo usuarios autenticados
+
+**Tiempo de actualización:**
+
+-   ⚡ **Contraseña**: Inmediato
+-   📱 **Teléfono**: Después de verificación SMS (5-10 minutos)
+-   🏠 **Dirección**: Inmediato
+-   📊 **Sincronización**: Puede tomar hasta 1 hora en todos los sistemas
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo de perfil de usuario sigue una arquitectura modular con separación clara de responsabilidades:
+
+```
+client_profile/
+├── entities/                    # Entidades de dominio
+│   ├── address_entity.dart               # Dirección del usuario
+│   ├── profile_update_type.dart          # Tipos de actualización
+│   └── entities.dart                     # Export de entidades
+├── models/                      # DTOs para API
+│   ├── update_address_request_dto.dart   # Request de dirección
+│   ├── update_password_request_dto.dart  # Request de contraseña
+│   ├── update_phone_request_dto.dart     # Request de teléfono
+│   └── models.dart                        # Export de modelos
+├── providers/                   # Gestión de estado
+│   ├── change_address_provider.dart       # Estado de dirección
+│   ├── change_password_provider.dart      # Estado de contraseña
+│   └── change_phone_provider.dart         # Estado de teléfono
+├── repositories/               # Acceso a datos
+│   └── client_profile_repository.dart     # API de perfil
+└── screens/                    # Interfaces de usuario
+    ├── client_profile_screen.dart         # Pantalla principal
+    ├── change_address_screen.dart         # Formulario dirección
+    ├── change_password_screen.dart        # Formulario contraseña
+    ├── change_phone_number_screen.dart    # Formulario teléfono
+    ├── verify_sms_screen.dart             # Verificación SMS
+    └── client_profile_result_screen.dart  # Resultado de cambios
+```
+
+### 📊 Entities (Entidades de Dominio)
+
+#### **AddressEntity**
+
+Entidad que representa la dirección completa del usuario:
+
+```dart
+@freezed
+class AddressEntity with _$AddressEntity {
+  const factory AddressEntity({
+    required String street,                 // Calle o avenida
+    required String streetNumber,           // Número de domicilio
+    required String municipality,           // Municipio
+    required String suburb,                 // Colonia o barrio
+    required String department,             // Departamento
+    required String district,               // Distrito
+  }) = _AddressEntity;
+}
+```
+
+#### **ProfileUpdateType**
+
+Enum que define los tipos de actualización posibles:
+
+```dart
+enum ProfileUpdateType {
+  phone,     // Cambio de número telefónico
+  password,  // Cambio de contraseña
+  address;   // Cambio de dirección
+
+  String get displayName => switch (this) {
+    phone => 'Teléfono',
+    password => 'Contraseña',
+    address => 'Dirección',
+  };
+
+  String get successTitle => switch (this) {
+    phone => '¡Teléfono actualizado!',
+    password => '¡Contraseña actualizada!',
+    address => '¡Dirección actualizada!',
+  };
+
+  bool get requiresAuthUpdate => switch (this) {
+    phone => true,    // Requiere actualizar auth provider
+    password => false,
+    address => true,
+  };
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **ChangeAddressNotifier**
+
+StateNotifier para gestión de dirección:
+
+```dart
+@riverpod
+class ChangeAddressNotifier extends _$ChangeAddressNotifier {
+  @override
+  ChangeAddressState build() {
+    // Inicialización con datos del usuario
+    return const ChangeAddressState();
+  }
+
+  // Métodos principales:
+  // - Future<void> initializeWithUserData()
+  // - void onDepartmentChanged(DepartmentEntity?)
+  // - void onDistrictChanged(DistrictEntity?)
+  // - void onMunicipalityChanged(MunicipalityEntity?)
+  // - void onStreetChanged(String)
+  // - void onStreetNumberChanged(String)
+  // - void onSuburbChanged(String)
+  // - Future<void> submitAddress()
+}
+
+@freezed
+class ChangeAddressState with _$ChangeAddressState {
+  const factory ChangeAddressState({
+    @Default(false) bool isLoading,
+    @Default(false) bool isValid,
+    @Default(false) bool hasChanges,
+    @Default(TextInput.pure()) TextInput street,
+    @Default(TextInput.pure()) TextInput streetNumber,
+    @Default(TextInput.pure()) TextInput suburb,
+    DepartmentEntity? selectedDepartment,
+    DistrictEntity? selectedDistrict,
+    MunicipalityEntity? selectedMunicipality,
+    String? errorMessage,
+    String? successMessage,
+  }) = _ChangeAddressState;
+
+  const ChangeAddressState._();
+  bool get canSubmit => isValid && hasChanges && !isLoading;
+}
+```
+
+#### **ChangePasswordNotifier**
+
+StateNotifier para gestión de contraseña:
+
+```dart
+@Riverpod(keepAlive: true)
+class ChangePasswordNotifier extends _$ChangePasswordNotifier {
+  @override
+  ChangePasswordState build() {
+    return const ChangePasswordState();
+  }
+
+  // Métodos principales:
+  // - void onChangeCurrentPassword(String)
+  // - void onChangeNewPassword(String)
+  // - void onChangeConfirmPassword(String)
+  // - void togglePasswordVisibility()
+  // - Future<void> submitPassword()
+}
+
+@freezed
+class ChangePasswordState with _$ChangePasswordState {
+  const factory ChangePasswordState({
+    @Default(false) bool isLoading,
+    @Default(false) bool isValid,
+    @Default(PasswordInput.pure()) PasswordInput currentPassword,
+    @Default(PasswordInput.pure()) PasswordInput newPassword,
+    @Default(PasswordConfirmationInput.pure()) PasswordConfirmationInput confirmPassword,
+    @Default(false) bool currentPasswordVisible,
+    @Default(false) bool newPasswordVisible,
+    @Default(false) bool confirmPasswordVisible,
+    String? errorMessage,
+    String? successMessage,
+  }) = _ChangePasswordState;
+
+  const ChangePasswordState._();
+  bool get canSubmit => isValid && !isLoading;
+}
+```
+
+#### **ChangePhoneNotifier**
+
+StateNotifier para gestión de teléfono con verificación SMS:
+
+```dart
+@riverpod
+class ChangePhoneNotifier extends _$ChangePhoneNotifier {
+  @override
+  ChangePhoneState build() {
+    return const ChangePhoneState();
+  }
+
+  // Métodos principales:
+  // - void onPhoneNumberChanged(String)
+  // - Future<void> validatePhoneNumber()
+  // - void onVerificationCodeChanged(String)
+  // - Future<void> verifyCode()
+  // - Future<void> resendCode()
+  // - Future<void> updatePhoneNumber()
+}
+
+enum ChangePhoneStatus {
+  initial,      // Estado inicial
+  validating,   // Validando número (paso 1)
+  awaitingSms,  // Esperando código SMS
+  validatingCode, // Validando código (paso 2)
+  updating,     // Actualizando número
+  success,      // Éxito
+  error,        // Error
+  expired,      // Código expirado
+}
+
+@freezed
+class ChangePhoneState with _$ChangePhoneState {
+  const factory ChangePhoneState({
+    @Default(ChangePhoneStatus.initial) ChangePhoneStatus status,
+    @Default('') String phoneNumber,
+    @Default('') String requestId,
+    @Default(false) bool isPhoneValid,
+    @Default(false) bool isCodeValid,
+    String? errorMessage,
+    String? successMessage,
+    @Default(300) int remainingSeconds, // 5 minutos
+    @Default('') String verificationCode,
+  }) = _ChangePhoneState;
+}
+```
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **ClientProfileRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+abstract class IClientProfileRepository {
+  Future<String> updatePhoneNumber(String phoneNumber);
+  Future<String> updatePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmNewPassword,
+  );
+  Future<String> updateAddress(AddressEntity address);
+}
+
+class ClientProfileRepository implements IClientProfileRepository {
+  final HttpClient _httpClient;
+
+  // POST /client/update-phone
+  Future<String> updatePhoneNumber(String phoneNumber);
+
+  // POST /client/update-password
+  Future<String> updatePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmNewPassword,
+  );
+
+  // POST /client/update-address
+  Future<String> updateAddress(AddressEntity address);
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Actualización de Teléfono
+
+```
+ClientProfileScreen
+  ↓
+ChangePhoneScreen (formulario inicial)
+  ↓
+ChangePhoneNotifier (validatePhoneNumber)
+  ↓
+PhoneValidationRepository (envío SMS)
+  ↓
+VerifySmsScreen (ingreso de código)
+  ↓
+ChangePhoneNotifier (verifyCode)
+  ↓
+ClientProfileRepository (updatePhoneNumber)
+  ↓
+AuthProvider (actualización de datos)
+  ↓
+ClientProfileResultScreen (confirmación)
+```
+
+### 🔄 Flujo de Actualización de Contraseña
+
+```
+ClientProfileScreen
+  ↓
+ChangePasswordScreen (formulario completo)
+  ↓
+ChangePasswordNotifier (validación local)
+  ↓
+ClientProfileRepository (updatePassword)
+  ↓
+AuthProvider (actualización de sesión)
+  ↓
+ClientProfileResultScreen (confirmación)
+```
+
+### 🔄 Flujo de Actualización de Dirección
+
+```
+ClientProfileScreen
+  ↓
+ChangeAddressScreen (formulario geográfico)
+  ↓
+ChangeAddressNotifier (carga de departamentos/municipios)
+  ↓
+GeographicRepository (datos geográficos)
+  ↓
+ChangeAddressNotifier (validación y submit)
+  ↓
+ClientProfileRepository (updateAddress)
+  ↓
+AuthProvider (actualización de datos)
+  ↓
+ClientProfileResultScreen (confirmación)
+```
+
+### 📊 Diagrama de Estados
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                ChangePhoneNotifier                             │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → validating → awaitingSms → validatingCode → updating → success │
+│                                                               ↑ error │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - phoneNumber: String (nuevo número)                         │
+│  - requestId: String (ID de solicitud SMS)                    │
+│  - verificationCode: String (código ingresado)                │
+│  - remainingSeconds: int (tiempo restante)                     │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - validatePhoneNumber(): Inicia flujo SMS                     │
+│  - verifyCode(): Valida código ingresado                      │
+│  - updatePhoneNumber(): Aplica cambio final                   │
+│  - resendCode(): Reenvía SMS si expira                         │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│              ChangePasswordNotifier                            │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → validating → success/error                   │
+│                                                               ↑ submit │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - currentPassword: PasswordInput (validación)                │
+│  - newPassword: PasswordInput (nueva contraseña)              │
+│  - confirmPassword: PasswordConfirmationInput (confirmación)  │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - onChangeCurrentPassword(): Validación en tiempo real       │
+│  - onChangeNewPassword(): Validación de fortaleza              │
+│  - submitPassword(): Envío a backend                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 👤 ClientProfileScreen
+
+-   **Ruta**: `/profile`
+-   **Propósito**: Vista principal del perfil con todos los datos
+-   **Funcionalidad**:
+    -   Mostrar datos actuales del usuario
+    -   Navegación a formularios de actualización
+    -   Cards organizadas por tipo de información
+    -   Acceso rápido a opciones de cambio
+
+#### 2. 🏠 ChangeAddressScreen
+
+-   **Ruta**: `/change-address`
+-   **Propósito**: Formulario para actualizar dirección
+-   **Funcionalidad**:
+    -   Selectores de departamento, municipio y distrito
+    -   Campos de texto para calle, número y colonia
+    -   Carga dinámica de datos geográficos
+    -   Validación en tiempo real
+
+#### 3. 🔐 ChangePasswordScreen
+
+-   **Ruta**: `/change-password`
+-   **Propósito**: Formulario seguro para cambio de contraseña
+-   **Funcionalidad**:
+    -   Campo de contraseña actual
+    -   Campos para nueva contraseña y confirmación
+    -   Indicadores de visibilidad
+    -   Validación de fortaleza
+
+#### 4. 📱 ChangePhoneScreen
+
+-   **Ruta**: `/change-phone`
+-   **Propósito**: Inicio del flujo de cambio de teléfono
+-   **Funcionalidad**:
+    -   Campo para nuevo número telefónico
+    -   Validación de formato
+    -   Botón para enviar código SMS
+    -   Navegación a verificación
+
+#### 5. 🔢 VerifySmsScreen
+
+-   **Ruta**: `/verify-sms`
+-   **Propósito**: Verificación de código SMS
+-   **Funcionalidad**:
+    -   Campos para código de 6 dígitos
+    -   Temporizador de expiración
+    -   Opción de reenviar código
+    -   Validación automática
+
+#### 6. ✅ ClientProfileResultScreen
+
+-   **Ruta**: `/profile-result`
+-   **Propósito**: Confirmación de cambios realizados
+-   **Funcionalidad**:
+    -   Mensaje de éxito o error
+    -   Detalles del cambio realizado
+    -   Opciones para continuar o reintentar
+    -   Navegación de retorno
+
+### 🧩 Componentes Reutilizables
+
+#### **ContactDataCard**
+
+Componente para mostrar datos de contacto:
+
+```dart
+class ContactDataCard extends StatelessWidget {
+  final UserEntity user;
+
+  // Muestra: teléfono, email, opciones de cambio
+}
+```
+
+#### **PersonalDataCard**
+
+Componente para datos personales:
+
+```dart
+class PersonalDataCard extends StatelessWidget {
+  final UserEntity user;
+
+  // Muestra: nombre, DUI, fecha de nacimiento
+}
+```
+
+#### **AddressCard**
+
+Componente para dirección:
+
+```dart
+class AddressCard extends StatelessWidget {
+  final UserEntity user;
+
+  // Muestra: dirección completa con opción de editar
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **POST** `/client/update-phone`
+
+**Propósito**: Iniciar proceso de actualización de teléfono
+
+**Request Body**:
+
+```json
+{
+    "phoneNumber": "+50371234567"
+}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "message": "Código de verificación enviado al nuevo número",
+    "requestId": "req_123456789"
+}
+```
+
+#### **POST** `/client/update-password`
+
+**Propósito**: Actualizar contraseña del usuario
+
+**Request Body**:
+
+```json
+{
+    "old_password": "contraseña_actual123",
+    "password": "nueva_contraseña456",
+    "password_confirmation": "nueva_contraseña456"
+}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "message": "Contraseña actualizada exitosamente"
+}
+```
+
+**Error 422 (Validación)**:
+
+```json
+{
+    "errors": [
+        {
+            "message": "La contraseña actual es incorrecta"
+        }
+    ]
+}
+```
+
+#### **POST** `/client/update-address`
+
+**Propósito**: Actualizar dirección del usuario
+
+**Request Body**:
+
+```json
+{
+    "street": "Calle Los Pinos",
+    "street_number": "123",
+    "municipality": "San Salvador",
+    "suburb": "Colonia Escalón",
+    "department": "San Salvador",
+    "district": "Distrito 5"
+}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "message": "Dirección actualizada exitosamente"
+}
+```
+
+### 🔒 Headers de Seguridad
+
+```http
+POST /client/update-password HTTP/1.1
+Host: api.pisto.co
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+X-Client-Version: 1.0.0
+X-Device-ID: {device_identifier}
+```
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Validación**
+
+```dart
+// Contraseña incorrecta
+InvalidPasswordException {
+  message: "La contraseña actual es incorrecta",
+  suggestion: "Verifica tu contraseña e intenta nuevamente",
+}
+
+// Contraseña débil
+WeakPasswordException {
+  message: "La nueva contraseña no cumple los requisitos de seguridad",
+  requirements: ["Mínimo 8 caracteres", "Incluir números y mayúsculas"],
+}
+
+// Teléfono inválido
+InvalidPhoneException {
+  message: "El formato del número telefónico es inválido",
+  example: "Formato esperado: +503XXXXXXX",
+}
+```
+
+#### **2. Errores de SMS**
+
+```dart
+// SMS no enviado
+SmsNotSentException {
+  message: "No se pudo enviar el código SMS",
+  suggestion: "Verifica tu número e intenta nuevamente",
+  canRetry: true,
+}
+
+// Código incorrecto
+InvalidCodeException {
+  message: "El código ingresado es incorrecto",
+  attemptsRemaining: 2,
+}
+
+// Código expirado
+CodeExpiredException {
+  message: "El código ha expirado",
+  canResend: true,
+  waitTime: 60, // segundos
+}
+```
+
+#### **3. Errores de Conectividad**
+
+```dart
+// Error de red
+NetworkException {
+  message: "Error de conexión. Verifica tu conectividad.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(changePasswordProvider),
+}
+
+// Timeout
+TimeoutException {
+  message: "Tiempo de espera agotado. Intente nuevamente.",
+  canRetry: true,
+  retryDelay: Duration(seconds: 5),
+}
+```
+
+#### **4. Errores de Autenticación**
+
+```dart
+// No autenticado
+UnauthorizedException {
+  message: "Usuario no autenticado",
+  action: "redirect_to_login",
+}
+
+// Sesión expirada
+SessionExpiredException {
+  message: "Tu sesión ha expirado. Inicia sesión nuevamente.",
+  action: "force_logout",
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+class ProfileUpdateRetryStrategy {
+  static const int maxRetries = 3;
+  static const Duration baseDelay = Duration(seconds: 2);
+
+  static Future<String> retryWithBackoff(
+    Future<String> Function() updateCall,
+  ) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await updateCall();
+      } catch (e) {
+        if (attempt == maxRetries) rethrow;
+
+        final delay = baseDelay * math.pow(2, attempt - 1);
+        await Future.delayed(delay);
+      }
+    }
+    throw ClientProfileException(
+      'No se pudo completar la actualización después de $maxRetries intentos',
+    );
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Opción de reintentar manual** la actualización
+-   **Guardar borrador** para continuar más tarde
+-   **Contactar soporte** con diagnóstico automático
+-   **Modo offline** con sincronización cuando haya conexión
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Contraseña**
+
+    - Mínimo 8 caracteres
+    - Al menos una mayúscula
+    - Al menos un número
+    - No igual a la contraseña actual
+    - Confirmación coincidente
+
+2. **Validación de Teléfono**
+
+    - Formato internacional (+503XXXXXXX)
+    - Solo dígitos después del código de país
+    - Longitud válida para El Salvador
+    - No duplicado con otros usuarios
+
+3. **Validación de Dirección**
+    - Departamento válido
+    - Municipio válido para el departamento
+    - Distrito válido para el municipio
+    - Campos de texto no vacíos
+
+### 🔍 Lógica de Validación
+
+#### **Validación de Contraseña**
+
+```dart
+class PasswordValidator {
+  static PasswordValidationError? validate(String value) {
+    if (value.isEmpty) {
+      return PasswordValidationError.empty;
+    }
+
+    if (value.length < 8) {
+      return PasswordValidationError.tooShort;
+    }
+
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return PasswordValidationError.noUppercase;
+    }
+
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return PasswordValidationError.noNumbers;
+    }
+
+    return null; // Válida
+  }
+
+  static bool isStrongPassword(String password) {
+    return validate(password) == null;
+  }
+}
+```
+
+#### **Validación de Teléfono**
+
+```dart
+class PhoneValidator {
+  static PhoneValidationError? validate(String value) {
+    if (value.isEmpty) {
+      return PhoneValidationError.empty;
+    }
+
+    if (!RegExp(r'^\+503[67]\d{7}$').hasMatch(value)) {
+      return PhoneValidationError.invalidFormat;
+    }
+
+    return null; // Válido
+  }
+
+  static String formatPhoneNumber(String rawNumber) {
+    // Formatea a +503XXXXXXX
+    return '+503${rawNumber.replaceAll(RegExp(r'[^\d]'), '')}';
+  }
+}
+```
+
+#### **Validación de Dirección**
+
+```dart
+class AddressValidator {
+  static AddressValidationError? validate(AddressEntity address) {
+    if (address.street.isEmpty) {
+      return AddressValidationError.emptyStreet;
+    }
+
+    if (address.streetNumber.isEmpty) {
+      return AddressValidationError.emptyStreetNumber;
+    }
+
+    if (!_isValidDepartment(address.department)) {
+      return AddressValidationError.invalidDepartment;
+    }
+
+    if (!_isValidMunicipality(address.municipality, address.department)) {
+      return AddressValidationError.invalidMunicipality;
+    }
+
+    return null; // Válida
+  }
+}
+```
+
+### 🛡️ Consideraciones de Seguridad
+
+-   Validación de contraseña actual para cambios
+-   Verificación por SMS para cambios de teléfono
+-   Límite de intentos para prevenir ataques
+-   Auditoría completa de todos los cambios
+-   Encriptación de datos sensibles en tránsito
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/client_profile_test.dart
+void main() {
+  group('ChangePasswordNotifier', () {
+    test('debe validar contraseña correctamente', () {
+      // Test de validación de fortaleza
+    });
+
+    test('debe rechazar contraseña igual a actual', () {
+      // Test de validación de duplicidad
+    });
+
+    test('debe manejar error de contraseña incorrecta', () {
+      // Test de manejo de errores de API
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/change_password_screen_test.dart
+void main() {
+  testWidgets('debe mostrar error con contraseña débil', (tester) async {
+    // Test de validación visual
+  });
+
+  testWidgets('deve mostrar éxito al cambiar contraseña', (tester) async {
+    // Test de flujo exitoso
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/profile_update_flow_test.dart
+void main() {
+  integrationTest('flujo completo de cambio de teléfono', () async {
+    // Simular: perfil → teléfono → SMS → verificación → éxito
+  });
+
+  integrationTest('manejo de expiración de SMS', () async {
+    // Test de flujo con código expirado
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario cambia contraseña exitosamente
+-   ✅ Usuario actualiza teléfono con verificación SMS
+-   ✅ Usuario modifica dirección con datos geográficos
+-   ✅ Usuario maneja error de contraseña incorrecta
+-   ✅ Usuario reintenta después de fallo de red
+
+#### **Casos Límite**
+
+-   🔄 Contraseña con formato inválido
+-   🔄 SMS expirado durante verificación
+-   🔄 Dirección con municipio inválido
+-   🔄 Múltiples intentos de cambio fallidos
+-   🔄 Sesión expirada durante actualización
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 85% para lógica de validación
+-   **Tests de seguridad**: 100% de validaciones críticas
+-   **Tests de error**: Todos los tipos de error cubiertos
+-   **Tests de UI**: Interacciones críticas del usuario
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Datos**
+
+-   ✅ **Autenticación obligatoria**: Solo usuarios validados
+-   ✅ **Verificación por SMS**: Para cambios críticos
+-   ✅ **Validación de contraseña**: Confirmación de identidad
+-   ✅ **Encriptación en tránsito**: Todos los datos viajan por HTTPS
+
+#### **2. Control de Acceso**
+
+-   ✅ **Validación de sesión**: Token JWT requerido
+-   ✅ **Rate limiting**: Límite de intentos por tiempo
+-   ✅ **Auditoría completa**: Registro de todos los cambios
+-   ✅ **Timeout de sesión**: Cierre automático por inactividad
+
+#### **3. Validaciones de Seguridad**
+
+```dart
+class ProfileSecurityValidator {
+  static bool canUpdateProfile(
+    UserEntity user,
+    ProfileUpdateType updateType,
+  ) {
+    // Validar que el usuario está autenticado
+    if (user.id == null) return false;
+
+    // Validar que no hay cambios recientes sospechosos
+    if (_hasRecentSuspiciousActivity(user)) return false;
+
+    // Validar tipo de actualización permitida
+    return _isAllowedUpdateType(updateType);
+  }
+
+  static bool validatePasswordChange(
+    String currentPassword,
+    String newPassword,
+    String hashedPassword,
+  ) {
+    // Verificar contraseña actual
+    if (!_verifyCurrentPassword(currentPassword, hashedPassword)) {
+      return false;
+    }
+
+    // Validar que la nueva es diferente
+    if (currentPassword == newPassword) {
+      return false;
+    }
+
+    return true;
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Los datos personales son sensibles y requieren autenticación
+-   Los cambios críticos requieren verificación adicional
+-   Auditoría completa para cumplimiento normativo
+-   Encriptación de datos en reposo y tránsito
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureProfileService {
+  Future<ProfileUpdateResult> updatePasswordSecurely(
+    String currentPassword,
+    String newPassword,
+    UserContext user,
+  ) async {
+    try {
+      // 1. Validar autenticación
+      await _validateAuthentication(user);
+
+      // 2. Validar seguridad de contraseña
+      if (!_securityValidator.isStrongPassword(newPassword)) {
+        return ProfileUpdateResult.failure(
+          'La contraseña no cumple los requisitos de seguridad',
+        );
+      }
+
+      // 3. Verificar contraseña actual
+      if (!_securityValidator.verifyCurrentPassword(currentPassword, user.hashedPassword)) {
+        return ProfileUpdateResult.failure('La contraseña actual es incorrecta');
+      }
+
+      // 4. Actualizar con seguridad
+      final result = await _repository.updatePassword(
+        currentPassword,
+        newPassword,
+        newPassword, // confirmación
+      );
+
+      // 5. Registrar para auditoría
+      _auditLogger.logPasswordChange(user.id, result);
+
+      return ProfileUpdateResult.success(result);
+    } catch (e) {
+      _auditLogger.logPasswordError(user.id, e);
+      throw SecureProfileException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    formz: ^0.6.0 # Validación de formularios
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+    dio: ^5.3.0 # Cliente HTTP
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/client_profile/
+
+# Análisis estático
+flutter analyze lib/features/client_profile/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos o providers
+2. **State Management**: Usar `keepAlive: true` para persistencia crítica
+3. **Validation**: Validación local y backend para mejor UX
+4. **Security**: Verificación obligatoria para cambios críticos
+5. **Testing**: Mantener cobertura >85% para lógica de negocio
+6. **Error Handling**: Manejo específico para cada tipo de actualización
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos que utilizan Client Profile
+
+#### **Auth**
+
+-   Actualización de datos del usuario autenticado
+-   Sincronización de cambios de perfil
+-   Manejo de sesiones y tokens
+
+#### **My Loan**
+
+-   Validación de datos de contacto
+-   Verificación de dirección para préstamos
+-   Confirmación de identidad
+
+#### **Contact**
+
+-   Uso de datos de contacto actualizados
+-   Validación de información del usuario
+
+#### **Geographic**
+
+-   Datos de departamentos y municipios
+-   Validación de direcciones geográficas
+
+#### **Phone Validation**
+
+-   Envío de códigos SMS
+-   Verificación de números telefónicos
+
+### 🔄 Flujo de Datos
+
+```
+ClientProfileScreen
+  ↓
+Specific Provider (Address/Password/Phone)
+  ↓
+ClientProfileRepository (API calls)
+  ↓
+AuthProvider (data synchronization)
+  ↓
+Updated User State
+```
