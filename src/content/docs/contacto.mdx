@@ -1,0 +1,1420 @@
+---
+title: Flujo de contacto
+slug: contacto
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de contacto. Gestión completa del proceso de consulta y respuesta de contacto.
+---
+
+## Descripción General
+
+La funcionalidad de **Contacto** (`contact`) es el canal oficial de comunicación que permite a los usuarios enviar mensajes, comentarios, dudas y archivos adjuntos directamente al equipo de soporte de Pisto. Este sistema proporciona una interfaz intuitiva y segura para que los usuarios puedan expresar sus inquietudes, reportar problemas, solicitar asistencia o enviar documentación relevante, garantizando que cada mensaje sea entregado correctamente al equipo correspondiente para una respuesta oportuna.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Menú Principal   │────▶│ Formulario de     │────▶│ Composición de   │────▶│ Envío y          │────▶│ Confirmación     │
+│ (Navegación)    │     │ Contacto          │     │ Mensaje          │     │ Procesamiento    │     │ (Resultado)      │
+│                 │     │                     │     │                     │     │                     │     │                     │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Acceso rápido      ✓ Campos de texto     ✓ Validación          ✓ API Backend         ✓ Éxito/Error
+```
+
+### ✨ Características Principales
+
+-   ✅ **Comunicación directa**: Canal oficial con equipo de soporte
+-   ✅ **Adjuntos múltiples**: Soporte para archivos PDF e imágenes JPG
+-   ✅ **Validación en tiempo real**: Verificación automática del contenido
+-   ✅ **Manejo robusto de errores**: Recuperación ante fallos de envío
+-   ✅ **Interfaz intuitiva**: Formulario simple y claro
+-   ✅ **Confirmación inmediata**: Feedback visual del envío exitoso
+-   ✅ **Gestión de estado**: Persistencia durante el proceso
+-   ✅ **Seguridad de datos**: Protección de información sensible
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve el formulario de contacto?
+
+El formulario de contacto te permite:
+
+-   **Enviar dudas**: Preguntas sobre préstamos, pagos o servicios
+-   **Reportar problemas**: Errores técnicos o dificultades con la app
+-   **Solicitar asistencia**: Ayuda personalizada del equipo de soporte
+-   **Enviar documentos**: Archivos relevantes para tu caso
+-   **Dar feedback**: Sugerencias para mejorar la plataforma
+-   **Consultar estado**: Información sobre tus solicitudes
+
+### 📱 Cómo usar el formulario de contacto
+
+#### Paso 1: Acceder al formulario de contacto
+
+Para enviar un mensaje al soporte:
+
+**Desde el menú principal:**
+
+1. 🏠 **Abre el menú lateral** - Toca el ícono de hamburguesa (☰)
+2. 💬 **Busca "Contacto"** - Encuentra la opción en el menú
+3. 👆 **Presiona la opción** - Accederás al formulario de contacto
+4. 📝 **Espera la carga** - El formulario aparecerá listo para usar
+
+**Características de acceso:**
+
+-   ⚡ **Carga instantánea** - El formulario está disponible inmediatamente
+-   🔄 **Sin requerimientos previos** - No necesitas preparación especial
+-   📱 **Disponible siempre** - Accesible desde cualquier pantalla
+
+#### Paso 2: Componer tu mensaje
+
+Una vez en el formulario de contacto:
+
+**Redacción del mensaje:**
+
+1. 👀 **Identifica el campo de texto** - Área grande para escribir tu mensaje
+2. ⌨️ **Escribe tu consulta** - Sé claro y específico en tu descripción
+3. 📋 **Incluye detalles importantes** - Fechas, montos, referencias si aplica
+4. ✅ **Revisa tu texto** - Asegúrate de que todo esté claro y completo
+
+**Tips para un buen mensaje:**
+
+-   🎯 **Sé específico** - Describe exactamente lo que necesitas
+-   📊 **Incluye contexto** - Menciona cuándo y dónde ocurre el problema
+-   🔢 **Añade datos relevantes** - Números de préstamo, fechas, montos
+-   📝 **Usa lenguaje claro** - Evita jerga técnica si no es necesario
+
+#### Paso 3: Adjuntar archivos (opcional)
+
+Si necesitas enviar documentos o evidencias:
+
+**Proceso de adjunto:**
+
+1. 📎 **Busca el botón de adjuntar** - Generalmente con ícono de clip o papel
+2. 👆 **Presiona el botón** - Se abrirá el selector de archivos
+3. 📁 **Selecciona el archivo** - Elige PDF o JPG desde tu dispositivo
+4. ✅ **Confirma la selección** - El archivo aparecerá adjunto
+
+**Tipos de archivos permitidos:**
+
+-   📄 **Documentos PDF** - Contratos, estados de cuenta, identificaciones
+-   🖼️ **Imágenes JPG** - Capturas de pantalla, fotos de documentos
+-   📏 **Tamaño limitado** - Archivos optimizados para envío rápido
+
+**Consideraciones de archivos:**
+
+-   🔒 **Seguridad** - Solo adjunta información necesaria y relevante
+-   📊 **Calidad** - Asegúrate de que los documentos sean legibles
+-   🎯 **Relevancia** - Adjunta solo archivos relacionados con tu consulta
+
+#### Paso 4: Revisar y enviar
+
+Antes de enviar tu mensaje:
+
+**Verificación final:**
+
+1. 👀 **Revisa tu mensaje** - Lee cuidadosamente el texto escrito
+2. 📎 **Confirma adjuntos** - Verifica que los archivos correctos estén adjuntos
+3. ✅ **Validación automática** - El sistema verificará que todo esté completo
+4. 🚀 **Presiona "Enviar"** - Tu mensaje será procesado
+
+**Indicadores de validación:**
+
+-   ✅ **Campo requerido** - El mensaje no puede estar vacío
+-   📏 **Longitud mínima** - Debes incluir suficiente información
+-   📎 **Archivos válidos** - Solo formatos permitidos
+-   🔄 **Sin errores** - Todo debe estar correcto para enviar
+
+#### Paso 5: Confirmación del envío
+
+Una vez enviado tu mensaje:
+
+**Confirmación inmediata:**
+
+1. 📱 **Pantalla de éxito** - Verás un mensaje de confirmación
+2. ✅ **Número de caso** - Tu mensaje será registrado con un ID único
+3. ⏰ **Tiempo de respuesta** - Se indicará cuándo esperar respuesta
+4. 🔄 **Opción de continuar** - Podrás volver a la aplicación principal
+
+**Qué sucede después:**
+
+-   📧 **Notificación al equipo** - Tu mensaje llega inmediatamente al soporte
+-   📊 **Registro en sistema** - Tu consulta queda documentada
+-   ⏱️ **Procesamiento** - El equipo analizará tu caso
+-   📞 **Respuesta oportuna** - Te contactarán según la prioridad
+
+#### Paso 6: Seguimiento de tu consulta
+
+Para conocer el estado de tu mensaje:
+
+**Opciones de seguimiento:**
+
+-   📱 **Espera respuesta** - El equipo se comunicará contigo directamente
+-   📧 **Revisa tu email** - Puedes recibir actualizaciones por correo
+-   📞 **Llamada telefónica** - Para casos urgentes, te llamarán
+-   🔄 **Nuevo mensaje** - Si necesitas añadir información, envía otro formulario
+
+### ⚠️ Información importante
+
+**Consideraciones de uso:**
+
+-   📋 **Un mensaje por envío** - Cada formulario trata un caso específico
+-   🔄 **No hay conversación** - Cada envío es independiente del anterior
+-   📊 **Tiempo de respuesta** - Varía según la complejidad del caso
+-   🔒 **Privacidad protegida** - Tu información es tratada confidencialmente
+
+**Cuándo usar el contacto:**
+
+-   ❓ **Dudas generales** - Preguntas sobre servicios y procesos
+-   🐛 **Problemas técnicos** - Errores o dificultades con la app
+-   📊 **Consultas específicas** - Información sobre tu cuenta o préstamos
+-   📎 **Documentación requerida** - Envío de archivos para verificación
+-   💡 **Sugerencias** - Ideas para mejorar la plataforma
+
+**Alternativas al contacto:**
+
+-   ❓ **FAQs** - Para preguntas frecuentes y respuestas inmediatas
+-   📞 **Llamada directa** - Para urgencias que requieren atención inmediata
+-   📱 **Chat en vivo** - Si está disponible, para conversaciones en tiempo real
+-   🏦 **Visita a sucursal** - Para trámites presenciales si aplica
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo de contacto sigue una arquitectura limpia con separación clara de responsabilidades:
+
+```
+contact/
+├── entities/                    # Entidades de dominio
+│   ├── contact_entity.dart                 # Mensaje de contacto
+│   └── contact_entity.freezed.dart         # Código generado
+├── models/                      # DTOs para API
+│   ├── contact_response_dto.dart           # Respuesta del endpoint
+│   └── contact_response_dto.g.dart         # Código generado
+├── providers/                   # Gestión de estado
+│   ├── contact_provider.dart                 # Provider principal
+│   ├── contact_provider.freezed.dart        # Código generado
+│   └── contact_provider.g.dart              # Código generado
+├── repositories/               # Acceso a datos
+│   ├── contact_repository.dart              # API de contacto
+│   └── contact_repository.g.dart            # Código generado
+└── screens/                    # Interfaces de usuario
+    ├── contact_form_screen.dart             # Formulario principal
+    └── contact_response_screen.dart         # Confirmación
+```
+
+### 📊 Entities (Entidades de Dominio)
+
+#### **ContactEntity**
+
+Entidad que representa un mensaje de contacto completo:
+
+```dart
+@freezed
+abstract class ContactEntity with _$ContactEntity {
+  const factory ContactEntity({
+    required String message,          // Mensaje del usuario
+    @Default('') String successMessage, // Mensaje de éxito del servidor
+    File? file,                       // Archivo adjunto (opcional)
+    String? fileName,                 // Nombre del archivo adjunto
+  }) = _ContactEntity;
+}
+```
+
+**Características de la entidad:**
+
+-   ✅ **Inmutable**: Usando Freezed para seguridad de datos
+-   ✅ **Serializable**: Fácil conversión a/desde JSON
+-   ✅ **Validada**: Con validaciones incorporadas
+-   ✅ **Extensible**: Fácil de añadir nuevos campos
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **ContactNotifier**
+
+StateNotifier para gestión del formulario de contacto:
+
+```dart
+@Riverpod(keepAlive: true)
+class ContactNotifier extends _$ContactNotifier {
+  @override
+  ContactState build() {
+    return const ContactState();
+  }
+
+  /// Actualizar mensaje y validar
+  void updateMessage(String value) {
+    final message = ContactMessageInput.dirty(value);
+    state = state.copyWith(
+      message: message,
+      isValid: message.isValid,
+      errorMessage: '',
+    );
+  }
+
+  /// Seleccionar archivo (JPG o PDF)
+  Future<void> pickFile() async {
+    try {
+      // Iniciar flujo externo para prevenir refresh de auth durante file picker
+      ref.read(externalFlowProvider.notifier).startExternalFlow('/contact');
+
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'pdf'],
+        compressionQuality: 80,
+      );
+
+      // Verificar si el provider sigue montado después del async gap
+      if (!ref.mounted) return;
+
+      if (result != null && result.files.single.path != null) {
+        final file = File(result.files.single.path!);
+        final fileName = result.files.single.name;
+
+        state = state.copyWith(
+          file: file,
+          fileName: fileName,
+          errorMessage: '',
+        );
+      }
+
+      // Delay antes de ending external flow para asegurar que el evento
+      // 'resumed' del app lifecycle se procese primero
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!ref.mounted) return;
+      ref.read(externalFlowProvider.notifier).endExternalFlow();
+    } catch (e) {
+      if (!ref.mounted) return;
+
+      state = state.copyWith(
+        errorMessage: 'Error al seleccionar archivo: ${e.toString()}',
+      );
+
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!ref.mounted) return;
+      ref.read(externalFlowProvider.notifier).endExternalFlow();
+    }
+  }
+
+  /// Remover archivo seleccionado
+  void removeFile() {
+    state = state.copyWith(file: null, fileName: '');
+  }
+
+  /// Enviar formulario
+  Future<void> submitForm() async {
+    // Validar mensaje
+    final message = ContactMessageInput.dirty(state.message.value);
+
+    if (!message.isValid) {
+      state = state.copyWith(
+        message: message,
+        isValid: false,
+        errorMessage: message.errorMessage ?? 'El mensaje no es válido',
+      );
+      return;
+    }
+
+    // Establecer estado de carga
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: '',
+      successMessage: '',
+      formWasSubmitted: false,
+    );
+
+    try {
+      final repository = ref.read(contactRepositoryProvider);
+
+      final response = await repository.sendContact(
+        message: state.message.value,
+        file: state.file,
+      );
+
+      // Actualizar estado con éxito
+      state = state.copyWith(
+        isLoading: false,
+        formWasSubmitted: true,
+        successMessage: response.message,
+        errorMessage: '',
+      );
+    } on NetworkException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        formWasSubmitted: false,
+        errorMessage: e.message,
+        successMessage: '',
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        formWasSubmitted: false,
+        errorMessage: 'Error inesperado: ${e.toString()}',
+        successMessage: '',
+      );
+    }
+  }
+
+  /// Resetear formulario
+  void resetForm() {
+    state = const ContactState();
+  }
+}
+
+@freezed
+abstract class ContactState with _$ContactState {
+  const factory ContactState({
+    @Default(ContactMessageInput.pure()) ContactMessageInput message,
+    File? file,
+    @Default('') String fileName,
+    @Default(false) bool isLoading,
+    @Default(false) bool isValid,
+    @Default(false) bool formWasSubmitted,
+    @Default('') String errorMessage,
+    @Default('') String successMessage,
+  }) = _ContactState;
+
+  const ContactState._();
+
+  /// Verificar si el formulario puede ser enviado
+  bool get canSubmit => isValid && !isLoading;
+}
+```
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **ContactRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+abstract class IContactRepository {
+  Future<ContactResponseDto> sendContact({required String message, File? file});
+}
+
+class ContactRepository implements IContactRepository {
+  final HttpClient _httpClient;
+
+  ContactRepository(this._httpClient);
+
+  @override
+  Future<ContactResponseDto> sendContact({
+    required String message,
+    File? file,
+  }) async {
+    try {
+      // Construir FormData para multipart
+      final formData = FormData.fromMap({
+        'text': message,
+        if (file != null)
+          'file': await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
+      });
+
+      // Enviar request a /client/contact
+      final response = await _httpClient.post<Map<String, dynamic>>(
+        '/client/contact',
+        data: formData,
+      );
+
+      // Parsear respuesta
+      if (response.data != null) {
+        return ContactResponseDto.fromJson(response.data!);
+      } else {
+        throw NetworkException(
+          message: 'No se recibió respuesta del servidor',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      if (e.error is NetworkException) {
+        rethrow;
+      }
+
+      throw NetworkException(
+        message: e.message ?? 'Error al enviar mensaje',
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw NetworkException(message: 'Error inesperado: ${e.toString()}');
+    }
+  }
+}
+
+@riverpod
+ContactRepository contactRepository(Ref ref) {
+  final httpClient = ref.read(httpClientProvider);
+  return ContactRepository(httpClient);
+}
+```
+
+### 📱 Models (DTOs)
+
+#### **ContactResponseDto**
+
+Modelo para la respuesta del endpoint:
+
+```dart
+@JsonSerializable()
+class ContactResponseDto {
+  final String message;
+
+  ContactResponseDto({
+    required this.message,
+  });
+
+  factory ContactResponseDto.fromJson(Map<String, dynamic> json) =>
+      _$ContactResponseDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ContactResponseDtoToJson(this);
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Envío de Mensaje
+
+```
+AppSidebarLayout (menú lateral)
+  ↓
+ContactFormScreen (formulario principal)
+  ↓
+ContactNotifier (gestión de estado)
+  ├─→ updateMessage() (validación en tiempo real)
+  ├─→ pickFile() (selección de archivo)
+  └─→ submitForm() (envío final)
+  ↓
+ContactRepository (sendContact)
+  ↓
+FormData.fromMap() (preparación multipart)
+  ├─→ text: message
+  └─→ file: MultipartFile (si aplica)
+  ↓
+HttpClient (POST /client/contact)
+  ├─→ Autenticación (token JWT)
+  ├─→ Envío multipart/form-data
+  └─→ Procesamiento en backend
+  ↓
+ContactResponseDto (deserialización)
+  ↓
+ContactNotifier (actualización de estado)
+  ├─→ isLoading: false
+  ├─→ formWasSubmitted: true
+  ├─→ successMessage: response.message
+  └─→ errorMessage: ''
+  ↓
+Navigación automática a ContactResponseScreen
+```
+
+### 🔄 Flujo de Selección de Archivo
+
+```
+Usuario presiona "Adjuntar archivo"
+  ↓
+ContactNotifier.pickFile()
+  ↓
+externalFlowProvider.startExternalFlow('/contact')
+  ↓
+FilePicker.platform.pickFiles()
+  ├─→ type: FileType.custom
+  ├─→ allowedExtensions: ['jpg', 'jpeg', 'pdf']
+  └─→ compressionQuality: 80
+  ↓
+Validación de provider montado (ref.mounted)
+  ↓
+Actualización de estado con archivo seleccionado
+  ↓
+Delay de 500ms (para app lifecycle)
+  ↓
+externalFlowProvider.endExternalFlow()
+```
+
+### 🔄 Flujo de Manejo de Errores
+
+```
+Error durante envío (NetworkException, etc.)
+  ↓
+ContactNotifier.catch block
+  ↓
+Actualización de estado de error
+  ├─→ isLoading: false
+  ├─→ formWasSubmitted: false
+  ├─→ errorMessage: e.message
+  └─→ successMessage: ''
+  ↓
+SnackBar en ContactFormScreen
+  ↓
+Delay de 3 segundos
+  ↓
+resetForm() automático
+```
+
+### 📊 Diagrama de Estados
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    ContactNotifier                              │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: ContactState con keepAlive: true                        │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Estados principales:                                            │
+│  - initial: Formulario listo para usar                          │
+│  - typing: Usuario escribiendo mensaje                         │
+│  - fileSelected: Archivo adjunto                                │
+│  - submitting: Enviando formulario                             │
+│  - success: Mensaje enviado correctamente                      │
+│  - error: Error durante el envío                               │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - message: ContactMessageInput (validación)                   │
+│  - file: File? (archivo adjunto)                               │
+│  - fileName: String (nombre del archivo)                       │
+│  - isValid: bool (formulario válido)                           │
+│  - isLoading: bool (estado de envío)                           │
+│  - formWasSubmitted: bool (envío completado)                   │
+│  - errorMessage: String (mensaje de error)                     │
+│  - successMessage: String (mensaje de éxito)                   │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - updateMessage(): Validación en tiempo real                  │
+│  - pickFile(): Selección de archivo con seguridad              │
+│  - removeFile(): Eliminar archivo seleccionado                 │
+│  - submitForm(): Envío completo a backend                      │
+│  - resetForm(): Reiniciar formulario                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 📝 ContactFormScreen
+
+-   **Ruta**: `/contact`
+-   **Propósito**: Formulario principal para enviar mensajes
+-   **Funcionalidad**:
+    -   Campo de texto para mensaje con validación en tiempo real
+    -   Selector de archivos para adjuntar PDF o JPG
+    -   Indicadores visuales de estado y validación
+    -   Navegación automática a pantalla de éxito
+    -   Manejo de errores con SnackBar
+
+**Componentes principales:**
+
+```dart
+class ContactFormScreen extends ConsumerStatefulWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contactState = ref.watch(contactProvider);
+
+    // Escuchar cambios de estado para navegación
+    ref.listen(contactProvider, (previous, next) {
+      // Navegar a pantalla de respuesta en éxito
+      if (next.formWasSubmitted &&
+          next.successMessage.isNotEmpty &&
+          next.errorMessage.isEmpty) {
+        context.pushReplacement('/contact-response');
+      }
+
+      // Mostrar mensaje de error
+      if (next.errorMessage.isNotEmpty && !next.isLoading) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    });
+
+    return AppLayout(
+      title: 'Contacto',
+      child: Column(
+        children: [
+          // Instrucciones
+          const Text(
+            'Escribe tu comentario y te contactaremos a la mayor brevedad posible',
+          ),
+
+          // Campo de mensaje
+          TextFormField(
+            controller: _messageController,
+            autofocus: true,
+            maxLines: 8,
+            decoration: InputDecoration(
+              hintText: 'Describe tu duda o problema...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            onChanged: (value) {
+              ref.read(contactProvider.notifier).updateMessage(value);
+            },
+          ),
+
+          // Selector de archivo
+          if (contactState.file != null)
+            _buildSelectedFileWidget(contactState)
+          else
+            _buildFilePickerButton(),
+
+          // Botón de envío
+          PrimaryBtn(
+            text: 'Enviar mensaje',
+            onPressed: contactState.canSubmit
+                ? () => ref.read(contactProvider.notifier).submitForm()
+                : null,
+            isLoading: contactState.isLoading,
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+#### **\_buildSelectedFileWidget()**
+
+Widget para mostrar archivo adjunto:
+
+```dart
+Widget _buildSelectedFileWidget(ContactState state) {
+  return Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      border: Border.all(color: AppTheme.primary),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.attach_file, color: AppTheme.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            state.fileName,
+            style: const TextStyle(color: AppTheme.primary),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.close, color: AppTheme.negative),
+          onPressed: () => ref.read(contactProvider.notifier).removeFile(),
+        ),
+      ],
+    ),
+  );
+}
+```
+
+#### **\_buildFilePickerButton()**
+
+Botón para seleccionar archivo:
+
+```dart
+Widget _buildFilePickerButton() {
+  return OutlinedBtn(
+    text: 'Adjuntar archivo (PDF o JPG)',
+    onPressed: () => ref.read(contactProvider.notifier).pickFile(),
+    prefixIcon: const Icon(Icons.attach_file),
+  );
+}
+```
+
+#### 2. ✅ ContactResponseScreen
+
+-   **Ruta**: `/contact-response`
+-   **Propósito**: Pantalla de confirmación de envío exitoso
+-   **Funcionalidad**:
+    -   Mensaje de éxito claro y visible
+    -   Icono de confirmación visual
+    -   Información sobre próximos pasos
+    -   Botón para continuar a la aplicación
+
+**Componentes principales:**
+
+```dart
+class ContactResponseScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contactState = ref.watch(contactProvider);
+
+    return AppLayout(
+      title: 'Contacto',
+      child: Column(
+        children: [
+          // Ícono de éxito
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppTheme.correct.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_circle_outline,
+              color: AppTheme.correct,
+              size: 50,
+            ),
+          ),
+
+          // Mensaje de éxito
+          Text(
+            contactState.successMessage.isNotEmpty
+                ? contactState.successMessage
+                : '¡Tu mensaje ha sido enviado exitosamente!',
+            style: const TextStyle(
+              color: AppTheme.correct,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          // Información adicional
+          Text(
+            'Te contactaremos a la mayor brevedad posible.',
+            style: TextStyle(
+              color: AppTheme.darkBlue.withValues(alpha: 0.7),
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          // Botón de continuar
+          PrimaryBtn(
+            text: 'Continuar',
+            onPressed: () {
+              ref.read(contactProvider.notifier).resetForm();
+              context.go('/my-loan');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **POST** `/client/contact`
+
+**Propósito**: Enviar mensaje de contacto con archivo adjunto opcional
+
+**Headers Requeridos**:
+
+```http
+POST /client/contact HTTP/1.1
+Host: api.pisto.co
+Authorization: Bearer {jwt_token}
+Content-Type: multipart/form-data
+X-Client-Version: 1.0.0
+X-Device-ID: {device_identifier}
+```
+
+**Request Body (multipart/form-data)**:
+
+```
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="text"
+
+Escribo para reportar un problema con mi préstamo #12345. El sistema no me permite realizar el pago programado para hoy.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="comprobante.jpg"
+Content-Type: image/jpeg
+
+[Binary file data]
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "message": "Tu mensaje ha sido recibido. Te contactaremos dentro de 24 horas."
+}
+```
+
+**Error 422 (Validación)**:
+
+```json
+{
+    "errors": [
+        {
+            "message": "El mensaje no puede estar vacío"
+        }
+    ]
+}
+```
+
+**Error 413 (Archivo muy grande)**:
+
+```json
+{
+    "errors": [
+        {
+            "message": "El archivo excede el tamaño máximo permitido (5MB)"
+        }
+    ]
+}
+```
+
+**Error 401 (Unauthorized)**:
+
+```json
+{
+    "message": "Usuario no autenticado"
+}
+```
+
+### 🔒 Características de la API
+
+-   **Autenticación requerida**: Solo usuarios autenticados pueden enviar mensajes
+-   **Multipart support**: Manejo de archivos adjuntos
+-   **Validación de contenido**: Verificación de formato y tamaño
+-   **Respuesta inmediata**: Confirmación de recepción del mensaje
+-   **Rate limiting**: Prevención de abusos y spam
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Validación**
+
+```dart
+// Mensaje vacío
+EmptyMessageException {
+  message: "El mensaje no puede estar vacío",
+  suggestion: "Por favor, describe tu duda o problema",
+}
+
+// Mensaje muy corto
+TooShortMessageException {
+  message: "El mensaje es demasiado corto",
+  minLength: 10,
+  suggestion: "Proporciona más detalles sobre tu consulta",
+}
+
+// Archivo no permitido
+InvalidFileException {
+  message: "Tipo de archivo no permitido",
+  allowedTypes: ["PDF", "JPG", "JPEG"],
+  suggestion: "Selecciona un archivo PDF o imagen JPG",
+}
+```
+
+#### **2. Errores de Archivo**
+
+```dart
+// Archivo muy grande
+FileTooLargeException {
+  message: "El archivo excede el tamaño máximo permitido",
+  maxSize: "5MB",
+  currentSize: "8.2MB",
+  suggestion: "Comprime el archivo o selecciona uno más pequeño",
+}
+
+// Error al seleccionar archivo
+FilePickerException {
+  message: "Error al seleccionar archivo",
+  details: "Permiso denegado o archivo corrupto",
+  canRetry: true,
+}
+```
+
+#### **3. Errores de Conectividad**
+
+```dart
+// Error de red
+NetworkException {
+  message: "Error de conexión. Verifica tu conectividad.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(contactProvider),
+}
+
+// Timeout
+TimeoutException {
+  message: "Tiempo de espera agotado. Intente nuevamente.",
+  canRetry: true,
+  retryDelay: Duration(seconds: 5),
+}
+```
+
+#### **4. Errores del Servidor**
+
+```dart
+// Error interno
+ServerException {
+  message: "Error temporal del servidor. Intente más tarde.",
+  canRetry: true,
+  retryAfter: 300, // 5 minutos
+}
+
+// Servicio no disponible
+ServiceUnavailableException {
+  message: "Servicio de contacto temporalmente no disponible",
+  canRetry: true,
+  retryAfter: 600, // 10 minutos
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+class ContactRetryStrategy {
+  static const int maxRetries = 3;
+  static const Duration baseDelay = Duration(seconds: 2);
+
+  static Future<ContactResponseDto> retryWithBackoff(
+    Future<ContactResponseDto> Function() sendCall,
+  ) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await sendCall();
+      } catch (e) {
+        if (attempt == maxRetries) rethrow;
+
+        final delay = baseDelay * math.pow(2, attempt - 1);
+        await Future.delayed(delay);
+      }
+    }
+    throw ContactException(
+      'No se pudo enviar el mensaje después de $maxRetries intentos',
+    );
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Botón de reintentar manual** en pantalla de error
+-   **Indicador claro del problema** con mensaje específico
+-   **Opción de guardar borrador** para continuar más tarde
+-   **Contacto alternativo** si el formulario no funciona
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Mensaje**
+
+    - El mensaje no puede estar vacío
+    - Longitud mínima de 10 caracteres
+    - Longitud máxima de 2000 caracteres
+    - Sin caracteres peligrosos (sanitización)
+
+2. **Validación de Archivo**
+
+    - Solo formatos permitidos: PDF, JPG, JPEG
+    - Tamaño máximo: 5MB
+    - Archivo no corrupto
+    - Nombre de archivo válido
+
+3. **Validación de Formulario**
+    - Mensaje requerido y válido
+    - Archivo opcional pero validado si presente
+    - Estado de envío controlado
+    - Prevención de envíos duplicados
+
+### 🔍 Lógica de Validación
+
+#### **Validación de Mensaje**
+
+```dart
+class ContactMessageValidator {
+  static ContactMessageValidationError? validate(String value) {
+    if (value.isEmpty) {
+      return ContactMessageValidationError.empty;
+    }
+
+    if (value.trim().length < 10) {
+      return ContactMessageValidationError.tooShort;
+    }
+
+    if (value.length > 2000) {
+      return ContactMessageValidationError.tooLong;
+    }
+
+    // Sanitización básica
+    if (_containsDangerousContent(value)) {
+      return ContactMessageValidationError.unsafeContent;
+    }
+
+    return null; // Válido
+  }
+
+  static bool _containsDangerousContent(String content) {
+    final dangerousPatterns = [
+      RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false),
+      RegExp(r'javascript:', caseSensitive: false),
+      RegExp(r'on\w+\s*=', caseSensitive: false),
+    ];
+
+    return dangerousPatterns.any((pattern) => pattern.hasMatch(content));
+  }
+}
+```
+
+#### **Validación de Archivo**
+
+```dart
+class FileValidator {
+  static FileValidationError? validate(File? file) {
+    if (file == null) return null; // Archivo opcional
+
+    // Validar tamaño
+    final fileSize = file.lengthSync();
+    if (fileSize > 5 * 1024 * 1024) { // 5MB
+      return FileValidationError.tooLarge;
+    }
+
+    // Validar extensión
+    final fileName = file.path.toLowerCase();
+    final allowedExtensions = ['.pdf', '.jpg', '.jpeg'];
+
+    if (!allowedExtensions.any((ext) => fileName.endsWith(ext))) {
+      return FileValidationError.invalidType;
+    }
+
+    // Validar que el archivo existe y es legible
+    if (!file.existsSync()) {
+      return FileValidationError.notFound;
+    }
+
+    return null; // Válido
+  }
+
+  static String formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}
+```
+
+### 🛡️ Consideraciones de Seguridad
+
+-   Sanitización de contenido para prevenir XSS
+-   Validación de tipos de archivo para prevenir malware
+-   Límites de tamaño para prevenir ataques DoS
+-   Rate limiting para prevenir spam
+-   Autenticación obligatoria para todos los envíos
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/contact_test.dart
+void main() {
+  group('ContactNotifier', () {
+    test('debe validar mensaje correctamente', () {
+      // Test de validación de mensaje
+    });
+
+    test('debe manejar archivo adjunto', () {
+      // Test de selección y remoción de archivo
+    });
+
+    test('debe manejar error de envío', () {
+      // Test de manejo de NetworkException
+    });
+  });
+
+  group('ContactRepository', () {
+    test('debe enviar mensaje sin archivo', () {
+      // Test de envío simple
+    });
+
+    test('debe enviar mensaje con archivo', () {
+      // Test de envío con adjunto
+    });
+
+    test('debe manejar error de API', () {
+      // Test de manejo de errores HTTP
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/contact_form_screen_test.dart
+void main() {
+  testWidgets('debe mostrar error con mensaje vacío', (tester) async {
+    // Test de validación visual
+  });
+
+  testWidgets('debe permitir adjuntar archivo', (tester) async {
+    // Test de selección de archivo
+  });
+
+  testWidgets('debe mostrar loading durante envío', (tester) async {
+    // Test de estado de carga
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/contact_flow_test.dart
+void main() {
+  integrationTest('flujo completo de contacto', () async {
+    // Simular: menú → formulario → mensaje → archivo → envío → éxito
+  });
+
+  integrationTest('manejo de errores de red', () async {
+    // Test de recuperación ante fallos
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario envía mensaje exitosamente sin archivo
+-   ✅ Usuario envía mensaje con archivo PDF adjunto
+-   ✅ Usuario envía mensaje con imagen JPG adjunta
+-   ✅ Usuario maneja error de mensaje vacío
+-   ✅ Usuario remueve archivo seleccionado
+-   ✅ Usuario navega a pantalla de éxito después del envío
+
+#### **Casos Límite**
+
+-   🔄 Mensaje con longitud máxima permitida
+-   🔄 Archivo justo en el límite de tamaño
+-   🔄 Archivo con formato no permitido
+-   🔄 Conexión intermitente durante envío
+-   🔄 Múltiples intentos de envío fallidos
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 85% para lógica de negocio
+-   **Tests de validación**: 100% de reglas de validación
+-   **Tests de error**: Todos los tipos de error cubiertos
+-   **Tests de UI**: Interacciones críticas del usuario
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Datos**
+
+-   ✅ **Autenticación obligatoria**: Solo usuarios validados
+-   ✅ **Sanitización de contenido**: Prevención de XSS
+-   ✅ **Validación de archivos**: Tipos y tamaños seguros
+-   ✅ **Encriptación en tránsito**: Todos los datos viajan por HTTPS
+
+#### **2. Control de Acceso**
+
+-   ✅ **Validación de sesión**: Token JWT requerido
+-   ✅ **Rate limiting**: Límite de mensajes por tiempo
+-   ✅ **Auditoría completa**: Registro de todos los envíos
+-   ✅ **Prevención de spam**: Filtros y validaciones
+
+#### **3. Validaciones de Seguridad**
+
+```dart
+class ContactSecurityValidator {
+  static bool canSendMessage(UserEntity user) {
+    // Validar que el usuario está autenticado
+    if (user.id == null) return false;
+
+    // Validar que no hay envíos sospechosos recientes
+    if (_hasRecentSuspiciousActivity(user)) return false;
+
+    return true;
+  }
+
+  static String sanitizeMessage(String message) {
+    // Remover contenido peligroso
+    return message
+        .replaceAll(RegExp(r'<[^>]*>'), '') // Remove HTML tags
+        .replaceAll(RegExp(r'javascript:'), '') // Remove JS protocols
+        .replaceAll(RegExp(r'on\w+\s*='), '') // Remove event handlers
+        .trim();
+  }
+
+  static bool isFileTypeAllowed(String fileName) {
+    final allowedTypes = ['.pdf', '.jpg', '.jpeg'];
+    final extension = fileName.toLowerCase().split('.').last;
+    return allowedTypes.contains('.$extension');
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Los mensajes son tratados como información confidencial
+-   Los archivos adjuntos se procesan de forma segura
+-   Auditoría completa para cumplimiento normativo
+-   Eliminación segura de datos temporales
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureContactService {
+  Future<ContactResponseDto> sendSecureMessage(
+    String message,
+    File? file,
+    UserContext user,
+  ) async {
+    try {
+      // 1. Validar autenticación
+      if (!_securityValidator.canSendMessage(user)) {
+        throw UnauthorizedException('Usuario no autorizado');
+      }
+
+      // 2. Sanitizar contenido
+      final sanitizedMessage = _securityValidator.sanitizeMessage(message);
+
+      // 3. Validar archivo si existe
+      if (file != null && !_securityValidator.isFileTypeAllowed(file.path)) {
+        throw InvalidFileException('Tipo de archivo no permitido');
+      }
+
+      // 4. Enviar de forma segura
+      final result = await _repository.sendContact(
+        message: sanitizedMessage,
+        file: file,
+      );
+
+      // 5. Registrar para auditoría
+      _auditLogger.logContactMessage(user.id, sanitizedMessage, file != null);
+
+      return result;
+    } catch (e) {
+      _auditLogger.logContactError(user.id, e);
+      throw SecureContactException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    file_picker: ^6.0.0 # Selección de archivos
+    dio: ^5.3.0 # Cliente HTTP
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/contact/
+
+# Análisis estático
+flutter analyze lib/features/contact/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos o providers
+2. **State Management**: Usar `keepAlive: true` para persistencia durante selección de archivos
+3. **External Flow**: Prevenir refresh de autenticación durante file picker
+4. **Validation**: Validación local y backend para mejor UX
+5. **Error Handling**: Manejo específico para cada tipo de error
+6. **Security**: Sanitización de contenido y validación de archivos
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos que utilizan Contact
+
+#### **AppSidebarLayout**
+
+-   Acceso desde menú lateral de navegación
+-   Integración con navegación principal
+
+#### **Router**
+
+-   Rutas `/contact` y `/contact-response` registradas
+-   Navegación automática entre pantallas
+
+#### **HttpClient**
+
+-   Compartición de configuración de red
+-   Interceptores de autenticación y errores
+
+#### **ExternalFlowProvider**
+
+-   Manejo del ciclo de vida durante file picker
+-   Prevención de redirecciones no deseadas
+
+#### **FilePicker**
+
+-   Selección nativa de archivos del dispositivo
+-   Soporte para formatos específicos
+
+### 🔄 Flujo de Datos
+
+```
+AppSidebarLayout
+  ↓
+ContactFormScreen
+  ↓
+ContactNotifier
+  ↓
+ContactRepository
+  ↓
+HttpClient
+  ↓
+API Backend (/client/contact)
+  ↓
+ContactResponseDto
+  ↓
+ContactResponseScreen
+```
