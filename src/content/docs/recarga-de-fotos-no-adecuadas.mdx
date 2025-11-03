@@ -1,0 +1,833 @@
+---
+title: Flujo de recarga de fotos no adecuadas
+slug: recarga-de-fotos-no-adecuadas
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de recarga de fotos no adecuadas. Gestión completa del proceso de recaptura y subida de documentos de identificación.
+---
+
+## Descripción General
+
+La funcionalidad de **Recarga de Fotos No Adecuadas** (`reload_photos`) es un módulo especializado que permite a los usuarios volver a capturar y subir sus documentos de identificación cuando las imágenes originales no cumplen con los estándares de calidad requeridos. Este flujo se activa cuando el sistema detecta que las fotos del DUI (frente, reverso) o selfie no son adecuadas para el proceso de verificación de identidad.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Detección de    │────▶│ Pantalla de      │────▶│ Captura con     │────▶│ Subida a         │────▶│ Confirmación    │
+│ Fotos Inadecuadas│     │ Recarga de Fotos │     │ Cámara           │     │ Servidor         │     │ de Éxito        │
+│ (Sistema)       │     │ (Instrucciones)  │     │ (3 imágenes)     │     │ (Validación)     │     │ (Resultado)      │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Automática           ✓ Manual            ✓ Manual             ✓ Automática         ✓ Automática
+```
+
+### ✨ Características Principales
+
+-   ✅ **Detección automática**: Identificación de imágenes que no cumplen estándares
+-   ✅ **Flujo guiado**: Instrucciones claras para recapturar documentos
+-   ✅ **Captura con cámara**: Integración nativa con cámara del dispositivo
+-   ✅ **Validación en tiempo real**: Feedback inmediato sobre calidad de imagen
+-   ✅ **Subida progresiva**: Cada imagen se sube individualmente
+-   ✅ **Manejo robusto de errores**: Recuperación ante fallos de cámara o red
+-   ✅ **Estado persistente**: Mantiene progreso durante navegación
+-   ✅ **Logging completo**: Auditoría de todas las operaciones
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+La recarga de fotos es necesaria cuando:
+
+-   **Tus fotos no son claras**: Las imágenes originales están borrosas o oscuras
+-   **Documentos incompletos**: Falta información visible en el DUI
+-   **Calidad insuficiente**: Las imágenes no cumplen los requisitos de verificación
+-   **Selfie inadecuada**: La foto de tu rostro no es clara o reciente
+
+### 📱 Pasos para recargar tus fotos
+
+#### Paso 1: Notificación del problema
+
+El sistema te notificará cuando detecte un problema:
+
+-   📩 **Mensaje claro**: "Tus fotos no cumplen los requisitos de calidad"
+-   📋 **Instrucciones específicas**: Explicación de qué necesita ser corregido
+-   🔍 **Ejemplos visuales**: Referencias de fotos adecuadas vs inadecuadas
+
+#### Paso 2: Preparación para la recarga
+
+Antes de comenzar:
+
+1. ✅ **Busca un lugar bien iluminado**
+2. ✅ **Limpia la cámara de tu teléfono**
+3. ✅ **Prepara tu DUI** (frente y reverso)
+4. ✅ **Asegúrate de estar en un lugar tranquilo**
+
+#### Paso 3: Captura del frente del DUI
+
+-   📸 **Enfoca bien**: Asegúrate que el texto sea legible
+-   💡 **Buena iluminación**: Sin sombras sobre el documento
+-   📏 **Centra el DUI**: Todo el documento debe ser visible
+-   ✅ **Sin reflejos**: Evita brillos que oculten información
+-   🔄 **Reintenta si es necesario**: Puedes tomar la foto varias veces
+
+#### Paso 4: Captura del reverso del DUI
+
+-   📸 **Voltea el documento**: Captura la parte trasera
+-   🔍 **Verifica legibilidad**: El código de barras debe ser visible
+-   💡 **Misma iluminación**: Consistente con la foto del frente
+-   📏 **Marco completo**: No cortes ningún borde
+-   ✅ **Revisa la calidad**: Confirma que se lee claramente
+
+#### Paso 5: Captura de selfie
+
+-   📸 **Mira directamente a la cámara**: Sin girar la cabeza
+-   💡 **Iluminación frontal**: Luz en tu rostro, no detrás
+-   😐 **Expresión neutral**: Sin sonrisas exageradas ni gestos
+-   🎯 **Fondo simple**: Sin elementos que distraigan
+-   👔 **Apariencia apropiada**: Sin accesorios que cubran tu rostro
+
+#### Paso 6: Proceso de envío
+
+Una vez capturadas las tres fotos:
+
+-   ⏳ **Subida automática**: Las imágenes se envían al servidor
+-   🔄 **Validación**: El sistema verifica la calidad
+-   📊 **Progreso visible**: Verás el estado de cada imagen
+-   ✅ **Confirmación**: Recibirás mensaje de éxito
+
+#### Paso 7: Resultado final
+
+**Si es exitoso:**
+
+-   🎉 **Fotos actualizadas**: Tus documentos han sido recargados
+-   📧 **Notificación**: Recibirás confirmación del cambio
+-   🏠 **Continúa el proceso**: Podrás seguir con tu solicitud
+-   📱 **Próximos pasos**: El sistema te indicará qué hacer después
+
+**Si hay errores:**
+
+-   ❌ **Mensaje específico**: Sabrás exactamente qué corregir
+-   🔄 **Opción de reintentar**: Podrás recapturar las fotos necesarias
+-   📞 **Soporte disponible**: Podrás contactar ayuda si persisten los problemas
+
+### ⚠️ Consejos Importantes
+
+-   **Paciencia**: Tómate el tiempo necesario para capturar buenas fotos
+-   **Calidad sobre velocidad**: Es mejor hacerlo bien que rápido
+-   **Revisa antes de enviar**: Confirma que todas las imágenes sean claras
+-   **Estable conexión**: Asegúrate de tener buena señal de internet
+-   **Sigue las instrucciones**: Las guías visuales son muy útiles
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo sigue la arquitectura establecida en el proyecto Pisto con separación de responsabilidades clara:
+
+```
+reload_photos/
+├── models/                      # DTOs y entidades de datos
+│   ├── reload_images_request.dart    # Payload para recarga
+│   └── reload_images_response.dart   # Respuesta del servidor
+├── providers/                   # Gestión de estado con Riverpod
+│   └── reload_photos_provider.dart   # Estado principal del flujo
+├── repositories/               # Capa de acceso a datos
+│   └── reload_images_repository.dart # Comunicación con la API
+├── screens/                    # Interfaces de usuario
+│   ├── reload_photos_screen.dart     # Pantalla principal
+│   └── reload_photos_success_screen.dart # Pantalla de éxito
+└── widgets/                    # Componentes reutilizables
+```
+
+### 📊 Models (Entidades de Datos)
+
+#### **ReloadImagesRequest**
+
+Payload para enviar las imágenes recargadas:
+
+```dart
+@freezed
+class ReloadImagesRequest with _$ReloadImagesRequest {
+  const factory ReloadImagesRequest({
+    required String imageFrontIdCard,    // URL del frente del DUI
+    required String imageBackIdCard,     // URL del reverso del DUI
+    required String imageSelfie,         // URL de la selfie
+  }) = _ReloadImagesRequest;
+}
+```
+
+#### **ReloadImagesResponse**
+
+Respuesta del servidor después de procesar las imágenes:
+
+```dart
+@freezed
+class ReloadImagesResponse with _$ReloadImagesResponse {
+  const factory ReloadImagesResponse({
+    required String message,             // Mensaje de confirmación
+  }) = _ReloadImagesResponse;
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **ReloadPhotosNotifier**
+
+StateNotifier principal con manejo de imágenes individuales:
+
+```dart
+@freezed
+class ReloadPhotosState with _$ReloadPhotosState {
+  const factory ReloadPhotosState({
+    @Default(false) bool isLoading,           // Estado general de carga
+    @Default('') String errorMessage,         // Error general
+    @Default(ImageUploadState()) ImageUploadState frontIdCard,  // Estado frente DUI
+    @Default(ImageUploadState()) ImageUploadState backIdCard,   // Estado reverso DUI
+    @Default(ImageUploadState()) ImageUploadState selfie,       // Estado selfie
+    @Default(false) bool isValid,             // Si todas las imágenes están listas
+    @Default(false) bool isSubmitting,        // Enviando al servidor
+    @Default(false) bool isSubmitted,         // Proceso completado
+    String? successMessage,                   // Mensaje de éxito
+  }) = _ReloadPhotosState;
+}
+
+@Riverpod(keepAlive: true)
+class ReloadPhotosNotifier extends _$ReloadPhotosNotifier {
+  // Métodos principales:
+  // - Future<void> captureAndUploadImage(ImageType imageType)
+  // - Future<void> submitReloadImages()
+  // - void clearImageError(ImageType imageType)
+  // - void resetState()
+  // - Map<String, String> getUploadedImageUrls()
+}
+```
+
+#### **ImageUploadState**
+
+Estado individual para cada imagen:
+
+```dart
+@freezed
+class ImageUploadState with _$ImageUploadState {
+  const factory ImageUploadState({
+    @Default(false) bool isUploading,        // Subiendo imagen
+    @Default('') String errorMessage,         // Error específico
+    String? imageUrl,                        // URL de la imagen subida
+    String? localImagePath,                  // Path local temporal
+  }) = _ImageUploadState;
+}
+```
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **ReloadImagesRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+class ReloadImagesRepository {
+  // POST /client/reload-images
+  Future<ReloadImagesResponse> reloadImages(ReloadImagesRequest request);
+}
+
+// Manejo específico de errores
+enum ReloadImagesExceptionType {
+  network,      // Problemas de conectividad
+  validation,   // Datos inválidos
+  unauthorized, // No autenticado
+  forbidden,    // Permiso denegado
+  unknown,      // Error desconocido
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Navegación
+
+```
+Detección de problema (Sistema)
+  ↓
+/reload-photos (Pantalla principal)
+  ├─→ [Capturar frente DUI] → Subida individual → Validación local
+  ├─→ [Capturar reverso DUI] → Subida individual → Validación local
+  ├─→ [Capturar selfie] → Subida individual → Validación local
+  └─→ [Enviar todas] → POST /client/reload-images → /reload-photos/success
+```
+
+### 📊 Diagrama de Estado
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    ReloadPhotosNotifier                         │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → loading → uploading → submitting → completed │
+│                                                              ↑ error │
+├─────────────────────────────────────────────────────────────────┤
+│  Imágenes:                                                     │
+│  - frontIdCard: ImageUploadState (uploading, url, error)       │
+│  - backIdCard: ImageUploadState (uploading, url, error)        │
+│  - selfie: ImageUploadState (uploading, url, error)            │
+├─────────────────────────────────────────────────────────────────┤
+│  Validación:                                                   │
+│  - isValid: true solo si todas las imágenes tienen URL         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 🔄 Ciclo de Vida
+
+1. **Detección → Navegación**: Sistema detecta problema y redirige
+2. **Captura → Subida**: Cada imagen se captura y sube individualmente
+3. **Validación → Estado**: Se actualiza estado según resultado de cada subida
+4. **Envío Final → Confirmación**: Se envían todas las URLs juntas
+5. **Éxito → Dashboard**: Navegación a pantalla de éxito y retorno
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 📸 ReloadPhotosScreen
+
+-   **Ruta**: `/reload-photos`
+-   **Propósito**: Interfaz principal para recapturar documentos
+-   **Funcionalidad**:
+    -   Instrucciones claras sobre el proceso
+    -   Tres cards para capturar cada imagen
+    -   Estado visual de cada imagen (pendiente/subida/error)
+    -   Botón de envío habilitado solo cuando todas están listas
+    -   Manejo de permisos de cámara
+
+#### 2. 🎉 ReloadPhotosSuccessScreen
+
+-   **Ruta**: `/reload-photos/success`
+-   **Propósito**: Confirmación de proceso completado
+-   **Funcionalidad**:
+    -   Mensaje de éxito con detalles
+    -   Información sobre próximos pasos
+    -   Botón para continuar al flujo principal
+    -   Limpieza automática del estado
+
+### 🧩 Componentes Reutilizables
+
+#### **ImageUploadCard**
+
+Componente visual para cada tipo de imagen:
+
+```dart
+class ImageUploadCard extends StatelessWidget {
+  final ImageType imageType;
+  final ImageUploadState imageState;
+  final VoidCallback onCapture;
+  final VoidCallback onClearError;
+
+  // Muestra: estado actual, preview, botón de captura, mensajes de error
+}
+```
+
+#### **CameraPermissionHandler**
+
+Manejador de permisos de cámara:
+
+```dart
+class CameraPermissionHandler {
+  static Future<bool> requestCameraPermission();
+  static void showPermissionDeniedDialog();
+  static void openAppSettings();
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **POST** `/client/reload-images`
+
+**Propósito**: Enviar las URLs de las imágenes recargadas para procesamiento
+
+**Headers Requeridos**:
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```json
+{
+    "imageFrontIdCard": "https://cdn.pisto.co/images/front_dui_123.jpg",
+    "imageBackIdCard": "https://cdn.pisto.co/images/back_dui_123.jpg",
+    "imageSelfie": "https://cdn.pisto.co/images/selfie_123.jpg"
+}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "message": "Imágenes recargadas exitosamente. Tu verificación continuará en breve."
+}
+```
+
+**Error 422 (Validation Error)**:
+
+```json
+{
+    "message": "Una o más imágenes no cumplen los requisitos",
+    "errors": {
+        "imageSelfie": ["La selfie no es clara o el rostro no es visible"]
+    }
+}
+```
+
+**Error 401 (Unauthorized)**:
+
+```json
+{
+    "message": "No autenticado. Por favor inicia sesión nuevamente."
+}
+```
+
+### 🌐 Integración con Image Upload
+
+El flujo utiliza el endpoint de subida de imágenes existente:
+
+```dart
+// POST /client/upload-image
+{
+  "image": "base64_encoded_image",
+  "imageType": "frontIdCard" | "backIdCard" | "selfie"
+}
+
+// Response
+{
+  "imageUrl": "https://cdn.pisto.co/images/..."
+}
+```
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Cámara**
+
+```dart
+// Permiso denegado
+CameraPermissionException {
+  message: "Se requiere acceso a la cámara para continuar",
+  action: "request_permission",
+}
+
+// Cámara no disponible
+CameraUnavailableException {
+  message: "No se pudo acceder a la cámara del dispositivo",
+  canRetry: true,
+}
+```
+
+#### **2. Errores de Subida**
+
+```dart
+// Error de red durante subida
+ImageUploadException {
+  message: "Error al subir la imagen. Verifica tu conexión.",
+  imageType: "frontIdCard",
+  canRetry: true,
+}
+
+// Formato no soportado
+ImageFormatException {
+  message: "Formato de imagen no soportado. Usa JPG o PNG.",
+  imageType: "selfie",
+}
+```
+
+#### **3. Errores de Validación**
+
+```dart
+// Imagen de baja calidad
+ImageQualityException {
+  message: "La imagen es muy borrosa. Intenta capturarla nuevamente.",
+  suggestions: ["Usa mejor iluminación", "Mantén el dispositivo firme"],
+}
+
+// Documento incompleto
+DocumentIncompleteException {
+  message: "El DUI no está completo en la imagen.",
+  field: "frontIdCard",
+}
+```
+
+#### **4. Errores de Red**
+
+```dart
+// Conexión perdida
+NetworkException {
+  message: "Conexión a internet perdida. Reintentando...",
+  autoRetry: true,
+  maxRetries: 3,
+}
+
+// Timeout
+TimeoutException {
+  message: "La operación está tomando demasiado tiempo.",
+  canRetry: true,
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+@riverpod
+class ImageUploadRetryNotifier extends _$ImageUploadRetryNotifier {
+  int _retryCount = 0;
+  static const int maxRetries = 3;
+
+  Future<void> retryUpload(ImageType imageType, String localPath) async {
+    if (_retryCount < maxRetries) {
+      _retryCount++;
+      await Future.delayed(Duration(seconds: _retryCount * 2));
+      // Reintentar subida con backoff exponencial
+    }
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Opción de reintentar manual** cada imagen
+-   **Guardar imágenes localmente** como backup
+-   **Contactar soporte** con diagnóstico automático
+-   **Modo offline** permitiendo capturar y subir después
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Calidad de Imagen**
+
+    - Detección de borrosidad usando algoritmos de enfoque
+    - Verificación de iluminación adecuada
+    - Detección de reflejos y sombras
+    - Análisis de contraste y claridad
+
+2. **Validación de Contenido**
+
+    - Verificación de que el DUI esté completo
+    - Detección de texto legible en el documento
+    - Confirmación de presencia de rostro en selfie
+    - Validación de formato y orientación
+
+3. **Validaciones Técnicas**
+    - Tamaño y formato de archivo
+    - Resolución mínima requerida
+    - Ratio de aspecto apropiado
+    - Integridad del archivo de imagen
+
+### 🔍 Lógica de Validación
+
+#### **Validación Individual de Imágenes**
+
+```dart
+class ImageValidator {
+  static ValidationResult validateImage(File imageFile, ImageType type) {
+    switch (type) {
+      case ImageType.frontIdCard:
+        return _validateIdCardFront(imageFile);
+      case ImageType.backIdCard:
+        return _validateIdCardBack(imageFile);
+      case ImageType.selfie:
+        return _validateSelfie(imageFile);
+    }
+  }
+
+  static ValidationResult _validateIdCardFront(File image) {
+    // Verificar bordes completos, texto legible, sin reflejos
+    return ValidationResult(
+      isValid: true,
+      quality: 0.85,
+      issues: [],
+    );
+  }
+}
+```
+
+#### **Validación de Formulario Completo**
+
+```dart
+bool isFormValid(ReloadPhotosState state) {
+  return state.frontIdCard.imageUrl != null &&
+         state.backIdCard.imageUrl != null &&
+         state.selfie.imageUrl != null &&
+         state.frontIdCard.imageUrl!.isNotEmpty &&
+         state.backIdCard.imageUrl!.isNotEmpty &&
+         state.selfie.imageUrl!.isNotEmpty;
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Las imágenes locales se eliminan después de subirlas
+-   No se almacenan copias de seguridad de documentos sensibles
+-   Todas las comunicaciones se realizan través de HTTPS
+-   Las URLs de imágenes tienen tiempo de expiración limitado
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/reload_photos_test.dart
+void main() {
+  group('ReloadPhotosNotifier', () {
+    test('debe manejar captura y subida de imagen correctamente', () {
+      // Test de flujo completo de una imagen
+    });
+
+    test('debe validar formulario cuando todas las imágenes están listas', () {
+      // Test de validación de estado completo
+    });
+
+    test('debe manejar errores de cámara apropiadamente', () {
+      // Test de manejo de excepciones de cámara
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/reload_photos_screen_test.dart
+void main() {
+  testWidgets('debe mostrar estados de carga correctamente', (tester) async {
+    // Test de estados visuales durante subida
+  });
+
+  testWidgets('debe habilitar botón de envío solo cuando es válido', (tester) async {
+    // Test de lógica de habilitación de botones
+  });
+
+  testWidgets('debe mostrar mensajes de error específicos', (tester) async {
+    // Test de visualización de errores
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/reload_photos_flow_test.dart
+void main() {
+  integrationTest('flujo completo de recarga de imágenes', () async {
+    // Simular detección → captura → subida → confirmación
+  });
+
+  integrationTest('manejo de interrupciones durante el flujo', () async {
+    // Test de recuperación ante pérdida de conexión
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario completa recarga exitosamente en primer intento
+-   ✅ Usuario reintenta captura de imágenes con errores
+-   ✅ Usuario maneja pérdida de conexión durante subida
+-   ✅ Usuario deniega permisos de cámara y luego los concede
+-   ✅ Usuario navega hacia atrás y pierde progreso
+
+#### **Casos Límite**
+
+-   🔄 Cancelación del proceso en diferentes etapas
+-   🔄 Pérdida de conexión durante subida de imagen individual
+-   🔄 Token expirado durante el flujo
+-   🔄 Espacio de almacenamiento insuficiente
+-   🔄 Cámara en uso por otra aplicación
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 85% para código crítico
+-   **Tests de flujos**: 100% de los caminos principales
+-   **Tests de validación**: Todas las reglas de calidad de imagen
+-   **Tests de error**: Todos los tipos de error cubiertos
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Datos**
+
+-   ✅ **Eliminación local**: Imágenes temporales eliminadas después de subida
+-   ✅ **Encriptación en tránsito**: Todas las imágenes viajan por HTTPS
+-   ✅ **URLs temporales**: Las imágenes tienen expiración limitada
+-   ✅ **No caché sensible**: Sin almacenamiento local de documentos
+
+#### **2. Validaciones de Seguridad**
+
+```dart
+// Sanitización de archivos de imagen
+File sanitizeImageFile(File imageFile) {
+  // Verificar tipo de archivo real
+  // Eliminar metadatos EXIF
+  // Validar tamaño máximo
+  // Detectar patrones maliciosos
+}
+
+// Validación de integridad
+bool validateImageIntegrity(String imageUrl) {
+  // Verificar que la URL sea del dominio esperado
+  // Validar estructura de URL
+  // Detectar manipulaciones
+}
+```
+
+#### **3. Manejo de Sesión**
+
+-   ⏰ **Timeout de captura**: Límite de tiempo para tomar cada foto
+-   🔄 **Refresh automático**: Renovación de tokens durante subidas largas
+-   🚪 **Logout seguro**: Limpieza completa de datos sensibles
+
+### 🛡️ Consideraciones de Privacidad
+
+#### **Datos Sensibles**
+
+-   ❌ **No almacenar localmente**: Imágenes de DUI eliminadas del dispositivo
+-   ❌ **No hacer caché**: Sin copias temporales persistentes
+-   ✅ **Solo memoria volátil**: Datos en memoria durante el proceso
+-   ✅ **Eliminación garantizada**: Clean up explícito en todos los casos
+
+#### **Cumplimiento Normativo**
+
+-   📋 **Protección de datos**: Cumplimiento con leyes de privacidad
+-   🔍 **Audit trail**: Registro completo de operaciones con imágenes
+-   📊 **Minimización**: Solo datos necesarios para verificación
+-   🏦 **KYC compliance**: Estándares de conocimiento de cliente
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureImageUploadService {
+  Future<void> uploadImageSecurely(File imageFile, ImageType type) async {
+    try {
+      // 1. Validar y sanitizar imagen
+      final sanitizedFile = await _sanitizeImage(imageFile);
+
+      // 2. Subir con token seguro
+      final response = await _secureUploadRepository.upload(
+        sanitizedFile,
+        type,
+        options: SecureUploadOptions(
+          timeout: Duration(seconds: 30),
+          encryption: true,
+        ),
+      );
+
+      // 3. Eliminar archivo local inmediatamente
+      await _deleteLocalFile(imageFile);
+
+    } catch (e) {
+      // 4. Limpieza segura en caso de error
+      await _cleanupOnError(imageFile);
+      throw SecureUploadException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    go_router: ^12.0.0 # Navegación
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+    image_picker: ^1.0.0 # Acceso a cámara
+    dio: ^5.3.0 # Cliente HTTP
+    dotted_border: ^2.0.0 # UI para zonas de captura
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/reload_photos/
+
+# Análisis estático
+flutter analyze lib/features/reload_photos/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos o providers
+2. **State Management**: Usar `keepAlive: true` para persistencia durante navegación
+3. **Error Handling**: Implementar manejo específico para cada tipo de error
+4. **Testing**: Mantener cobertura >85% para código crítico
+5. **Memory Management**: Limpiar recursos de cámara y archivos temporales
+6. **Documentation**: Actualizar este documento con cada cambio significativo
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos Relacionados
+
+-   **FirstLoan**: Utiliza el mismo sistema de subida de imágenes
+-   **ImageUpload**: Comparte repositorio y lógica de subida
+-   **Auth**: Gestión de tokens y permisos
+-   **Network**: Configuración HTTP y manejo de errores
+-   **Logging**: Registro de operaciones y auditoría
+
+### 🔄 Flujo de Datos
+
+```
+Detección de problemas (External Flow)
+  ↓
+ReloadPhotos (Recaptura y validación)
+  ↓
+ImageUpload (Subida a CDN)
+  ↓
+ValidationAPI (Procesamiento y verificación)
+  ↓
+MainLoanFlow (Continuación del proceso)
+```
