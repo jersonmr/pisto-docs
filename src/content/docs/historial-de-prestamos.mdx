@@ -1,0 +1,1037 @@
+---
+title: Flujo de historial de préstamos
+slug: historial-de-prestamos
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de historial de préstamos. Gestión completa del proceso de consulta y visualización de préstamos.
+---
+
+## Descripción General
+
+La funcionalidad de **Historial de Préstamos** (`loans_history`) es el módulo central que permite a los usuarios consultar y gestionar el historial completo de sus préstamos, incluyendo detalles de operaciones, estados del préstamo y acceso a documentos legales. Este módulo proporciona una vista comprehensive de todas las transacciones pasadas y presentes, permitiendo a los usuarios tener control total sobre su historial financiero con Pisto.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Dashboard       │────▶│ Lista de         │────▶│ Detalle del      │────▶│ Documentos       │────▶│ Visor de PDF     │
+│ Principal       │     │ Préstamos        │     │ Préstamo         │     │ Legales          │     │ (Contrato/Nota)  │
+│ (Menú)          │     │ (Historial)      │     │ (Operaciones)    │     │ (Descarga)       │     │ (Visualización)  │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Acceso directo      ✓ Dinámica          ✓ Detallado         ✓ Seguro           ✓ Integrado
+```
+
+### ✨ Características Principales
+
+-   ✅ **Historial completo**: Lista de todos los préstamos del usuario
+-   ✅ **Detalles por préstamo**: Operaciones, montos y estados
+-   ✅ **Documentos legales**: Acceso a contratos y pagarés firmados
+-   ✅ **Visor PDF integrado**: Visualización nativa de documentos
+-   ✅ **Estado en tiempo real**: Información actualizada del préstamo
+-   ✅ **Navegación intuitiva**: Flujo natural entre lista y detalles
+-   ✅ **Manejo robusto de errores**: Recuperación ante fallos
+-   ✅ **Carga diferida**: Optimización de rendimiento con lazy loading
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve?
+
+El historial de préstamos te permite:
+
+-   **Ver todos tus préstamos**: Consulta préstamos pasados y presentes
+-   **Revisar operaciones**: Detalles de pagos, intereses y movimientos
+-   **Acceder a documentos legales**: Descarga tus contratos y pagarés
+-   **Conocer el estado actual**: Verifica el estado de cada préstamo
+-   **Tener control financiero**: Mantén registro completo de tus transacciones
+
+### 📱 Cómo acceder y usar el historial
+
+#### Paso 1: Acceder al historial
+
+Desde el menú principal de la app:
+
+1. 🏠 **Abre el menú lateral** - Toca el ícono de hamburguesa (☰)
+2. 📋 **Busca "Historial de Préstamos"** - Encuentra la opción en el menú
+3. 👆 **Presiona la opción** - Accederás a tu historial completo
+4. ⏳ **Espera la carga** - La app cargará tu historial automáticamente
+
+#### Paso 2: Explorar tu lista de préstamos
+
+En la pantalla principal del historial:
+
+**Información disponible:**
+
+-   📅 **Fecha del préstamo**: Cuándo solicitaste cada préstamo
+-   💰 **Monto total**: Cantidad que solicitaste
+-   📊 **Estado actual**: Pagado, activo, en proceso, etc.
+-   📄 **Número de contrato**: Identificador único de cada préstamo
+-   📈 **Información de pago**: Monto a pagar y fecha límite
+
+**Acciones disponibles:**
+
+-   👁️ **Ver detalles** - Toca cualquier préstamo para ver más información
+-   📱 **Navegación fluida** - Desliza para ver todos tus préstamos
+-   🔄 **Actualizar** - Tira hacia abajo para actualizar la lista
+
+#### Paso 3: Ver detalles de un préstamo específico
+
+Al tocar un préstamo, accedes a información detallada:
+
+**Información del préstamo:**
+
+-   📋 **Número de contrato**: Identificador único
+-   📅 **Fechas importantes**: Solicitud, aprobación y vencimiento
+-   💰 **Montos detallados**: Principal, intereses y total
+-   📊 **Estado actual**: Situación actual del préstamo
+
+**Historial de operaciones:**
+
+-   📈 **Cronología completa**: Todas las operaciones en orden
+-   💸 **Pagos realizados**: Montos y fechas de cada pago
+-   📊 **Saldos actualizados**: Cómo cambia tu saldo con cada operación
+-   🏷️ **Tipos de operación**: Desembolso, pago, interés, etc.
+
+#### Paso 4: Acceder a documentos legales
+
+Desde la pantalla de detalles del préstamo:
+
+**Documentos disponibles:**
+
+-   📄 **Contrato firmado**: Acuerdo original del préstamo
+-   📋 **Pagaré firmado**: Documento de pago
+-   📝 **Solicitud original**: Tu solicitud inicial
+
+**Cómo acceder:**
+
+1. 📄 **Busca "Documentos"** - Sección en la pantalla de detalles
+2. 👆 **Toca el documento** - Se abrirá el visor de PDF
+3. 📱 **Visualiza el documento** - Usa gestos para navegar
+4. 💾 **Opción de compartir** - Puedes enviar el documento por email o WhatsApp
+5. 📥 **Descarga local** - Guarda una copia en tu dispositivo
+
+#### Paso 5: Usar el visor de PDF
+
+El visor integrado te permite:
+
+**Navegación del documento:**
+
+-   👆 **Scroll vertical** - Desliza para navegar páginas
+-   🤏 **Pinch to zoom** - Acerca o aleja el contenido
+-   🔄 **Rotación** - Gira tu dispositivo para mejor visualización
+-   📄 **Indicador de páginas** - Ve en qué página estás
+
+**Funciones adicionales:**
+
+-   📤 **Compartir** - Envía el documento por otras apps
+-   💾 **Guardar** - Descarga copia local
+-   🔍 **Búsqueda** - Busca texto dentro del documento
+-   📱 **Modo pantalla completa** - Mejor experiencia de lectura
+
+### ⚠️ Información importante
+
+**Disponibilidad de documentos:**
+
+-   📄 Los documentos están disponibles según el estado del préstamo
+-   ⏳ Puede haber un pequeño delay para documentos recientes
+-   🔒 Algunos documentos requieren verificación de identidad
+
+**Consideraciones de privacidad:**
+
+-   🔐 Los documentos son sensibles y están protegidos
+-   📱 Solo tú puedes acceder a tus documentos
+-   💾 Las descargas locales son tu responsabilidad
+-   🚫 No compartas documentos con terceros no autorizados
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo sigue la arquitectura establecida en el proyecto Pisto con separación de responsabilidades clara:
+
+```
+loans_history/
+├── models/                      # DTOs y entidades de datos
+│   ├── loan_history.dart               # Préstamo individual en lista
+│   ├── loan_detail.dart                # Detalle completo del préstamo
+│   ├── loan_operation.dart             # Operación individual
+│   └── loans_history_response.dart     # Respuesta de API
+├── providers/                   # Gestión de estado con Riverpod
+│   ├── loans_history_provider.dart     # Estado de lista de préstamos
+│   └── loan_detail_provider.dart       # Estado de detalle individual
+├── repositories/               # Capa de acceso a datos
+│   └── loans_history_repository.dart   # Comunicación con la API
+├── screens/                    # Interfaces de usuario
+│   ├── loans_history_screen.dart       # Lista principal de préstamos
+│   ├── loan_history_detail_screen.dart # Detalle de préstamo
+│   └── loans_history_pdf_viewer_screen.dart # Visor de PDF
+└── widgets/                    # Componentes reutilizables
+```
+
+### 📊 Models (Entidades de Datos)
+
+#### **LoanHistory**
+
+Representa un préstamo en la lista del historial:
+
+```dart
+@freezed
+class LoanHistory with _$LoanHistory {
+  const factory LoanHistory({
+    required int loanId,                    // ID único del préstamo
+    required String contractNumber,         // Número de contrato
+    required int loanAmount,                // Monto del préstamo
+    required DateTime returnDate,           // Fecha de vencimiento
+    required double returnAmount,           // Monto total a pagar
+  }) = _LoanHistory;
+
+  factory LoanHistory.fromJson(Map<String, dynamic> json) =>
+      _$LoanHistoryFromJson(json);
+}
+```
+
+#### **LoanOperation**
+
+Representa una operación individual del préstamo:
+
+```dart
+@freezed
+class LoanOperation with _$LoanOperation {
+  const factory LoanOperation({
+    required int operationId,               // ID de la operación
+    required DateTime date,                 // Fecha de la operación
+    required String operation,              // Tipo de operación
+    double? amount,                         // Monto de la operación
+    double? balance,                        // Saldo después de operación
+    required int loanStatus,                // Estado del préstamo
+  }) = _LoanOperation;
+
+  const LoanOperation._();
+
+  // Determina si se pueden descargar documentos
+  bool get canDownloadDocuments => [7, 8, 9, 10, 11, 12].contains(loanStatus);
+}
+```
+
+#### **LoanDetail**
+
+Contiene el detalle completo con todas las operaciones:
+
+```dart
+@freezed
+class LoanDetail with _$LoanDetail {
+  const factory LoanDetail({
+    required List<LoanOperation> data,      // Lista de operaciones
+  }) = _LoanDetail;
+
+  const LoanDetail._();
+
+  // Métodos de conveniencia
+  bool get isEmpty => data.isEmpty;
+  bool get isNotEmpty => data.isNotEmpty;
+
+  // Obtiene el estado más reciente
+  int? get latestLoanStatus => data.isNotEmpty ? data.first.loanStatus : null;
+
+  // Verifica disponibilidad de documentos
+  bool get canDownloadDocuments =>
+      latestLoanStatus != null &&
+      [7, 8, 9, 10, 11, 12].contains(latestLoanStatus);
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **LoansHistoryNotifier**
+
+StateNotifier para la lista de préstamos:
+
+```dart
+@freezed
+class LoansHistoryState with _$LoansHistoryState {
+  const factory LoansHistoryState({
+    @Default(LoansHistoryStatus.initial) LoansHistoryStatus status,
+    LoansHistoryResponse? loansHistory,     // Lista completa de préstamos
+    String? personalDataPolicyUrl,          // URL de política de datos
+    String? termsOfServiceUrl,              // URL de términos y condiciones
+    String? errorMessage,                   // Error general
+  }) = _LoansHistoryState;
+}
+
+@Riverpod(keepAlive: true)
+class LoansHistoryNotifier extends _$LoansHistoryNotifier {
+  @override
+  LoansHistoryState build() {
+    // Auto-inicialización al crear el provider
+    Future.microtask(() => initialize());
+    return const LoansHistoryState();
+  }
+
+  // Métodos principales:
+  // - Future<void> initialize()
+  // - Future<void> fetchLoansHistory()
+  // - Future<void> _loadDocumentUrls()
+  // - void reset()
+}
+
+enum LoansHistoryStatus { initial, loading, loaded, error }
+```
+
+#### **LoanDetailNotifier**
+
+StateNotifier para el detalle individual:
+
+```dart
+@freezed
+class LoanDetailState with _$LoanDetailState {
+  const factory LoanDetailState({
+    @Default(LoanDetailStatus.initial) LoanDetailStatus status,
+    LoanDetail? loanDetail,                 // Detalle del préstamo
+    String? contractNumber,                 // Número de contrato
+    String? loanContractSignedUrl,          // URL contrato firmado
+    String? promissoryNoteSignedUrl,        // URL pagaré firmado
+    String? loanRequestUrl,                 // URL solicitud original
+    String? errorMessage,                   // Error específico
+  }) = _LoanDetailState;
+}
+
+@Riverpod(keepAlive: true)
+class LoanDetailNotifier extends _$LoanDetailNotifier {
+  // Métodos principales:
+  // - Future<void> loadLoanDetail(int loanId, String contractNumber)
+  // - void reset()
+}
+
+enum LoanDetailStatus { initial, loading, loaded, error }
+```
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **LoansHistoryRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+class LoansHistoryRepository {
+  // GET /client/loans-history
+  Future<LoansHistoryResponse> fetchLoansHistory();
+
+  // GET /client/loan-detail/{loanId}
+  Future<LoanDetail> fetchLoanDetail(int loanId);
+}
+
+// Manejo específico de errores
+enum LoansHistoryExceptionType {
+  networkError,      // Problemas de conectividad
+  unauthorizedError, // No autenticado
+  notFoundError,     // Recurso no encontrado
+  timeoutError,      // Tiempo de espera agotado
+  serverError,       // Error del servidor
+  unknown,           // Error desconocido
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Navegación
+
+```
+Menú Principal
+  ↓
+/loans-history (Lista de préstamos)
+  ├─→ [Seleccionar préstamo] → /loans-history/detail/{loanId}
+  │   ├─→ [Ver operaciones] → Timeline completo
+  │   ├─→ [Descargar documento] → /loans-history/pdf-viewer
+  │   └─→ [Compartir documento] → Share sheet nativo
+  └─→ [Pull to refresh] → Recargar lista
+```
+
+### 📊 Diagrama de Estado
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  LoansHistoryNotifier                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → loading → loaded → error                      │
+│                                                               ↑ refresh │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - loansHistory: LoansHistoryResponse?                         │
+│  - personalDataPolicyUrl: String?                              │
+│  - termsOfServiceUrl: String?                                  │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - initialize(): Auto-carga datos y URLs                       │
+│  - fetchLoansHistory(): Refresca lista manualmente             │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                   LoanDetailNotifier                           │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: initial → loading → loaded → error                      │
+│                                                               ↑ refresh │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - loanDetail: LoanDetail?                                     │
+│  - contractNumber: String?                                     │
+│  - loanContractSignedUrl: String?                              │
+│  - promissoryNoteSignedUrl: String?                            │
+│  - loanRequestUrl: String?                                     │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - loadLoanDetail(): Carga detalle y documentos en paralelo    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 🔄 Ciclo de Vida
+
+1. **Menú → Historial**: Navegación desde menú lateral
+2. **Auto-inicialización**: Carga automática de datos al entrar
+3. **Carga paralela**: Historial + URLs de documentos simultáneos
+4. **Selección → Detalle**: Navegación a préstamo específico
+5. **Carga de detalle**: Operaciones + URLs de documentos
+6. **Visor de PDF**: Navegación a visor integrado
+7. **Navegación back**: Retorno natural a lista o menú
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 📋 LoansHistoryScreen
+
+-   **Ruta**: `/loans-history`
+-   **Propósito**: Lista principal de todos los préstamos del usuario
+-   **Funcionalidad**:
+    -   Auto-carga de historial al entrar
+    -   Pull-to-refresh para actualizar manualmente
+    -   Estados: loading, empty, error, loaded
+    -   Navegación a detalles de cada préstamo
+    -   Acceso rápido a préstamo actual
+
+#### 2. 📄 LoanHistoryDetailScreen
+
+-   **Ruta**: `/loans-history/detail/{loanId}`
+-   **Propósito**: Vista detallada de un préstamo específico
+-   **Funcionalidad**:
+    -   Header con número de contrato y navegación back
+    -   Timeline de operaciones en orden cronológico
+    -   Sección de documentos legales descargables
+    -   Estados según disponibilidad de documentos
+    -   Indicadores visuales de estado del préstamo
+
+#### 3. 📱 LoansHistoryPdfViewerScreen
+
+-   **Ruta**: `/loans-history/pdf-viewer`
+-   **Propósito**: Visor integrado para documentos PDF
+-   **Funcionalidad**:
+    -   Visualización nativa de PDF
+    -   Controles de zoom y navegación
+    -   Opciones de compartir y guardar
+    -   Indicador de páginas y progreso
+    -   Manejo de errores de carga
+
+### 🧩 Componentes Reutilizables
+
+#### **LoanHistoryCard**
+
+Componente para mostrar préstamo en lista:
+
+```dart
+class LoanHistoryCard extends StatelessWidget {
+  final LoanHistory loan;
+  final VoidCallback onTap;
+
+  // Muestra: monto, fecha, estado, número de contrato
+}
+```
+
+#### **OperationTimelineItem**
+
+Componente para operación en timeline:
+
+```dart
+class OperationTimelineItem extends StatelessWidget {
+  final LoanOperation operation;
+  final bool isFirst;
+  final bool isLast;
+
+  // Muestra: fecha, tipo, monto, saldo con indicadores visuales
+}
+```
+
+#### **DocumentDownloadButton**
+
+Componente para descarga de documentos:
+
+```dart
+class DocumentDownloadButton extends StatelessWidget {
+  final String documentUrl;
+  final String documentName;
+  final bool isEnabled;
+
+  // Maneja: descarga, visor PDF, compartir
+}
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **GET** `/client/loans-history`
+
+**Propósito**: Obtener lista completa de préstamos del usuario
+
+**Headers Requeridos**:
+
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "data": [
+        {
+            "loanId": 123,
+            "contractNumber": "PST-2025-001",
+            "loanAmount": 50000,
+            "returnDate": "2025-12-03T00:00:00Z",
+            "returnAmount": 55000
+        },
+        {
+            "loanId": 122,
+            "contractNumber": "PST-2024-045",
+            "loanAmount": 30000,
+            "returnDate": "2024-10-15T00:00:00Z",
+            "returnAmount": 33000
+        }
+    ]
+}
+```
+
+**Error 401 (Unauthorized)**:
+
+```json
+{
+    "message": "No autorizado. Token inválido o expirado."
+}
+```
+
+**Error 404 (Not Found)**:
+
+```json
+{
+    "message": "Historial de préstamos no encontrado."
+}
+```
+
+#### **GET** `/client/loan-detail/{loanId}`
+
+**Propósito**: Obtener detalle completo de un préstamo específico
+
+**Path Parameters**:
+
+-   `loanId`: ID del préstamo a consultar
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "data": [
+        {
+            "operationId": 1001,
+            "date": "2025-11-03T10:30:00Z",
+            "operation": "Desembolso",
+            "amount": 50000.0,
+            "balance": 55000.0,
+            "loanStatus": 7
+        },
+        {
+            "operationId": 1002,
+            "date": "2025-11-10T14:15:00Z",
+            "operation": "Pago",
+            "amount": -5000.0,
+            "balance": 50000.0,
+            "loanStatus": 7
+        }
+    ]
+}
+```
+
+**Error 404 (Not Found)**:
+
+```json
+{
+    "message": "Préstamo no encontrado."
+}
+```
+
+### 🌐 Integración con Document Repository
+
+```dart
+// URLs de documentos específicos del préstamo
+GET /client/documents/loan-contract-signed/{loanId}
+GET /client/documents/promissory-note-signed/{loanId}
+GET /client/documents/loan-request/{loanId}
+
+// URLs de documentos generales
+GET /client/documents/personal-data-policy
+GET /client/documents/terms-of-service
+```
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Carga de Historial**
+
+```dart
+// Error de red
+NetworkException {
+  message: "Error de conexión. Verifique su conectividad.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(loansHistoryProvider),
+}
+
+// Timeout
+TimeoutException {
+  message: "Tiempo de espera agotado. Intente nuevamente.",
+  canRetry: true,
+}
+
+// No autorizado
+UnauthorizedException {
+  message: "Sesión expirada. Por favor inicie sesión nuevamente.",
+  action: "redirect_to_login",
+}
+```
+
+#### **2. Errores de Carga de Detalle**
+
+```dart
+// Préstamo no encontrado
+LoanNotFoundException {
+  message: "El préstamo solicitado no existe.",
+  action: "redirect_to_history",
+}
+
+// Error del servidor
+ServerException {
+  message: "Error temporal del servidor. Intente más tarde.",
+  canRetry: true,
+  retryAfter: 300, // 5 minutos
+}
+```
+
+#### **3. Errores de Documentos**
+
+```dart
+// Documento no disponible
+DocumentNotAvailableException {
+  message: "Este documento aún no está disponible.",
+  reason: "pending_approval",
+}
+
+// Error de carga de PDF
+PDFLoadException {
+  message: "No se pudo cargar el documento PDF.",
+  canRetry: true,
+  fallbackUrl: "download_alternative",
+}
+```
+
+#### **4. Errores del Visor PDF**
+
+```dart
+// Archivo corrupto
+CorruptFileException {
+  message: "El archivo PDF está dañado o es inválido.",
+  action: "download_fresh_copy",
+}
+
+// Memoria insuficiente
+MemoryException {
+  message: "El documento es muy grande para visualizarlo.",
+  action: "download_only",
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+@riverpod
+class HistoryRetryNotifier extends _$HistoryRetryNotifier {
+  int _retryCount = 0;
+  static const int maxRetries = 3;
+
+  Future<void> retryLoadHistory() async {
+    if (_retryCount < maxRetries) {
+      _retryCount++;
+      await Future.delayed(Duration(seconds: _retryCount * 2));
+      // Reintentar carga con backoff exponencial
+    }
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Opción de reintentar manual** la carga
+-   **Modo offline** con caché de datos básicos
+-   **Descarga alternativa** para documentos problemáticos
+-   **Contactar soporte** con diagnóstico automático
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Acceso**
+
+    - Verificación de autenticación del usuario
+    - Validación de permisos para préstamos específicos
+    - Control de acceso a documentos según estado
+
+2. **Validación de Datos**
+
+    - Formato correcto de IDs de préstamo
+    - Estructura válida de respuestas JSON
+    - Tipos de datos correctos (fechas, montos, estados)
+
+3. **Validaciones de Negocio**
+    - Usuario solo puede ver sus propios préstamos
+    - Documentos disponibles según estado del préstamo
+    - Operaciones en orden cronológico válido
+
+### 🔍 Lógica de Validación
+
+#### **Validación de Acceso a Documentos**
+
+```dart
+class DocumentAccessValidator {
+  static bool canDownloadDocument(int loanStatus) {
+    // Estados que permiten descarga de documentos
+    return [7, 8, 9, 10, 11, 12].contains(loanStatus);
+  }
+
+  static ValidationResult validateDocumentAccess(
+    int loanId,
+    int userId,
+    int loanStatus,
+  ) {
+    if (!canDownloadDocument(loanStatus)) {
+      return ValidationResult.invalid(
+        'Los documentos aún no están disponibles para este préstamo',
+      );
+    }
+
+    // Validar propiedad del préstamo
+    if (!_isLoanOwner(loanId, userId)) {
+      return ValidationResult.invalid(
+        'No tienes permiso para acceder a este documento',
+      );
+    }
+
+    return ValidationResult.valid();
+  }
+}
+```
+
+#### **Validación de Estados de Préstamo**
+
+```dart
+class LoanStatusValidator {
+  static String getLoanStatusDescription(int status) {
+    switch (status) {
+      case 1:
+        return 'Solicitado';
+      case 2:
+        return 'En revisión';
+      case 3:
+        return 'Aprobado';
+      case 7:
+        return 'Activo';
+      case 8:
+        return 'Pagado';
+      case 9:
+        return 'Vencido';
+      case 10:
+        return 'En cobranza';
+      case 11:
+        return 'Castigado';
+      case 12:
+        return 'Liquidado';
+      default:
+        return 'Desconocido';
+    }
+  }
+
+  static bool isLoanActive(int status) {
+    return [3, 7].contains(status);
+  }
+
+  static bool isLoanCompleted(int status) {
+    return [8, 12].contains(status);
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Los datos del historial solo son accesibles por el propietario
+-   Los documentos legales tienen control de acceso granular
+-   Las URLs de documentos tienen expiración temporal
+-   Auditoría completa de accesos a documentos sensibles
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/loans_history_test.dart
+void main() {
+  group('LoansHistoryNotifier', () {
+    test('debe cargar historial correctamente', () {
+      // Test de carga de lista de préstamos
+    });
+
+    test('debe manejar error de red apropiadamente', () {
+      // Test de manejo de excepciones de red
+    });
+
+    test('debe inicializar URLs de documentos', () {
+      // Test de carga paralela de URLs
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/loans_history_screen_test.dart
+void main() {
+  testWidgets('debe mostrar lista de préstamos correctamente', (tester) async {
+    // Test de renderizado de lista
+  });
+
+  testWidgets('debe mostrar estado vacío cuando no hay préstamos', (tester) async {
+    // Test de estado empty
+  });
+
+  testWidgets('debe navegar a detalles al tocar préstamo', (tester) async {
+    // Test de navegación
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/loans_history_flow_test.dart
+void main() {
+  integrationTest('flujo completo de historial', () async {
+    // Simular menú → lista → detalles → documentos
+  });
+
+  integrationTest('manejo de errores de carga', () async {
+    // Test de recuperación ante fallos
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario carga historial con múltiples préstamos
+-   ✅ Usuario navega a detalles de préstamo específico
+-   ✅ Usuario descarga y visualiza documento PDF
+-   ✅ Usuario maneja error de red durante carga
+-   ✅ Usuario comparte documento por email
+
+#### **Casos Límite**
+
+-   🔄 Historial vacío (primer vez del usuario)
+-   🔄 Préstamo sin documentos disponibles
+-   🔄 Documento PDF muy grande o corrupto
+-   🔄 Pérdida de conexión durante carga de detalles
+-   🔄 Token expirado durante navegación
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 85% para código crítico
+-   **Tests de flujos**: 100% de los caminos principales
+-   **Tests de validación**: Todas las reglas de acceso
+-   **Tests de error**: Todos los tipos de error cubiertos
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Datos**
+
+-   ✅ **Acceso restringido**: Solo propietario del préstamo
+-   ✅ **URLs temporales**: Documentos con expiración limitada
+-   ✅ **Encriptación en tránsito**: Todos los datos viajan por HTTPS
+-   ✅ **Validación de token**: Autenticación en cada petición
+
+#### **2. Validaciones de Seguridad**
+
+```dart
+// Validación de acceso a préstamo
+bool validateLoanAccess(int loanId, int userId) {
+  // Verificar que el préstamo pertenezca al usuario
+  // Validar token de autenticación
+  // Comprobar permisos específicos
+}
+
+// Sanitización de URLs de documentos
+String sanitizeDocumentUrl(String url) {
+  // Validar dominio permitido
+  // Verificar firma temporal
+  // Detectar manipulación
+}
+```
+
+#### **3. Manejo de Sesión**
+
+-   ⏰ **Timeout de documentos**: URLs expiran después de tiempo límite
+-   🔄 **Refresh automático**: Renovación de tokens durante navegación
+-   🚪 **Logout seguro**: Limpieza completa de caché sensible
+
+### 🛡️ Consideraciones de Privacidad
+
+#### **Datos Sensibles**
+
+-   ❌ **No almacenar localmente**: Documentos legales no guardados
+-   ❌ **No hacer caché**: URLs temporales no persisten
+-   ✅ **Solo memoria volátil**: Datos durante la sesión
+-   ✅ **Eliminación garantizada**: Clean up explícito en todos los casos
+
+#### **Cumplimiento Normativo**
+
+-   📋 **Protección financiera**: Cumplimiento con regulaciones de datos
+-   🔍 **Audit trail**: Registro completo de accesos a documentos
+-   📊 **Transparencia**: Información clara de estados y permisos
+-   🏦 **Banking compliance**: Estándares de manejo de información financiera
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureDocumentService {
+  Future<String> getSecureDocumentUrl(int loanId, DocumentType type) async {
+    try {
+      // 1. Validar acceso del usuario
+      await _validateDocumentAccess(loanId, type);
+
+      // 2. Obtener URL temporal firmada
+      final secureUrl = await _documentRepository.getSecureUrl(loanId, type);
+
+      // 3. Validar y sanitizar URL
+      final sanitizedUrl = _sanitizeDocumentUrl(secureUrl);
+
+      return sanitizedUrl;
+    } catch (e) {
+      _handleSecureDocumentError(e);
+      throw SecureDocumentException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    go_router: ^12.0.0 # Navegación
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+    json_annotation: ^4.8.0 # Serialización JSON
+    dio: ^5.3.0 # Cliente HTTP
+    intl: ^0.18.0 # Formato de fechas
+    pdf: ^3.10.0 # Visor de PDF (si aplica)
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    json_serializable: ^6.7.0 # Generación JSON
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/loans_history/
+
+# Análisis estático
+flutter analyze lib/features/loans_history/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos o providers
+2. **State Management**: Usar `keepAlive: true` para persistencia durante navegación
+3. **Error Handling**: Implementar manejo específico para cada tipo de error
+4. **Testing**: Mantener cobertura >85% para código crítico
+5. **Document Security**: No almacenar URLs de documentos localmente
+6. **Performance**: Usar carga diferida para listas largas
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos Relacionados
+
+-   **Auth**: Gestión de tokens y autenticación
+-   **MyLoan**: Información del préstamo activo actual
+-   **Documents**: Repositorio central de documentos legales
+-   **Network**: Configuración HTTP y manejo de errores
+-   **Shared**: Componentes UI reutilizables
+
+### 🔄 Flujo de Datos
+
+```
+Auth (Usuario autenticado)
+  ↓
+LoansHistory (Lista de préstamos)
+  ↓
+LoanDetail (Detalle específico)
+  ↓
+Documents (URLs seguras)
+  ↓
+PDFViewer (Visualización)
+```
