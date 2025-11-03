@@ -1,0 +1,1073 @@
+---
+title: Flujo de preguntas frecuentes
+slug: preguntas-frecuentes
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de preguntas frecuentes. Gestión completa del proceso de consulta y respuesta de preguntas frecuentes.
+---
+
+## Descripción General
+
+La funcionalidad de **Preguntas Frecuentes** (`faq`) es el sistema centralizado de ayuda y soporte que proporciona a los usuarios acceso instantáneo a información importante sobre la plataforma Pisto. Este módulo ofrece una interfaz intuitiva para consultar respuestas predefinidas sobre préstamos, pagos, seguridad, cuenta y otros temas relevantes, permitiendo a los usuarios resolver dudas comunes de forma autónoma sin necesidad de contactar soporte técnico.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Menú Principal   │────▶│ Pantalla FAQ     │────▶│ Lista de         │────▶│ Expansión de     │────▶│ Lectura de       │
+│ (Navegación)    │     │ (Carga inicial)  │     │ Preguntas        │     │ Respuesta        │     │ Respuesta        │
+│                 │     │                     │     │                     │     │                     │     │                     │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Acceso rápido      ✓ Carga desde API    ✓ Títulos visibles     ✓ Contenido completo   ✓ Información clara
+```
+
+### ✨ Características Principales
+
+-   ✅ **Acceso centralizado**: Único punto para todas las preguntas y respuestas
+-   ✅ **Carga dinámica**: Contenido actualizado desde backend en tiempo real
+-   ✅ **Interfaz expandible**: Diseño acordeón para fácil navegación
+-   ✅ **Búsqueda visual**: Organización clara por categorías implícitas
+-   ✅ **Actualización automática**: Pull-to-refresh para obtener contenido nuevo
+-   ✅ **Manejo robusto de errores**: Recuperación ante fallos de carga
+-   ✅ **Diseño responsive**: Optimizado para diferentes tamaños de pantalla
+-   ✅ **Experiencia offline**: Indicadores claros cuando no hay conexión
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirven las preguntas frecuentes?
+
+Las preguntas frecuentes te permiten:
+
+-   **Resolver dudas rápidas**: Respuestas inmediatas a preguntas comunes
+-   **Aprender sobre préstamos**: Información sobre procesos y requisitos
+-   **Entender pagos**: Detalles sobre fechas, montos y métodos
+-   **Conocer seguridad**: Cómo proteger tu cuenta y datos
+-   **Gestionar tu perfil**: Actualizar datos y configuración
+-   **Evitar esperas**: Solucionar problemas sin contactar soporte
+
+### 📱 Cómo usar las preguntas frecuentes
+
+#### Paso 1: Acceder a las preguntas frecuentes
+
+Para encontrar respuestas a tus dudas:
+
+**Desde el menú principal:**
+
+1. 🏠 **Abre el menú lateral** - Toca el ícono de hamburguesa (☰)
+2. ❓ **Busca "Preguntas frecuentes"** - Encuentra la opción en el menú
+3. 👆 **Presiona la opción** - Accederás a la pantalla de ayuda
+4. 📊 **Espera la carga** - Las preguntas se cargarán automáticamente
+
+**Características de acceso:**
+
+-   ⚡ **Carga rápida** - Las respuestas aparecen en segundos
+-   🔄 **Actualización automática** - Siempre contenido al día
+-   📱 **Disponible offline** - Algunas respuestas pueden estar cacheadas
+
+#### Paso 2: Navegar por las preguntas
+
+Una vez en la pantalla de preguntas frecuentes:
+
+**Exploración del contenido:**
+
+1. 👀 **Revisa los títulos** - Las preguntas aparecen como títulos expandibles
+2. 📋 **Identifica tu duda** - Busca la pregunta que se acerca a tu problema
+3. 👆 **Toca la pregunta** - La respuesta se expandirá automáticamente
+4. 📖 **Lee la respuesta completa** - Información detallada y clara
+
+**Organización visual:**
+
+-   📝 **Títulos en negrita** - Fáciles de identificar rápidamente
+-   🔵 **Color consistente** - Diseño profesional y legible
+-   📱 **Interfaz táctil** - Optimizada para toque y expansión
+-   🔄 **Indicadores visuales** - Iconos que muestran estado expandido/contraído
+
+#### Paso 3: Encontrar información específica
+
+Para localizar respuestas a temas específicos:
+
+**Categorías comunes:**
+
+-   💰 **Préstamos** - Solicitudes, aprobaciones, montos
+-   💳 **Pagos** - Fechas, métodos, confirmaciones
+-   🔐 **Seguridad** - Contraseñas, protección de datos
+-   👤 **Cuenta** - Actualización de datos, configuración
+-   📱 **Aplicación** - Uso, funciones, problemas técnicos
+-   🏦 **General** - Información sobre Pisto y servicios
+
+**Tips de búsqueda:**
+
+-   🔍 **Lee los títulos cuidadosamente** - Muchas dudas se resuelven con el título
+-   📋 **Revisa preguntas similares** - La respuesta puede estar en otra pregunta
+-   💡 **Usa palabras clave** - Piensa en términos técnicos y simples
+-   📊 **Explora todas las categorías** - No te limites a una sección
+
+#### Paso 4: Actualizar el contenido
+
+Para obtener las respuestas más recientes:
+
+**Pull-to-refresh:**
+
+1. 📱 **Desliza hacia abajo** - En la lista de preguntas
+2. 🔄 **Espera la actualización** - El sistema cargará contenido nuevo
+3. ✅ **Verifica cambios** - Revisa si hay nuevas preguntas o respuestas actualizadas
+
+**¿Cuándo actualizar?**
+
+-   📅 **Periódicamente** - Para mantenerse informado
+-   🔄 **Después de actualizaciones** - Nuevas funciones pueden tener nuevas FAQs
+-   ❓ **Si no encuentras respuesta** - El contenido puede haber sido actualizado
+
+#### Paso 5: Manejar problemas de carga
+
+Si experimentas dificultades:
+
+**Errores comunes:**
+
+-   🚫 **Sin conexión** - Mensaje claro de problemas de red
+-   ⏰ **Tiempo de espera** - La carga está tardando demasiado
+-   🔐 **Sesión expirada** - Necesitas iniciar sesión nuevamente
+-   📊 **Sin contenido** - No hay preguntas disponibles
+
+**Soluciones:**
+
+1. 🔄 **Reintentar** - Toca el botón "Reintentar" para volver a cargar
+2. 📱 **Verificar conexión** - Asegúrate de tener internet estable
+3. 🔑 **Iniciar sesión** - Si la sesión expiró, vuelve a entrar
+4. ⏳ **Esperar y reintentar** - A veces el servidor está temporalmente ocupado
+
+### ⚠️ Información importante
+
+**Limitaciones del sistema:**
+
+-   📋 **Solo preguntas predefinidas** - No admite preguntas personalizadas
+-   🔄 **Depende de conexión** - Requiere internet para cargar contenido
+-   📊 **Contenido estático** - Las respuestas no son interactivas
+-   🔍 **Sin función de búsqueda** - Debes navegar manualmente
+
+**Cuándo contactar soporte:**
+
+-   ❓ **Si no encuentras respuesta** - Tu duda puede ser específica
+-   🔧 **Problemas técnicos** - Errores que no se resuelven con reintentar
+-   📱 **Sugerencias** - Ideas para nuevas preguntas frecuentes
+-   🚨 **Urgencias** - Problemas críticos que requieren atención inmediata
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo de preguntas frecuentes sigue una arquitectura simple y eficiente con separación clara de responsabilidades:
+
+```
+faq/
+├── entities/                    # Entidades de dominio
+│   ├── faq_entity.dart                    # Item individual de FAQ
+│   └── entities.dart                       # Export de entidades
+├── models/                      # DTOs para API
+│   ├── faq_response.dart                   # Respuesta del endpoint
+│   └── models.dart                          # Export de modelos
+├── providers/                   # Gestión de estado
+│   ├── faq_provider.dart                    # Provider principal
+│   └── providers.dart                       # Export de providers
+├── repositories/               # Acceso a datos
+│   ├── faq_repository.dart                  # API de FAQs
+│   └── repositories.dart                    # Export de repositories
+└── screens/                    # Interfaces de usuario
+    ├── faq_screen.dart                       # Pantalla principal
+    └── screens.dart                          # Export de screens
+```
+
+### 📊 Entities (Entidades de Dominio)
+
+#### **FaqItemEntity**
+
+Entidad que representa un item individual de pregunta y respuesta:
+
+```dart
+class FaqItemEntity {
+  final String question;          // Pregunta frecuente
+  final String answer;            // Respuesta detallada
+
+  FaqItemEntity({
+    required this.question,
+    required this.answer,
+  });
+
+  /// Factory para convertir desde API response
+  factory FaqItemEntity.fromApiResponse(FaqItemResponse response) {
+    return FaqItemEntity(
+      question: response.question,
+      answer: response.answer,
+    );
+  }
+
+  /// Convertir lista de respuestas a entidades
+  static List<FaqItemEntity> fromApiResponseList(
+    List<FaqItemResponse> responses,
+  ) {
+    return responses
+        .map((r) => FaqItemEntity.fromApiResponse(r))
+        .toList();
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FaqItemEntity &&
+          runtimeType == other.runtimeType &&
+          question == other.question &&
+          answer == other.answer;
+
+  @override
+  String toString() =>
+      'FaqItemEntity{question: $question, answer: ${answer.substring(0, answer.length > 50 ? 50 : answer.length)}...}';
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **faqsProvider**
+
+FutureProvider simple para carga automática de FAQs:
+
+```dart
+@riverpod
+Future<List<FaqItemEntity>> faqs(Ref ref) async {
+  final repository = ref.watch(faqRepositoryProvider);
+  final response = await repository.getFaqs();
+  return FaqItemEntity.fromApiResponseList(response.data);
+}
+```
+
+**Características del Provider:**
+
+-   ✅ **Manejo automático de estados**: loading, data, error
+-   ✅ **Cache incorporado**: Evita cargas innecesarias
+-   ✅ **Reactividad**: Se actualiza automáticamente con ref.refresh()
+-   ✅ **Error handling**: Propaga excepciones automáticamente
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **FaqRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+class FaqRepository {
+  final HttpClient _httpClient;
+
+  FaqRepository(this._httpClient);
+
+  /// Obtiene todas las preguntas frecuentes
+  /// Endpoint: GET /client/help
+  Future<FaqResponse> getFaqs() async {
+    try {
+      final response = await _httpClient.get('/client/help');
+      return FaqResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw FaqException(
+          'Sesión expirada. Por favor, inicia sesión nuevamente.',
+          401,
+        );
+      }
+      if (e.type == DioExceptionType.connectionTimeout) {
+        throw FaqException('Tiempo de conexión agotado. Verifica tu internet.');
+      }
+      throw FaqException(
+        e.response?.data['message'] ?? 'Error al cargar preguntas frecuentes',
+        e.response?.statusCode,
+      );
+    } catch (e) {
+      throw FaqException('Error inesperado: $e');
+    }
+  }
+}
+
+@riverpod
+FaqRepository faqRepository(Ref ref) {
+  final httpClient = ref.watch(httpClientProvider);
+  return FaqRepository(httpClient);
+}
+```
+
+### 📱 Models (DTOs)
+
+#### **FaqResponse**
+
+Modelo para la respuesta completa del endpoint:
+
+```dart
+class FaqResponse {
+  final List<FaqItemResponse> data;
+
+  FaqResponse({required this.data});
+
+  factory FaqResponse.fromJson(Map<String, dynamic> json) => FaqResponse(
+        data: List<FaqItemResponse>.from(
+          json["data"].map((x) => FaqItemResponse.fromJson(x)),
+        ),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "data": List<dynamic>.from(data.map((x) => x.toJson())),
+      };
+}
+
+class FaqItemResponse {
+  final String question;
+  final String answer;
+
+  FaqItemResponse({
+    required this.question,
+    required this.answer,
+  });
+
+  factory FaqItemResponse.fromJson(Map<String, dynamic> json) =>
+      FaqItemResponse(
+        question: json["question"],
+        answer: json["answer"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "question": question,
+        "answer": answer,
+      };
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Carga de FAQs
+
+```
+AppSidebarLayout (menú lateral)
+  ↓
+FaqScreen (pantalla principal)
+  ↓
+faqsProvider (FutureProvider)
+  ↓
+FaqRepository (getFaqs)
+  ↓
+HttpClient (GET /client/help)
+  ├─→ Autenticación (token JWT)
+  ├─→ Obtener lista de FAQs
+  └─→ Respuesta JSON con preguntas y respuestas
+  ↓
+FaqResponse (deserialización)
+  ↓
+FaqItemEntity.fromApiResponseList (conversión a entidades)
+  ↓
+Lista de FaqItemEntity (datos para UI)
+  ↓
+FaqScreen.when() (manejo de estados)
+  ├─→ loading: CircularProgressIndicator
+  ├─→ error: Pantalla de error con retry
+  └─→ data: ListView con ExpansionTiles
+```
+
+### 🔄 Flujo de Actualización (Pull-to-refresh)
+
+```
+Usuario desliza hacia abajo (RefreshIndicator)
+  ↓
+onRefresh callback
+  ↓
+ref.refresh(faqsProvider.future)
+  ↓
+Invalidación de cache del provider
+  ↓
+Re-ejecución del FutureProvider
+  ↓
+Nueva llamada a getFaqs()
+  ↓
+Actualización del contenido en pantalla
+```
+
+### 📊 Diagrama de Estados
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       faqsProvider                             │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: FutureProvider<List<FaqItemEntity>>                    │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Estados automáticos:                                           │
+│  - loading: CircularProgressIndicator()                             │
+│  - error: ErrorWidget con botón de retry                       │
+│  - data: ListView.builder con ExpansionTiles                   │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                        │
+│  - List<FaqItemEntity>: Lista de preguntas y respuestas        │
+│  - Cache automático: Evita cargas repetitivas                  │
+│  - Refresco manual: ref.refresh()                              │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                     │
+│  - Carga inicial: Automática al montar la pantalla             │
+│  - Refresco: Pull-to-refresh o ref.refresh()                   │
+│  - Manejo de errores: Propagación automática                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. ❓ FaqScreen
+
+-   **Ruta**: `/faq`
+-   **Propósito**: Pantalla principal con lista de preguntas frecuentes
+-   **Funcionalidad**:
+    -   Carga automática de FAQs desde backend
+    -   Diseño acordeón con ExpansionTiles
+    -   Pull-to-refresh para actualizar contenido
+    -   Manejo de estados loading/error/data
+    -   Diseño responsive y accesible
+
+**Componentes principales:**
+
+```dart
+class FaqScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final faqState = ref.watch(faqsProvider);
+
+    return AppLayout(
+      title: 'Preguntas frecuentes',
+      child: faqState.when(
+        data: (faqs) => _buildFaqList(faqs),
+        error: (error, stack) => _buildErrorWidget(error),
+        loading: () => const Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}
+```
+
+#### **\_buildFaqList()**
+
+Renderizado de la lista de preguntas:
+
+```dart
+Widget _buildFaqList(List<FaqItemEntity> faqs) {
+  if (faqs.isEmpty) {
+    return const Center(
+      child: Text('No hay preguntas frecuentes disponibles'),
+    );
+  }
+
+  return RefreshIndicator(
+    onRefresh: () => ref.refresh(faqsProvider.future),
+    child: ListView.builder(
+      itemCount: faqs.length,
+      itemBuilder: (context, index) {
+        final faq = faqs[index];
+        return ExpansionTile(
+          title: Text(faq.question),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(faq.answer),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
+```
+
+#### **\_buildErrorWidget()**
+
+Manejo de errores con opción de reintentar:
+
+```dart
+Widget _buildErrorWidget(Object error) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.error_outline, size: 64),
+        const SizedBox(height: 16),
+        Text(
+          error.toString().replaceAll('FaqException: ', ''),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        PrimaryBtn(
+          text: 'Reintentar',
+          onPressed: () => ref.refresh(faqsProvider),
+        ),
+      ],
+    ),
+  );
+}
+```
+
+### 🧩 Componentes Reutilizables
+
+#### **ExpansionTile personalizado**
+
+Componente acordeón para preguntas y respuestas:
+
+```dart
+ExpansionTile(
+  tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  iconColor: AppTheme.darkBlue,
+  collapsedIconColor: AppTheme.darkBlue,
+  title: Text(
+    faq.question,
+    style: const TextStyle(
+      color: AppTheme.darkBlue,
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+    ),
+  ),
+  children: [
+    Container(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        faq.answer,
+        style: const TextStyle(
+          color: AppTheme.darkBlue,
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+          height: 1.5,
+        ),
+      ),
+    ),
+  ],
+)
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **GET** `/client/help`
+
+**Propósito**: Obtener todas las preguntas frecuentes disponibles
+
+**Headers Requeridos**:
+
+```http
+GET /client/help HTTP/1.1
+Host: api.pisto.co
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+X-Client-Version: 1.0.0
+X-Device-ID: {device_identifier}
+```
+
+**Response Exitoso (200)**:
+
+```json
+{
+    "data": [
+        {
+            "question": "¿Cómo solicito un préstamo?",
+            "answer": "Para solicitar un préstamo, sigue estos pasos: 1. Inicia sesión en la app, 2. Ve a la sección 'Mi Préstamo', 3. Completa el formulario con tus datos, 4. Espera la aprobación, 5. Recibe el dinero en tu cuenta."
+        },
+        {
+            "question": "¿Cuáles son los requisitos para obtener un préstamo?",
+            "answer": "Los requisitos son: 1. Ser mayor de 18 años, 2. Tener DUI vigente, 3. Contar con cuenta bancaria, 4. Demostrar ingresos mensuales, 5. Número de teléfono activo."
+        },
+        {
+            "question": "¿Cómo realizo el pago de mi préstamo?",
+            "answer": "Puedes pagar tu préstamo mediante: 1. Transferencia bancaria, 2. Depósito en cuenta, 3. Puntos de pago autorizados, 4. Débito automático. Elige el método que prefieras en la sección 'Pagos'."
+        }
+    ]
+}
+```
+
+**Error 401 (Unauthorized)**:
+
+```json
+{
+    "message": "Sesión expirada. Por favor, inicia sesión nuevamente."
+}
+```
+
+**Error 500 (Server Error)**:
+
+```json
+{
+    "message": "Error al cargar preguntas frecuentes"
+}
+```
+
+### 🔒 Características de la API
+
+-   **Autenticación requerida**: Solo usuarios autenticados pueden acceder
+-   **Respuesta cacheada**: El contenido puede permanecer cacheado por tiempo
+-   **Actualización dinámica**: El backend puede actualizar las FAQs sin actualizar la app
+-   **Estructura simple**: Array de objetos con question y answer
+-   **Sin paginación**: Todas las FAQs se entregan en una sola respuesta
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Conectividad**
+
+```dart
+// Timeout de conexión
+ConnectionTimeoutException {
+  message: "Tiempo de conexión agotado. Verifica tu internet.",
+  canRetry: true,
+  retryCallback: () => ref.refresh(faqsProvider),
+}
+
+// Error de red
+NetworkException {
+  message: "Error de conexión. Verifica tu conectividad.",
+  canRetry: true,
+  retryDelay: Duration(seconds: 3),
+}
+```
+
+#### **2. Errores de Autenticación**
+
+```dart
+// Sesión expirada
+SessionExpiredException {
+  message: "Sesión expirada. Por favor, inicia sesión nuevamente.",
+  action: "redirect_to_login",
+  statusCode: 401,
+}
+
+// No autenticado
+UnauthorizedException {
+  message: "Usuario no autenticado",
+  action: "force_logout",
+}
+```
+
+#### **3. Errores del Servidor**
+
+```dart
+// Error interno
+ServerException {
+  message: "Error al cargar preguntas frecuentes",
+  canRetry: true,
+  retryAfter: 300, // 5 minutos
+}
+
+// Servicio no disponible
+ServiceUnavailableException {
+  message: "Servicio temporalmente no disponible",
+  canRetry: true,
+  retryAfter: 600, // 10 minutos
+}
+```
+
+#### **4. Errores de Datos**
+
+```dart
+// Respuesta vacía
+EmptyResponseException {
+  message: "No hay preguntas frecuentes disponibles",
+  canRetry: false,
+}
+
+// Formato inválido
+InvalidFormatException {
+  message: "Error en el formato de los datos",
+  canRetry: true,
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+class FaqRetryStrategy {
+  static const int maxRetries = 3;
+  static const Duration baseDelay = Duration(seconds: 2);
+
+  static Future<List<FaqItemEntity>> retryWithBackoff(
+    Future<List<FaqItemEntity>> Function() faqCall,
+  ) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await faqCall();
+      } catch (e) {
+        if (attempt == maxRetries) rethrow;
+
+        final delay = baseDelay * math.pow(2, attempt - 1);
+        await Future.delayed(delay);
+      }
+    }
+    throw FaqException(
+      'No se pudieron cargar las FAQs después de $maxRetries intentos',
+    );
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Botón de reintentar manual** en pantalla de error
+-   **Indicador claro del problema** con mensaje específico
+-   **Opción de contactar soporte** si el problema persiste
+-   **Cache local** temporal para mostrar contenido anterior
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Autenticación**
+
+    - Verificación de token JWT válido
+    - Confirmación de sesión activa
+    - Manejo de tokens expirados
+
+2. **Validación de Respuesta**
+
+    - Estructura JSON correcta
+    - Campos obligatorios presentes
+    - Tipos de datos válidos
+
+3. **Validación de Contenido**
+    - Preguntas no vacías
+    - Respuestas con contenido mínimo
+    - Formato de texto seguro
+
+### 🔍 Lógica de Validación
+
+#### **Validación de Respuesta API**
+
+```dart
+class FaqResponseValidator {
+  static FaqValidationError? validate(FaqResponse response) {
+    if (response.data.isEmpty) {
+      return FaqValidationError.emptyData;
+    }
+
+    for (final item in response.data) {
+      if (item.question.trim().isEmpty) {
+        return FaqValidationError.emptyQuestion;
+      }
+
+      if (item.answer.trim().isEmpty) {
+        return FaqValidationError.emptyAnswer;
+      }
+
+      if (item.question.length > 200) {
+        return FaqValidationError.questionTooLong;
+      }
+
+      if (item.answer.length > 2000) {
+        return FaqValidationError.answerTooLong;
+      }
+    }
+
+    return null; // Válida
+  }
+}
+```
+
+#### **Validación de Entidad**
+
+```dart
+class FaqEntityValidator {
+  static bool isValidFaqItem(FaqItemEntity faq) {
+    return faq.question.isNotEmpty &&
+           faq.answer.isNotEmpty &&
+           faq.question.length <= 200 &&
+           faq.answer.length <= 2000;
+  }
+
+  static List<FaqItemEntity> filterValidFaqs(
+    List<FaqItemEntity> faqs,
+  ) {
+    return faqs.where(isValidFaqItem).toList();
+  }
+}
+```
+
+### 🛡️ Consideraciones de Seguridad
+
+-   Sanitización de contenido para prevenir XSS
+-   Validación de longitud para evitar abusos
+-   Filtrado de caracteres especiales
+-   Rate limiting para prevenir abusos de API
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/faq_test.dart
+void main() {
+  group('FaqRepository', () {
+    test('debe obtener FAQs correctamente', () {
+      // Test de carga exitosa
+    });
+
+    test('debe manejar error de autenticación', () {
+      // Test de manejo de 401
+    });
+
+    test('debe manejar timeout de conexión', () {
+      // Test de manejo de timeout
+    });
+  });
+
+  group('FaqItemEntity', () {
+    test('debe crearse desde API response', () {
+      // Test de conversión desde DTO
+    });
+
+    test('debe validar igualdad correctamente', () {
+      // Test de operator == y hashCode
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/faq_screen_test.dart
+void main() {
+  testWidgets('debe mostrar lista de FAQs', (tester) async {
+    // Test de renderizado de lista
+  });
+
+  testWidgets('debe mostrar error cuando falla la carga', (tester) async {
+    // Test de pantalla de error
+  });
+
+  testWidgets('debe permitir pull-to-refresh', (tester) async {
+    // Test de actualización manual
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/faq_flow_test.dart
+void main() {
+  integrationTest('flujo completo de carga de FAQs', () async {
+    // Simular: menú → pantalla FAQ → carga → visualización
+  });
+
+  integrationTest('manejo de errores de red', () async {
+    // Test de recuperación ante fallos
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario accede a FAQs y ve lista completa
+-   ✅ Usuario expande pregunta y lee respuesta
+-   ✅ Usuario actualiza contenido con pull-to-refresh
+-   ✅ Usuario maneja error de conexión y reintenta
+-   ✅ Usuario ve mensaje cuando no hay FAQs disponibles
+
+#### **Casos Límite**
+
+-   🔄 Lista vacía de FAQs
+-   🔄 Respuesta con formato inválido
+-   🔄 Conexión lenta o intermitente
+-   🔄 Muchas FAQs (performance)
+-   🔄 Contenido muy largo en respuestas
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 80% para código de repository
+-   **Tests de UI**: Interacciones críticas del usuario
+-   **Tests de error**: Todos los tipos de error cubiertos
+-   **Tests de rendimiento**: Listas grandes y contenido largo
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Acceso**
+
+-   ✅ **Autenticación obligatoria**: Solo usuarios validados
+-   ✅ **Token JWT requerido**: Verificación de identidad
+-   ✅ **Sesión activa**: Confirmación de usuario logueado
+
+#### **2. Seguridad en Contenido**
+
+-   ✅ **Sanitización de texto**: Prevención de XSS
+-   ✅ **Validación de longitud**: Límites de contenido
+-   ✅ **Filtrado de caracteres**: Caracteres seguros permitidos
+
+#### **3. Seguridad en Transacción**
+
+```dart
+class FaqSecurityValidator {
+  static bool canAccessFaqs(UserEntity user) {
+    // Validar que el usuario está autenticado
+    if (user.id == null) return false;
+
+    // Validar que la sesión está activa
+    if (!_isSessionActive(user)) return false;
+
+    return true;
+  }
+
+  static String sanitizeContent(String content) {
+    // Remover caracteres peligrosos
+    return content
+        .replaceAll(RegExp(r'<[^>]*>'), '') // Remove HTML tags
+        .replaceAll(RegExp(r'javascript:'), '') // Remove JS protocols
+        .trim();
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Las FAQs son información pública para usuarios autenticados
+-   No se almacenan datos personales en las respuestas
+-   El acceso está limitado a usuarios registrados
+-   Auditoría de accesos para métricas de uso
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureFaqService {
+  Future<List<FaqItemEntity>> getFaqsSecurely(
+    UserContext user,
+  ) async {
+    try {
+      // 1. Validar autenticación
+      if (!_securityValidator.canAccessFaqs(user)) {
+        throw UnauthorizedException('Usuario no autorizado');
+      }
+
+      // 2. Obtener datos de forma segura
+      final response = await _repository.getFaqs();
+
+      // 3. Validar y sanitizar contenido
+      final validFaqs = _securityValidator.filterValidFaqs(
+        FaqItemEntity.fromApiResponseList(response.data),
+      );
+
+      // 4. Registrar acceso para auditoría
+      _auditLogger.logFaqAccess(user.id, validFaqs.length);
+
+      return validFaqs;
+    } catch (e) {
+      _auditLogger.logFaqError(user.id, e);
+      throw SecureFaqException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    dio: ^5.3.0 # Cliente HTTP
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/faq/
+
+# Análisis estático
+flutter analyze lib/features/faq/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar providers
+2. **State Management**: Usar FutureProvider para datos asíncronos simples
+3. **Error Handling**: Manejo específico para cada tipo de error
+4. **Testing**: Mantener cobertura >80% para código crítico
+5. **Performance**: Optimizar listas grandes con ListView.builder
+6. **UX**: Proporcionar feedback claro en todos los estados
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos que utilizan FAQ
+
+#### **AppSidebarLayout**
+
+-   Acceso desde menú lateral de navegación
+-   Integración con navegación principal
+
+#### **Router**
+
+-   Ruta `/faq` registrada en sistema de navegación
+-   Transiciones personalizadas para mejor UX
+
+#### **HttpClient**
+
+-   Compartición de configuración de red
+-   Interceptores de autenticación y errores
+
+### 🔄 Flujo de Datos
+
+```
+AppSidebarLayout
+  ↓
+FaqScreen
+  ↓
+faqsProvider (FutureProvider)
+  ↓
+FaqRepository
+  ↓
+HttpClient
+  ↓
+API Backend (/client/help)
+  ↓
+FaqResponse
+  ↓
+FaqItemEntity[]
+  ↓
+UI Renderizada
+```
