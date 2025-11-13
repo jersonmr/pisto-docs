@@ -1,0 +1,984 @@
+---
+title: Flujo de cierre de Préstamo
+slug: cierre-de-prestamo
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de cierre de Préstamos. Gestión completa del proceso de cierre, desde la solicitud hasta la confirmación visual.
+---
+
+## Descripción General
+
+La funcionalidad de **Cierre de Préstamo** (`loan_close`) permite a los usuarios cerrar su préstamo activo de forma segura y definitiva. Este proceso realiza una solicitud al backend para cerrar el préstamo y muestra el resultado con una interfaz visual clara que informa al usuario si la operación fue exitosa o si ocurrió algún error.
+
+### 📊 Estructura del Flujo
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│ Usuario inicia   │────▶│ Solicitud API     │────▶│ Procesamiento     │────▶│ Respuesta del     │────▶│ Pantalla de      │
+│ cierre de préstamo│     │ GET /close-loan  │     │ Backend          │     │ Servidor         │     │ Resultado        │
+│                 │     │                     │     │                   │     │                     │     │                     │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+     ✓ Acceso desde Mi      ✓ Autenticación     ✓ Validación de      ✓ Éxito o error     ✓ UI adaptativa
+       Préstamo              requerida           permisos             con mensaje         con botón
+```
+
+### ✨ Características Principales
+
+-   ✅ **Cierre seguro**: Proceso autenticado que cierra el préstamo definitivamente
+-   ✅ **Feedback inmediato**: Muestra resultado claro con mensaje específico
+-   ✅ **Manejo de errores**: Diferenciación entre tipos de errores con mensajes apropiados
+-   ✅ **Navegación controlada**: Previene retroceso accidental durante el proceso
+-   ✅ **Actualización automática**: Refresca datos del usuario y préstamo después del cierre
+-   ✅ **Logging completo**: Registro detallado para auditoría y debugging
+-   ✅ **UI adaptativa**: Interfaz diferente para éxito y error
+
+---
+
+## Guía del Usuario
+
+### 🎯 ¿Para qué sirve el cierre de préstamo?
+
+El cierre de préstamo te permite:
+
+-   **Finalizar tu préstamo**: Cerrar definitivamente tu préstamo activo
+-   **Liberar compromisos**: Terminar tus obligaciones de pago
+-   **Obtener confirmación**: Recibir verificación oficial del cierre
+-   **Actualizar tu estado**: Cambiar tu estatus en el sistema
+
+### 📱 Cómo cerrar tu préstamo
+
+#### Paso 1: Acceder a la opción de cierre
+
+**Desde la pantalla "Mi Préstamo":**
+
+1. 🏠 **Abre la aplicación** - Inicia sesión en Pisto
+2. 💰 **Ve a "Mi Préstamo"** - Encuentra esta opción en el menú
+3. 🔚 **Busca la opción "Cerrar Préstamo"** - Generalmente disponible cuando el préstamo está en estado apropiado
+4. 👆 **Presiona la opción** - Inicia el proceso de cierre
+
+**Características de acceso:**
+
+-   ⚡ **Proceso rápido** - El cierre se procesa en segundos
+-   🔒 **Seguro** - Requiere autenticación válida
+-   📊 **Confirmación** - Recibirás confirmación inmediata
+
+#### Paso 2: Procesamiento del cierre
+
+**Durante el proceso:**
+
+1. 📡 **Se envía la solicitud** - La app contacta al servidor
+2. ⏳ **Espera el procesamiento** - El sistema cierra tu préstamo
+3. ✅ **Recibe confirmación** - Se muestra el resultado
+
+**Indicadores visuales:**
+
+-   🔄 **Indicador de carga** - Mientras se procesa la solicitud
+-   📱 **Pantalla de resultado** - Muestra éxito o error
+-   🔔 **Notificación** - Confirmación del estado final
+
+#### Paso 3: Verificar el resultado
+
+**Pantalla de resultado:**
+
+**En caso de éxito:**
+
+-   ✅ **Círculo verde** - Con ícono de check
+-   📝 **Mensaje "Préstamo cerrado"** - Confirmación clara
+-   💬 **Mensaje descriptivo** - "Préstamo cerrado exitosamente"
+-   🔘 **Botón "Continuar"** - Para regresar a Mi Préstamo
+
+**En caso de error:**
+
+-   ❌ **Círculo rojo** - Con ícono de error
+-   📝 **Mensaje "Error"** - Indicación del problema
+-   💬 **Mensaje específico** - Descripción del error ocurrido
+-   🔘 **Botón "Reintentar"** - Para intentar nuevamente
+
+#### Paso 4: Continuar después del cierre
+
+**Después de un cierre exitoso:**
+
+1. 🔄 **Datos actualizados** - Tu estado de préstamo se actualiza
+2. 📊 **Nueva vista** - Verás tu nuevo estado en Mi Préstamo
+3. ✅ **Confirmación final** - El préstamo aparecerá como cerrado
+
+### ⚠️ Información importante
+
+**Consideraciones antes de cerrar:**
+
+-   📋 **Revisa tu estado** - Asegúrate de que el préstamo puede cerrarse
+-   💰 **Verifica pagos** - Confirma que no hay pagos pendientes
+-   📞 **Contacta soporte** - Si tienes dudas, consulta antes de cerrar
+
+**Después del cierre:**
+
+-   🔒 **El cierre es definitivo** - No se puede deshacer
+-   📊 **Estado actualizado** - Tu historial reflejará el cierre
+-   📄 **Recibe confirmación** - Guarda el comprobante del cierre
+
+---
+
+## Arquitectura Técnica
+
+### 🏗️ Estructura del Módulo
+
+El módulo de cierre de préstamo sigue una arquitectura limpia basada en capas con separación clara de responsabilidades:
+
+```
+loan_close/
+├── exceptions/                 # Manejo de errores personalizados
+│   └── loan_close_exception.dart          # Tipos de excepción
+├── models/                      # DTOs para API
+│   ├── loan_close_response.dart             # Respuesta del endpoint
+│   └── models.dart                          # Export de modelos
+├── providers/                   # Gestión de estado
+│   ├── loan_close_provider.dart              # Provider principal
+│   └── providers.dart                       # Export de providers
+├── repositories/               # Acceso a datos
+│   ├── loan_close_repository.dart            # API de cierre
+│   └── repositories.dart                     # Export de repositories
+└── screens/                    # Interfaces de usuario
+    ├── loan_close_success_screen.dart         # Pantalla de resultado
+    └── screens.dart                          # Export de screens
+```
+
+### 📊 Entities y Models
+
+#### **LoanCloseResponse**
+
+Modelo para la respuesta del servidor:
+
+```dart
+@freezed
+abstract class LoanCloseResponse with _$LoanCloseResponse {
+  const factory LoanCloseResponse({
+    required String message,        // Mensaje de respuesta
+    int? loanStatus,             // Nuevo estado del préstamo (opcional)
+  }) = _LoanCloseResponse;
+
+  factory LoanCloseResponse.fromJson(Map<String, dynamic> json) =>
+      _$LoanCloseResponseFromJson(json);
+}
+```
+
+#### **LoanCloseException**
+
+Excepción personalizada para manejo de errores:
+
+```dart
+enum LoanCloseExceptionType {
+  network,        // Errores de conectividad
+  validation,     // Errores de validación
+  unauthorized,   // Usuario no autenticado
+  unknown,        // Errores desconocidos
+}
+
+class LoanCloseException implements Exception {
+  final String message;              // Mensaje de error
+  final int? statusCode;           // Código HTTP
+  final LoanCloseExceptionType type; // Tipo de error
+  final Map<String, dynamic>? data; // Datos adicionales
+}
+```
+
+### 🎯 Providers (Gestión de Estado)
+
+#### **LoanCloseNotifier**
+
+Provider principal que gestiona el estado del cierre:
+
+```dart
+@Riverpod(keepAlive: true)
+class LoanCloseNotifier extends _$LoanCloseNotifier {
+  @override
+  LoanCloseState build() {
+    return const LoanCloseState();
+  }
+
+  /// Cierra el préstamo del usuario
+  Future<void> closeLoan() async {
+    try {
+      // 1. Activar estado de carga
+      state = state.copyWith(status: RequestStatus.loading);
+
+      // 2. Llamar al repositorio
+      final repository = ref.read(loanCloseRepositoryProvider);
+      final response = await repository.closeLoan();
+
+      // 3. Actualizar estado de éxito
+      state = state.copyWith(
+        status: RequestStatus.success,
+        response: response,
+      );
+    } catch (e) {
+      // 4. Manejar errores
+      state = state.copyWith(
+        status: RequestStatus.error,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  /// Reset del estado
+  void reset() {
+    state = const LoanCloseState();
+  }
+}
+```
+
+**Estados del Provider:**
+
+-   `idle`: Estado inicial, sin actividad
+-   `loading`: Procesando solicitud de cierre
+-   `success`: Cierre completado exitosamente
+-   `error`: Error durante el proceso de cierre
+
+### 🌐 Repository (Acceso a Datos)
+
+#### **LoanCloseRepository**
+
+Clase responsable de la comunicación con la API:
+
+```dart
+class LoanCloseRepository {
+  final HttpClient _httpClient;
+
+  LoanCloseRepository(this._httpClient);
+
+  /// Cierra el préstamo del usuario autenticado
+  Future<LoanCloseResponse> closeLoan() async {
+    try {
+      final response = await _httpClient.get('/client/close-loan');
+      return LoanCloseResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      // Categorizar el tipo de error
+      LoanCloseExceptionType exceptionType;
+      if (e.response?.statusCode == 401) {
+        exceptionType = LoanCloseExceptionType.unauthorized;
+      } else if (e.response?.statusCode == 422) {
+        exceptionType = LoanCloseExceptionType.validation;
+      } else if (e.type == DioExceptionType.connectionTimeout) {
+        exceptionType = LoanCloseExceptionType.network;
+      } else {
+        exceptionType = LoanCloseExceptionType.unknown;
+      }
+
+      throw LoanCloseException(
+        message: _extractErrorMessage(e),
+        statusCode: e.response?.statusCode,
+        type: exceptionType,
+        data: e.response?.data,
+      );
+    }
+  }
+}
+```
+
+---
+
+## Flujo Completo de Datos
+
+### 🔄 Flujo de Cierre de Préstamo
+
+```
+Usuario en MyLoanScreen
+  ↓
+Presiona "Cerrar Préstamo"
+  ↓
+LoanCloseNotifier.closeLoan()
+  ↓
+LoanCloseRepository.closeLoan()
+  ↓
+HttpClient.get('/client/close-loan')
+  ├─→ Autenticación (token JWT)
+  ├─→ Verificación de permisos
+  └─→ Procesamiento de cierre
+  ↓
+Respuesta del servidor
+  ├─→ Éxito: LoanCloseResponse con mensaje
+  └─→ Error: LoanCloseException con detalles
+  ↓
+Actualización de estado
+  ├─→ Success: state = success + response
+  └─→ Error: state = error + errorMessage
+  ↓
+Navegación a LoanCloseSuccessScreen
+  ↓
+UI adaptativa según resultado
+  ├─→ Éxito: Verde + "Continuar"
+  └─→ Error: Rojo + "Reintentar"
+```
+
+### 🔄 Flujo de Actualización Post-Cierre
+
+```
+Usuario presiona "Continuar" en pantalla de éxito
+  ↓
+LoanCloseSuccessScreen._handleContinue()
+  ↓
+Reset del estado (loanCloseProvider.reset())
+  ↓
+Actualización de datos del usuario (authProvider.getUser())
+  ↓
+Recarga de datos del préstamo (myLoanProvider.loadLoanData())
+  ↓
+Navegación a /my-loan con datos actualizados
+  ↓
+UI refleja nuevo estado del préstamo (cerrado)
+```
+
+### 📊 Diagrama de Estados
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    LoanCloseNotifier                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Estado: RequestStatus + Response + ErrorMessage            │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Estados automáticos:                                         │
+│  - idle: Estado inicial sin actividad                           │
+│  - loading: Procesando solicitud (mostrar indicador)          │
+│  - success: Cierre exitoso (mostrar pantalla verde)           │
+│  - error: Error en proceso (mostrar pantalla roja)           │
+│                                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Datos:                                                      │
+│  - LoanCloseResponse?: Respuesta del servidor                  │
+│  - errorMessage: Mensaje de error si existe                     │
+│  - status: Estado actual del proceso                           │
+├─────────────────────────────────────────────────────────────────┤
+│  Acciones:                                                   │
+│  - closeLoan(): Iniciar proceso de cierre                      │
+│  - reset(): Limpiar estado para nueva operación                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Componentes y Pasos
+
+### 📱 Pantallas del Flujo
+
+#### 1. 🔚 LoanCloseSuccessScreen
+
+-   **Ruta**: `/loan-close/success`
+-   **Propósito**: Pantalla de resultado del cierre de préstamo
+-   **Funcionalidad**:
+    -   UI adaptativa según éxito o error
+    -   Prevención de navegación hacia atrás
+    -   Botón de acción contextual (Continuar/Reintentar)
+    -   Actualización automática de datos después del éxito
+
+**Componentes principales:**
+
+```dart
+class LoanCloseSuccessScreen extends ConsumerStatefulWidget {
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,  // Previene navegación hacia atrás
+      child: AppLayout(
+        child: Column(
+          children: [
+            _buildStatusIcon(),    // Ícono verde/rojo
+            _buildStatusTitle(),   // "Préstamo cerrado" / "Error"
+            _buildMessage(),      // Mensaje descriptivo
+            _buildActionButton(), // "Continuar" / "Reintentar"
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+#### **\_buildStatusIcon()**
+
+Ícono visual que indica el resultado:
+
+```dart
+Widget _buildStatusIcon() {
+  return Container(
+    width: 120,
+    height: 120,
+    decoration: BoxDecoration(
+      color: (isSuccess ? AppTheme.correct : AppTheme.negative)
+          .withValues(alpha: 0.1),
+      shape: BoxShape.circle,
+    ),
+    child: Icon(
+      isSuccess ? Icons.check_circle : Icons.error_outline,
+      size: 80,
+      color: isSuccess ? AppTheme.correct : AppTheme.negative,
+    ),
+  );
+}
+```
+
+#### **\_buildActionButton()**
+
+Botón contextual según el resultado:
+
+```dart
+Widget _buildActionButton() {
+  return PrimaryBtn(
+    text: isReloading ? 'Redirigiendo...' : 'Continuar',
+    onPressed: isReloading ? null : () async {
+      setState(() => isReloading = true);
+
+      try {
+        // Reset del estado
+        ref.read(loanCloseProvider.notifier).reset();
+
+        // Recargar datos
+        await ref.read(authProvider.notifier).getUser();
+        await ref.read(myLoanProvider.notifier).loadLoanData();
+
+        // Navegar con datos actualizados
+        if (mounted && context.mounted) {
+          context.go('/my-loan');
+        }
+      } catch (e) {
+        // Aún así navegar
+        if (mounted) {
+          context.go('/my-loan');
+        }
+      }
+    },
+  );
+}
+```
+
+### 🧩 Componentes Reutilizables
+
+#### **PopScope con canPop: false**
+
+Componente que previene navegación hacia atrás:
+
+```dart
+PopScope(
+  canPop: false,  // Bloquea botón back y gestos
+  onPopInvokedWithResult: (didPop, result) {
+    if (didPop) {
+      context.go('/my-loan');  // Redirección forzada
+    }
+  },
+  child: /* contenido */,
+)
+```
+
+#### **Indicador de Estado Visual**
+
+Componente para mostrar éxito o error:
+
+```dart
+Container(
+  decoration: BoxDecoration(
+    color: statusColor.withValues(alpha: 0.1),
+    shape: BoxShape.circle,
+  ),
+  child: Icon(
+    statusIcon,
+    size: 80,
+    color: statusColor,
+  ),
+)
+```
+
+---
+
+## APIs Utilizadas
+
+### 📡 Endpoints de API
+
+#### **GET** `/client/close-loan`
+
+**Propósito**: Cerrar el préstamo del usuario autenticado
+
+**Headers Requeridos:**
+
+```http
+GET /client/close-loan HTTP/1.1
+Host: api.pisto.co
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+X-Client-Version: 1.0.0
+X-Device-ID: {device_identifier}
+```
+
+**Response Exitosa (200)**:
+
+```json
+{
+    "message": "Préstamo cerrado exitosamente",
+    "loanStatus": 8
+}
+```
+
+**Error 401 (Unauthorized)**:
+
+```json
+{
+    "errors": [
+        {
+            "message": "Usuario no autenticado"
+        }
+    ]
+}
+```
+
+**Error 422 (Validation)**:
+
+```json
+{
+    "errors": [
+        {
+            "message": "El préstamo no puede ser cerrado en este estado"
+        }
+    ]
+}
+```
+
+### 🔒 Características de la API
+
+-   **Autenticación requerida**: Solo usuarios autenticados pueden cerrar préstamos
+-   **Verificación de estado**: El backend valida si el préstamo puede cerrarse
+-   **Respuesta inmediata**: El proceso es síncrono y rápido
+-   **Logging completo**: Todas las operaciones se registran para auditoría
+
+---
+
+## Manejo de Errores
+
+### ⚠️ Tipos de Errores
+
+#### **1. Errores de Autenticación**
+
+```dart
+// Usuario no autenticado
+UnauthorizedException {
+  message: "Usuario no autenticado",
+  statusCode: 401,
+  type: LoanCloseExceptionType.unauthorized,
+}
+```
+
+#### **2. Errores de Validación**
+
+```dart
+// Préstamo no puede cerrarse
+ValidationException {
+  message: "El préstamo no puede ser cerrado en este estado",
+  statusCode: 422,
+  type: LoanCloseExceptionType.validation,
+}
+```
+
+#### **3. Errores de Conectividad**
+
+```dart
+// Timeout de conexión
+NetworkException {
+  message: "Tiempo de conexión agotado. Verifica tu internet.",
+  type: LoanCloseExceptionType.network,
+}
+```
+
+#### **4. Errores Desconocidos**
+
+```dart
+// Error inesperado
+UnknownException {
+  message: "Error inesperado al cerrar el préstamo",
+  type: LoanCloseExceptionType.unknown,
+}
+```
+
+### 🔄 Estrategias de Recuperación
+
+#### **Reintentos Automáticos**
+
+```dart
+class LoanCloseRetryStrategy {
+  static const int maxRetries = 3;
+  static const Duration baseDelay = Duration(seconds: 2);
+
+  static Future<LoanCloseResponse> retryWithBackoff(
+    Future<LoanCloseResponse> Function() closeCall,
+  ) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await closeCall();
+      } catch (e) {
+        if (attempt == maxRetries) rethrow;
+
+        final delay = baseDelay * math.pow(2, attempt - 1);
+        await Future.delayed(delay);
+      }
+    }
+    throw LoanCloseException(
+      'No se pudo cerrar el préstamo después de $maxRetries intentos',
+      type: LoanCloseExceptionType.unknown,
+    );
+  }
+}
+```
+
+#### **Fallback para Usuario**
+
+-   **Botón de reintentar manual** en pantalla de error
+-   **Mensajes específicos** según el tipo de error
+-   **Navegación segura** siempre regresa a Mi Préstamo
+-   **Preservación de estado** para análisis del problema
+
+---
+
+## Validaciones
+
+### ✅ Validaciones Implementadas
+
+1. **Validación de Autenticación**
+
+    - Verificación de token JWT válido
+    - Confirmación de sesión activa
+    - Manejo de tokens expirados
+
+2. **Validación de Estado del Préstamo**
+
+    - Verificación de que el préstamo puede cerrarse
+    - Validación de estado actual del préstamo
+    - Confirmación de que no hay pagos pendientes
+
+3. **Validación de Permisos**
+    - Verificación de que el usuario tiene permisos para cerrar
+    - Validación de propiedad del préstamo
+    - Confirmación de autorización
+
+### 🔍 Lógica de Validación
+
+#### **Validación de Autenticación**
+
+```dart
+class LoanCloseValidator {
+  static bool canCloseLoan(UserEntity user) {
+    // Validar que el usuario está autenticado
+    if (user.id == null) return false;
+
+    // Validar que la sesión está activa
+    if (!_isSessionActive(user)) return false;
+
+    return true;
+  }
+
+  static bool _isSessionActive(UserEntity user) {
+    // Verificar token y fecha de expiración
+    return user.token != null && !_isTokenExpired(user.token!);
+  }
+}
+```
+
+#### **Validación de Estado del Préstamo**
+
+```dart
+class LoanStatusValidator {
+  static bool isClosable(int loanStatus) {
+    // Estados en los que se puede cerrar el préstamo
+    const closableStatuses = [4, 5, 6, 7]; // Ejemplo: pagado, vencido, etc.
+
+    return closableStatuses.contains(loanStatus);
+  }
+
+  static String getClosureMessage(int loanStatus) {
+    switch (loanStatus) {
+      case 1:
+        return 'El préstamo está en proceso y no puede cerrarse';
+      case 2:
+        return 'El préstamo está siendo considerado y no puede cerrarse';
+      case 3:
+        return 'El préstamo está activo y no puede cerrarse';
+      default:
+        return 'El préstamo puede ser cerrado';
+    }
+  }
+}
+```
+
+### 🛡️ Consideraciones de Seguridad
+
+-   Validación de autenticación en cada solicitud
+-   Verificación de permisos de usuario
+-   Logging completo para auditoría
+-   Prevención de cierres no autorizados
+
+---
+
+## Testing
+
+### 🧪 Estrategia de Testing
+
+#### **1. Unit Tests**
+
+```dart
+// test/unit/loan_close_test.dart
+void main() {
+  group('LoanCloseNotifier', () {
+    test('debe cerrar préstamo correctamente', () {
+      // Test de cierre exitoso
+    });
+
+    test('debe manejar error de autenticación', () {
+      // Test de manejo de 401
+    });
+
+    test('debe manejar error de validación', () {
+      // Test de manejo de 422
+    });
+  });
+
+  group('LoanCloseRepository', () {
+    test('debe llamar endpoint correctamente', () {
+      // Test de llamada a API
+    });
+
+    test('debe manejar timeout de conexión', () {
+      // Test de manejo de timeout
+    });
+  });
+}
+```
+
+#### **2. Widget Tests**
+
+```dart
+// test/widget/loan_close_success_screen_test.dart
+void main() {
+  testWidgets('debe mostrar pantalla de éxito', (tester) async {
+    // Test de UI exitosa
+  });
+
+  testWidgets('debe mostrar pantalla de error', (tester) async {
+    // Test de UI de error
+  });
+
+  testWidgets('debe prevenir navegación hacia atrás', (tester) async {
+    // Test de PopScope
+  });
+}
+```
+
+#### **3. Integration Tests**
+
+```dart
+// test/integration/loan_close_flow_test.dart
+void main() {
+  integrationTest('flujo completo de cierre de préstamo', () async {
+    // Simular: Mi Préstamo → Cerrar → Resultado → Continuar
+  });
+
+  integrationTest('manejo de errores de red', () async {
+    // Test de recuperación ante fallos
+  });
+}
+```
+
+### 📋 Casos de Prueba Críticos
+
+#### **Flujos de Usuario**
+
+-   ✅ Usuario cierra préstamo exitosamente
+-   ✅ Usuario maneja error de autenticación
+-   ✅ Usuario reintenta después de error
+-   ✅ Usuario navega correctamente después del cierre
+
+#### **Casos Límite**
+
+-   🔄 Préstamo en estado no cerrable
+-   🔄 Token expirado durante el proceso
+-   🔄 Pérdida de conexión durante el cierre
+-   🔄 Múltiples intentos de cierre fallidos
+
+### 📊 Métricas de Testing
+
+-   **Cobertura mínima**: 90% para lógica de negocio
+-   **Tests de seguridad**: 100% de validaciones críticas
+-   **Tests de error**: Todos los tipos de error cubiertos
+-   **Tests de UI**: Interacciones críticas del usuario
+
+---
+
+## Seguridad
+
+### 🔒 Características de Seguridad
+
+#### **1. Protección de Acceso**
+
+-   ✅ **Autenticación obligatoria**: Solo usuarios validados pueden cerrar préstamos
+-   ✅ **Token JWT requerido**: Verificación de identidad en cada solicitud
+-   ✅ **Sesión activa**: Confirmación de usuario logueado
+
+#### **2. Validaciones de Seguridad**
+
+-   ✅ **Verificación de estado**: El préstamo debe estar en estado cerrable
+-   ✅ **Validación de permisos**: Solo el propietario puede cerrar su préstamo
+-   ✅ **Logging completo**: Registro de auditoría para cada cierre
+
+#### **3. Protección de Datos**
+
+```dart
+class LoanCloseSecurityValidator {
+  static bool canCloseLoan(
+    UserEntity user,
+    int loanStatus,
+    int loanId,
+  ) {
+    // Validar autenticación
+    if (user.id == null) return false;
+
+    // Validar estado del préstamo
+    if (!LoanStatusValidator.isClosable(loanStatus)) return false;
+
+    // Validar propiedad (implementar según lógica de negocio)
+    if (!_userOwnsLoan(user.id!, loanId)) return false;
+
+    return true;
+  }
+
+  static bool _userOwnsLoan(int userId, int loanId) {
+    // Implementar verificación de propiedad del préstamo
+    return true; // Placeholder
+  }
+}
+```
+
+### 🛡️ Consideraciones de Privacidad
+
+-   Los cierres de préstamo son operaciones sensibles que requieren auditoría
+-   Cada cierre se registra con timestamp y datos del usuario
+-   Los datos se almacenan de forma segura en el backend
+-   El acceso a la información de cierre está restringido
+
+### 🔐 Best Practices Implementadas
+
+```dart
+// Ejemplo de implementación segura
+class SecureLoanCloseService {
+  Future<LoanCloseResult> closeLoanSecurely(
+    UserContext user,
+    int loanId,
+  ) async {
+    try {
+      // 1. Validar autenticación
+      if (!_securityValidator.canCloseLoan(user.user, user.loanStatus, loanId)) {
+        throw UnauthorizedException('Usuario no autorizado para cerrar este préstamo');
+      }
+
+      // 2. Validar estado del préstamo
+      final loanData = await _repository.getLoanData(loanId);
+      if (!LoanStatusValidator.isClosable(loanData.status)) {
+        throw ValidationException('El préstamo no puede ser cerrado en su estado actual');
+      }
+
+      // 3. Ejecutar cierre de forma segura
+      final result = await _repository.closeLoan(loanId);
+
+      // 4. Registrar para auditoría
+      _auditLogger.logLoanClose(user.user.id, loanId, result);
+
+      return LoanCloseResult.success(result);
+    } catch (e) {
+      _auditLogger.logLoanCloseError(user.user.id, loanId, e);
+      throw SecureLoanCloseException.fromError(e);
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Implementación y Mantenimiento
+
+### 📦 Dependencias Clave
+
+```yaml
+dependencies:
+    flutter_riverpod: ^2.4.0 # Gestión de estado
+    dio: ^5.3.0 # Cliente HTTP
+    go_router: ^12.0.0 # Navegación
+    freezed_annotation: ^2.4.0 # Modelos inmutables
+
+dev_dependencies:
+    riverpod_generator: ^2.3.0 # Code generation
+    freezed: ^2.4.0 # Generación de modelos
+    build_runner: ^2.4.0 # Herramienta de generación
+```
+
+### 🔧 Comandos de Desarrollo
+
+```bash
+# Generar código (requerido después de cambios)
+dart run build_runner build --delete-conflicting-outputs
+
+# Modo watch durante desarrollo
+dart run build_runner watch -d
+
+# Ejecutar pruebas
+flutter test test/features/loan_close/
+
+# Análisis estático
+flutter analyze lib/features/loan_close/
+```
+
+### 📝 Mejores Prácticas
+
+1. **Code Generation**: Siempre ejecutar `build_runner` después de modificar modelos
+2. **State Management**: Usar `keepAlive: true` para persistencia crítica
+3. **Error Handling**: Manejo específico para cada tipo de error
+4. **Testing**: Mantener cobertura >90% para lógica de negocio
+5. **Security**: Validaciones múltiples antes de ejecutar cierre
+6. **Logging**: Registro completo para auditoría y debugging
+
+---
+
+## 🔗 Integraciones
+
+### 📄 Módulos que utilizan Loan Close
+
+#### **My Loan**
+
+-   Acceso desde la pantalla principal de préstamos
+-   Actualización de estado después del cierre
+-   Navegación a la pantalla de cierre
+
+#### **Auth**
+
+-   Verificación de autenticación requerida
+-   Actualización de datos del usuario después del cierre
+-   Manejo de tokens y sesiones
+
+#### **App Router**
+
+-   Ruta `/loan-close/success` registrada en el sistema
+-   Navegación controlada con prevención de retroceso
+-   Transiciones personalizadas para mejor UX
+
+### 🔄 Flujo de Datos
+
+```
+MyLoanScreen
+  ↓
+LoanCloseNotifier.closeLoan()
+  ↓
+LoanCloseRepository.closeLoan()
+  ↓
+HttpClient.get('/client/close-loan')
+  ↓
+API Backend
+  ↓
+LoanCloseResponse
+  ↓
+LoanCloseSuccessScreen
+  ↓
+Actualización de Auth y MyLoan providers
+  ↓
+Navegación a /my-loan con datos actualizados
+```
