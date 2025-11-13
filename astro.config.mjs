@@ -87,6 +87,10 @@ export default defineConfig({
                     slug: "validacion-de-codigo-promocional",
                 },
                 {
+                    label: "14. Mi Préstamo",
+                    slug: "mi-prestamo",
+                },
+                {
                     label: "15. Validación de Número Telefónico",
                     slug: "validacion-de-numero-telefonico",
                 },
@@ -141,6 +145,10 @@ export default defineConfig({
                 {
                     label: "28. Contacto",
                     slug: "contacto",
+                },
+                {
+                    label: "29. Cierre de préstamo",
+                    slug: "cierre-de-prestamo",
                 },
             ],
         }),
