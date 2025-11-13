@@ -1,0 +1,761 @@
+---
+title: Flujo de Mi Préstamo
+slug: mi-prestamo
+tags: [auth, flutter, riverpod, dio, formz, go_router, freezed, json_annotation]
+description: Flujo de Mi Préstamo. Gestión completa del proceso de préstamo, desde la solicitud hasta la confirmación visual.
+---
+
+## Descripción General
+
+**Mi Préstamo** es el módulo central de la aplicación Pisto que permite a los usuarios:
+
+-   Solicitar nuevos préstamos mediante una calculadora interactiva
+-   Visualizar el estado actual de sus préstamos activos
+-   Gestionar el ciclo completo del préstamo (solicitud, aprobación, pago, cierre)
+-   Consultar información detallada de deudas y pagos
+-   Aplicar códigos promocionales para obtener descuentos
+
+Esta funcionalidad es accesible desde la ruta `/my-loan` y se encuentra disponible en el menú lateral de navegación principal.
+
+---
+
+## Para el Usuario Final
+
+### ¿Qué puedo hacer en "Mi Préstamo"?
+
+#### 1. **Solicitar un Préstamo (Sin préstamo activo)**
+
+Cuando no tienes un préstamo activo, verás una calculadora interactiva donde puedes:
+
+-   **Seleccionar el monto**: Usa el deslizador para elegir cuánto dinero necesitas (según tu nivel de cliente)
+-   **Elegir el plazo**: Selecciona en cuántos días podrás pagarlo
+-   **Ver el desglose completo**:
+    -   💰 **Tu obtienes**: El dinero que recibirás en tu cuenta
+    -   📈 **Interés**: El costo del préstamo
+    -   📄 **Gastos administrativos**: Comisiones de gestión
+    -   🧾 **IVA**: Impuesto sobre el valor agregado
+    -   💵 **Monto a devolver**: Total que debes pagar
+    -   📅 **Fecha de devolución**: Cuándo vence el pago
+
+**Códigos Promocionales**: Puedes ingresar un código promocional para obtener descuentos en los costos del préstamo.
+
+#### 2. **Estados de tu Préstamo**
+
+Tu préstamo puede encontrarse en diferentes estados:
+
+##### 🟡 **Préstamo en Consideración** (Estado 2)
+
+-   Tu solicitud está siendo evaluada
+-   Puedes ver los detalles del préstamo solicitado
+-   Tienes la opción de rechazar tu solicitud si cambias de opinión
+
+##### 🔴 **Fotos No Adecuadas** (Estado 3)
+
+-   Las fotos que cargaste no cumplen con los requisitos
+-   Debes volver a cargar fotos nítidas y completas
+-   Se te indicará qué fotos específicas necesitas actualizar
+
+##### 🟢 **Préstamo Aprobado** (Estado 4)
+
+-   ¡Felicidades! Tu préstamo fue aprobado
+-   Verás el desglose de pagos anticipados (si aplica)
+-   Debes aceptar el préstamo para que el dinero sea transferido
+-   Según tu perfil, podrías necesitar autenticación biométrica
+
+##### ✅ **Préstamo Activo** (Estado 5)
+
+-   Tu préstamo está vigente
+-   Visualizas:
+    -   Número de contrato
+    -   Detalles del préstamo
+    -   Opción de pago anticipado con descuento
+    -   Escala de pagos con fechas específicas
+-   Puedes **registrar pagos realizados** desde esta pantalla
+-   Notificaciones especiales (si aplican)
+
+##### ⚠️ **Préstamo en Mora** (Estado 6)
+
+-   Tu préstamo está vencido
+-   Verás un desglose completo de la deuda que incluye:
+    -   Monto original del préstamo
+    -   Deuda por refinanciamiento (si aplica)
+    -   Intereses moratorios
+    -   Gastos de cobranza
+    -   Gastos de abogado
+    -   Gastos de ejecutor de embargo
+    -   Pagos recibidos
+    -   Monto total pendiente
+-   **Importante**: Si no pagas, arriesgas tu historial crediticio
+-   Puedes registrar tus pagos realizados
+
+##### 🎉 **Préstamo Pagado Completamente** (Estado 7)
+
+-   Has pagado la totalidad de tu préstamo
+-   Está en proceso de cierre administrativo
+-   Pronto podrás solicitar un nuevo préstamo
+
+#### 3. **Estados Especiales del Cliente**
+
+##### 🟠 **Cliente Suspendido** (Estado 7)
+
+-   Tu cuenta está suspendida temporalmente por 14 días
+-   Se te indica la fecha de suspensión
+-   Podrás solicitar un nuevo préstamo después del periodo de suspensión
+
+##### 🔒 **Cliente Bloqueado** (Estado 8)
+
+-   Tu cuenta ha sido bloqueada permanentemente
+-   Se muestra la fecha de bloqueo
+-   Si tienes deuda pendiente, aún puedes registrar pagos
+-   Para resolver tu caso, debes contactar a: **cliente@pisto.co**
+
+### Características Adicionales
+
+#### 📱 Pull to Refresh
+
+Desliza hacia abajo en cualquier momento para actualizar la información de tu préstamo.
+
+#### 🎟️ Códigos Promocionales
+
+-   Ingresa códigos promocionales en la calculadora
+-   Obtén descuentos en los gastos administrativos
+-   Los descuentos se aplican automáticamente al cálculo
+
+#### 💳 Pago Anticipado
+
+-   Si pagas antes de la fecha de vencimiento, obtienes descuentos
+-   La aplicación te muestra cuánto ahorrarás
+-   Escala de pagos con descuentos progresivos por fecha
+
+---
+
+## Para el Desarrollador
+
+### Arquitectura del Módulo
+
+```
+lib/features/my_loan/
+├── entities/              # Modelos de dominio (entidades de negocio)
+│   ├── calculator_entity.dart
+│   ├── loan_entity.dart
+│   ├── promo_code_entity.dart
+│   └── concept_amount_entity.dart
+├── models/               # DTOs y mappers (capa de datos)
+│   ├── calculator_dto.dart
+│   ├── my_loan_response_dto.dart
+│   ├── promo_code_request_dto.dart
+│   └── mappers.dart
+├── providers/            # Gestión de estado (Riverpod)
+│   ├── my_loan_provider.dart
+│   ├── loan_calculator_provider.dart
+│   ├── promo_code_provider.dart
+│   └── loan_status_provider.dart
+├── repositories/         # Capa de acceso a datos
+│   ├── my_loan_repository.dart
+│   └── promo_code_repository.dart
+├── enums/               # Enumeraciones
+│   ├── loan_status_enum.dart
+│   ├── client_status_enum.dart
+│   └── loan_constants_enum.dart
+├── screens/             # Pantallas
+│   └── my_loan_screen.dart
+└── widgets/             # Componentes UI
+    ├── loan_calculator_widget.dart
+    ├── active_loan_widget.dart
+    ├── loan_status_2_widget.dart
+    ├── loan_status_3_widget.dart
+    ├── loan_status_4_widget.dart
+    ├── loan_status_5_widget.dart
+    ├── loan_status_6_widget.dart
+    ├── loan_status_7_widget.dart
+    ├── loan_details_section.dart
+    ├── loan_in_arrears_details_widget.dart
+    ├── blocked_client_widget.dart
+    ├── suspended_client_widget.dart
+    └── promo_code_widget.dart
+```
+
+---
+
+## Flujos de Trabajo
+
+### 1. Inicialización de la Pantalla
+
+```dart
+MyLoanScreen (initState)
+    ↓
+_performGlobalReset()
+    ↓
+1. authProvider.getUser() // Refrescar datos del usuario
+    ↓
+2. acceptLoanProvider.reset() // Limpiar estado de accept_loan
+    ↓
+3. myLoanProvider.loadLoanData() // Cargar datos del préstamo
+    ↓
+Render UI según estado
+```
+
+**Propósito del Reset Global**:
+
+-   Asegurar que los datos del usuario estén actualizados
+-   Limpiar estados anteriores de flujos de aceptación de préstamos
+-   Evitar inconsistencias entre módulos
+-   Proporcionar datos frescos al usuario
+
+### 2. Carga de Datos del Préstamo
+
+```dart
+loadLoanData()
+    ↓
+myLoanRepository.getMyLoanData()
+    ↓
+GET /mobile/client/my-loan
+    ↓
+MyLoanResponseDto.fromJson()
+    ↓
+toEntity() // Mapper DTO → Entity
+    ↓
+Update State (MyLoanState)
+    ↓
+_initializeCalculatorIfNeeded() // Si loanStatus = 1
+```
+
+### 3. Flujo de la Calculadora de Préstamo
+
+```dart
+Usuario selecciona monto
+    ↓
+loanCalculatorProvider.updateSelectedAmount(amount)
+    ↓
+- Obtener días disponibles para el monto
+- Filtrar días según clientStatus
+- Establecer día inicial válido
+    ↓
+_calculateLoanValues(calculator)
+    ↓
+- Calcular interés (interest + pistoInterest)
+- Calcular gastos administrativos (concepts)
+- Aplicar descuento de promo code (si existe)
+- Calcular IVA
+- Calcular "Tu obtienes" (monto - gastos totales)
+- Calcular "Monto a devolver"
+- Calcular fecha de devolución
+    ↓
+Update State con resultados
+    ↓
+UI se actualiza automáticamente (watch)
+```
+
+### 4. Aplicación de Código Promocional
+
+```dart
+Usuario ingresa código
+    ↓
+promoCodeFormProvider.onPromoCodeChange(code)
+    ↓
+Validar formato (PromoCodeInput)
+    ↓
+Usuario presiona "Aplicar"
+    ↓
+promoCodeFormProvider.validatePromoCode()
+    ↓
+POST /mobile/promo-code/validation
+    ↓
+Respuesta del servidor:
+  ├── success: loanCalculatorProvider.applyPromoCode(promoCode)
+  ├── alreadyUsed: mostrar error
+  ├── ownCode: mostrar error
+  ├── invalid: mostrar error
+  └── error: mostrar error
+    ↓
+Recalcular préstamo con descuento aplicado
+```
+
+### 5. Navegación según Estado del Préstamo
+
+```dart
+_LoanStateHandler.buildContent(ref)
+    ↓
+Verificar isLoading → LoadingWidget
+    ↓
+Verificar error → ErrorStateWidget
+    ↓
+Verificar loanData == null → NoLoanWidget
+    ↓
+Verificar clientStatus:
+  ├── 7 (suspended) → SuspendedClientWidget
+  └── 8 (blocked) → BlockedClientWidget
+    ↓
+Verificar loanStatus:
+  ├── 1 → LoanCalculatorWidget
+  ├── 2 → LoanStatus2Widget (en consideración)
+  ├── 3 → LoanStatus3Widget (fotos rechazadas)
+  ├── 4 → LoanStatus4Widget (aprobado)
+  ├── 5 → LoanStatus5Widget (activo)
+  ├── 6 → LoanStatus6Widget (en mora)
+  └── 7 → LoanStatus7Widget (pagado)
+```
+
+---
+
+## Estados del Sistema
+
+### Estados del Cliente (userStatus)
+
+```dart
+enum ClientStatus {
+  status2(2),    // Primer nivel de cliente
+  status3(3),    // Segundo nivel
+  status4(4),    // Tercer nivel
+  status5(5),    // Cuarto nivel
+  status6(6),    // Quinto nivel
+  suspended(7),  // Suspendido 14 días
+  blocked(8),    // Bloqueado permanentemente
+  status9(9),    // Nuevo nivel (Mayo 2025)
+  status10(10),  // Nuevo nivel (Mayo 2025)
+  vip(11);       // VIP con límite personalizado (Mayo 2025)
+}
+```
+
+**Importancia**: El `userStatus` determina:
+
+-   Límites de préstamo disponibles
+-   Días de préstamo permitidos
+-   Acceso a la plataforma (suspendido/bloqueado)
+
+### Estados del Préstamo (loanStatus)
+
+```dart
+enum LoanStatus {
+  withoutActiveLoan(1),      // Sin préstamo activo → Calculadora
+  loanInConsideration(2),    // En evaluación
+  photosRejected(3),         // Fotos no adecuadas
+  loanApproved(4),           // Aprobado (pendiente aceptación)
+  loanAccepted(5),           // Activo
+  loanOverdue(6),            // En mora
+  loanPaidInFull(7);         // Pagado completamente
+}
+```
+
+### Entidad Principal: LoanEntity
+
+```dart
+class LoanEntity {
+  // Estados
+  int userStatus;           // 2-11 (estado del cliente)
+  int? loanStatus;          // 1-7 (estado del préstamo)
+  int? loanId;              // ID del préstamo activo
+
+  // Calculadora (solo loanStatus = 1)
+  CalculatorEntity? calculator;
+
+  // Información básica del préstamo
+  String? contractNumber;
+  String? loanAmount;
+  int? loanDays;
+  double? interestAmount;
+  double? administrativeAmount;
+  List<ConceptAmountEntity>? conceptsAmount;
+  double? ivaAmount;
+  double? totalRefundAmount;
+  double? restAmount;
+  DateTime? loanDate;
+  DateTime? loanReturnDate;
+
+  // Pago anticipado
+  bool showReturnNow;
+  double? amountReturnNow;
+  double? amountSavedReturnNow;
+  List<ReturnScaleEntity>? returnScale;
+
+  // Estados especiales del cliente
+  DateTime? suspendedDate;          // status = 7
+  int? remainingSuspendedDays;      // status = 7
+  DateTime? lockDate;               // status = 8
+
+  // Notificaciones
+  String? specialNotification;
+  String? refinancingNotification;
+
+  // Información de mora (Estado 6)
+  double? moratoryLoanAmount;
+  double? originalDebtAmount;
+  double? refinancingDebtAmount;
+  double? moratoryInterest;
+  double? collectionAmount;
+  double? lawyerAmount;
+  double? embargoExecutorAmount;
+  double? paymentsReceived;
+}
+```
+
+---
+
+## Componentes Principales
+
+### 1. MyLoanScreen
+
+**Responsabilidad**: Pantalla principal del módulo.
+
+**Características**:
+
+-   Lifecycle management (reset global en initState)
+-   RefreshIndicator para actualización manual
+-   Delegación a widgets específicos según estado
+-   Gestión del número de contrato
+
+```dart
+class MyLoanScreen extends ConsumerStatefulWidget {
+  static const String route = '/my-loan';
+
+  // Features:
+  // - Global reset on initialization
+  // - Pull to refresh
+  // - State-based widget rendering
+}
+```
+
+### 2. LoanCalculatorWidget
+
+**Responsabilidad**: Interfaz de solicitud de préstamos.
+
+**Características**:
+
+-   Sliders interactivos (Syncfusion)
+-   Cálculo en tiempo real
+-   Integración con códigos promocionales
+-   Validación de montos y días según clientStatus
+-   Navegación a flujos de primer/subsecuente préstamo
+
+```dart
+class LoanCalculatorWidget extends ConsumerStatefulWidget {
+  // Features:
+  // - Amount slider with dynamic steps
+  // - Days slider filtered by client status
+  // - Real-time calculation display
+  // - Promo code integration
+  // - "Obtén el Dinero" button
+}
+```
+
+### 3. ActiveLoanWidget
+
+**Responsabilidad**: Factory pattern para renderizar widgets según loanStatus.
+
+```dart
+class _ActiveLoanFactory {
+  static Widget createWidget(int loanStatus, LoanEntity loanData) {
+    switch (loanStatus) {
+      case 2: return LoanStatus2Widget();
+      case 3: return LoanStatus3Widget();
+      case 4: return LoanStatus4Widget();
+      case 5: return LoanStatus5Widget();
+      case 6: return LoanStatus6Widget();
+      case 7: return LoanStatus7Widget();
+      default: return NoLoanWidget();
+    }
+  }
+}
+```
+
+### 4. Widgets de Estado Específico
+
+#### LoanStatus2Widget (En Consideración)
+
+-   Indicador de estado
+-   Detalles del préstamo solicitado
+-   Botón "Rechazar solicitud"
+
+#### LoanStatus3Widget (Fotos Rechazadas)
+
+-   Indicador de estado
+-   Lista de fotos que deben recargarse
+-   Botón para recargar fotos
+
+#### LoanStatus4Widget (Aprobado)
+
+-   Indicador de estado
+-   Escala de pagos anticipados
+-   Detalles del préstamo
+-   Botón "Aceptar Préstamo"
+-   Redirección a autenticación biométrica (si aplica)
+
+#### LoanStatus5Widget (Activo)
+
+-   Indicador de estado
+-   Información de pago anticipado
+-   Escala de descuentos por fecha
+-   Detalles del préstamo
+-   Botón "Registrar pago realizado"
+-   Notificaciones especiales
+
+#### LoanStatus6Widget (En Mora)
+
+-   Indicador de estado crítico
+-   Detalles de la deuda (LoanInArrearsDetailsWidget)
+-   Botón "Registrar pago realizado"
+-   Advertencia legal
+
+#### LoanStatus7Widget (Pagado)
+
+-   Indicador de éxito
+-   Mensaje de confirmación
+-   Información de cierre del préstamo
+
+### 5. Widgets de Cliente Especial
+
+#### SuspendedClientWidget
+
+-   Mensaje de suspensión temporal
+-   Fecha de suspensión
+-   Días restantes para solicitar nuevo préstamo
+
+#### BlockedClientWidget
+
+-   Mensaje de bloqueo permanente
+-   Fecha de bloqueo
+-   Contacto de soporte
+-   Si tiene deuda: detalles + botón de pago
+
+---
+
+## Gestión de Estado
+
+### 1. MyLoanProvider (Estado Principal)
+
+```dart
+@freezed
+class MyLoanState {
+  bool isLoading;
+  LoanEntity? loanData;
+  String? error;
+
+  // Estado de calculadora (loanStatus = 1)
+  int? selectedAmount;
+  int? selectedDays;
+  LoanCalculationResult? calculationResult;
+
+  // Estados de acciones
+  bool isRejecting;
+  bool isAccepting;
+  bool isUploadingPhotos;
+  bool isClosing;
+}
+```
+
+**Métodos principales**:
+
+-   `loadLoanData()`: Cargar datos desde API
+-   `_initializeCalculatorIfNeeded()`: Inicializar calculadora si loanStatus = 1
+
+**Provider derivados**:
+
+```dart
+@riverpod
+int? currentLoanStatus(Ref ref) {
+  return ref.watch(myLoanProvider.select((state) => state.loanData?.loanStatus));
+}
+
+@riverpod
+int? currentClientStatus(Ref ref) {
+  return ref.watch(myLoanProvider.select((state) => state.loanData?.userStatus));
+}
+```
+
+### 2. LoanCalculatorProvider (Calculadora)
+
+```dart
+@freezed
+class LoanCalculatorState {
+  int selectedAmount;
+  int selectedDays;
+  double interestAmount;
+  double administrativeAmount;
+  double ivaAmount;
+  double totalRefundAmount;
+  double youReceive;
+  bool isCalculating;
+  List<int>? amounts;
+  List<int>? days;
+  List<ConceptAmountEntity> conceptsBreakdown;
+  String? error;
+  PromoCodeEntity? appliedPromoCode;
+  double promoCodeDiscount;
+  bool hasPromoCode;
+}
+```
+
+**Métodos principales**:
+
+-   `initializeCalculator()`: Inicializar con datos del servidor
+-   `updateSelectedAmount()`: Cambiar monto seleccionado
+-   `updateSelectedDays()`: Cambiar días seleccionados
+-   `_calculateLoanValues()`: Calcular todos los valores del préstamo
+-   `applyPromoCode()`: Aplicar descuento por código promocional
+-   `_getAvailableDays()`: Filtrar días según clientStatus
+
+**Lógica de días permitidos por clientStatus**:
+
+```dart
+List<int> _getAvailableDays(int clientStatus) {
+  switch (clientStatus) {
+    case 2:
+    case 3:
+      return [34]; // Solo 34 días
+    case 4:
+    case 5:
+    case 6:
+      return [34, 62]; // 34 o 62 días
+    default:
+      return [34, 62, 90]; // Todos los plazos
+  }
+}
+```
+
+### 3. PromoCodeFormProvider
+
+```dart
+@freezed
+class PromoCodeFormState {
+  PromoCodeInput promoCode;
+  FormzSubmissionStatus status;
+  bool isValid;
+  String? errorMessage;
+  bool isLoading;
+  bool isApplied;
+}
+```
+
+**Métodos principales**:
+
+-   `onPromoCodeChange()`: Actualizar input
+-   `validatePromoCode()`: Validar con API
+-   `reset()`: Limpiar estado
+
+---
+
+## API y Repositorios
+
+### MyLoanRepository
+
+**Endpoint**: `GET /mobile/client/my-loan`
+
+**Respuesta**: `MyLoanResponseDto`
+
+**Manejo de errores**:
+
+```dart
+try {
+  final response = await _httpClient.get('/mobile/client/my-loan');
+  return MyLoanResponseDto.fromJson(response.data);
+} on DioException catch (e) {
+  if (statusCode == 403) {
+    throw MyLoanException(type: MyLoanExceptionType.unauthorized);
+  }
+  throw MyLoanException(type: MyLoanExceptionType.network);
+} catch (e) {
+  throw MyLoanException(type: MyLoanExceptionType.unknown);
+}
+```
+
+### PromoCodeRepository
+
+**Endpoint**: `POST /mobile/promo-code/validation`
+
+**Request**: `PromoCodeRequestDto`
+
+```dart
+{
+  "promoCode": "DESCUENTO10"
+}
+```
+
+**Response**: `PromoCodeResponseDto`
+
+```dart
+sealed class PromoCodeResult {
+  success(PromoCodeEntity promoCode);
+  alreadyUsed(String message);
+  ownCode(String message);
+  invalid(String message);
+  error(String message);
+  unauthenticated(String message);
+}
+```
+
+---
+
+## Consideraciones Técnicas
+
+### 1. Keep Alive Providers
+
+```dart
+@Riverpod(keepAlive: true)
+class MyLoanNotifier extends _$MyLoanNotifier { }
+
+@Riverpod(keepAlive: true)
+class LoanCalculatorNotifier extends _$LoanCalculatorNotifier { }
+```
+
+**Razón**: Mantener el estado del préstamo en memoria durante toda la sesión de la aplicación.
+
+### 2. Reset Global en MyLoanScreen
+
+**Problema que resuelve**: Evitar inconsistencias entre módulos cuando el usuario regresa de flujos de aceptación o solicitud de préstamos.
+
+**Implementación**:
+
+```dart
+Future<void> _performGlobalReset() async {
+  await ref.read(authProvider.notifier).getUser();
+  ref.read(acceptLoanProvider.notifier).reset();
+  await ref.read(myLoanProvider.notifier).loadLoanData();
+}
+```
+
+### 3. Validación de Días según ClientStatus
+
+Los días disponibles para préstamos están filtrados según el nivel del cliente:
+
+-   **Status 2-3**: Solo 34 días
+-   **Status 4-6**: 34 o 62 días
+-   **Status 7+**: 34, 62 o 90 días
+
+### 4. Cálculo de Montos
+
+```dart
+// Fórmulas de cálculo
+administrativeAmount = concepts.reduce((a, b) => a + b.amount)
+administrativeAmountWithDiscount = administrativeAmount * (1 - promoCodeDiscount)
+ivaAmount = (interestAmount + administrativeAmountWithDiscount) * (iva / 100)
+totalRefundAmount = loanAmount + interestAmount + administrativeAmountWithDiscount + ivaAmount
+youReceive = loanAmount - administrativeAmountWithDiscount - ivaAmount
+```
+
+### 5. Mappers DTO → Entity
+
+Los mappers convierten datos de API (DTOs) a entidades de dominio:
+
+```dart
+extension MyLoanResponseDtoX on MyLoanResponseDto {
+  LoanEntity toEntity() {
+    return LoanEntity(
+      userStatus: userStatus,
+      loanStatus: loanStatus,
+      // ... más campos
+    );
+  }
+}
+```
+
+---
+
+## Dependencias Clave
+
+-   **flutter_riverpod**: Gestión de estado
+-   **freezed**: Generación de modelos inmutables
+-   **formz**: Validación de formularios
+-   **go_router**: Navegación
+-   **dio**: HTTP client
+-   **syncfusion_flutter_sliders**: Sliders interactivos
+-   **intl**: Formateo de fechas
