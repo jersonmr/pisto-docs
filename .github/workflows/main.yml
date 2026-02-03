@@ -1,0 +1,46 @@
+name: Deploy Pisto Docs Site
+
+on:
+  push:
+    branches:
+      - main # Cambia esto si tu rama principal tiene otro nombre
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Instalar pnpm antes que Node
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9 # O la versión que prefieras de pnpm
+
+      # 2. Configurar Node usando el cache de pnpm
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      # 3. Instalar dependencias con pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 4. Construir el proyecto Astro
+      - name: Build Astro project
+        run: pnpm run build
+
+      # 5. Desplegar a Forge via SSH (Solo la carpeta dist)
+      - name: Deploy to Forge via SSH
+        uses: Burnett01/rsync-deployments@7.0.0
+        with:
+          switches: -avzr --delete
+          path: dist/
+          remote_path: /home/forge/docs.pisto.co/public
+          remote_host: ${{ secrets.FORGE_SERVER_IP }}
+          remote_user: forge
+          remote_key: ${{ secrets.FORGE_PRIVATE_KEY }}
