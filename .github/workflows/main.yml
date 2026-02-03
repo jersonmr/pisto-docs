@@ -45,6 +45,6 @@ jobs:
           path: dist/
           remote_path: /home/forge/docs.pisto.co/current/public/
           # Forzamos la lectura limpia de las variables
-          remote_host: ${{ secrets.FORGE_SERVER_IP }}
+          remote_host: 16.58.155.254
           remote_user: forge
           remote_key: ${{ secrets.FORGE_PRIVATE_KEY }}
