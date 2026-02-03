@@ -43,7 +43,7 @@ jobs:
         with:
           switches: -avzr --delete
           path: dist/
-          remote_path: /home/forge/docs.pisto.co/public
+          remote_path: /home/forge/docs.pisto.co/current/public/
           remote_host: ${{ secrets.FORGE_SERVER_IP }}
           remote_user: forge
           remote_key: ${{ secrets.FORGE_PRIVATE_KEY }}
