@@ -44,7 +44,7 @@ jobs:
           switches: -avzr --delete
           path: dist/
           remote_path: /home/forge/docs.pisto.co/current/public/
-          # Usamos comillas dobles para evitar que el shell ignore el valor
-          remote_host: "${{ secrets.FORGE_SERVER_IP }}"
-          remote_user: "forge"
-          remote_key: "${{ secrets.FORGE_PRIVATE_KEY }}"
+          # Forzamos la lectura limpia de las variables
+          remote_host: ${{ secrets.FORGE_SERVER_IP }}
+          remote_user: forge
+          remote_key: ${{ secrets.FORGE_PRIVATE_KEY }}
